@@ -131,6 +131,22 @@ input:focus, select:focus { border-color: var(--accent); }
 .players-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .profile-slot   { display: flex; flex-direction: column; gap: 10px; }
 
+/* ── Player selector chips ─────────────────────────────── */
+.players-sel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+.sel-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px; border-radius: 10px; cursor: pointer;
+  border: 1.5px solid var(--border2); background: var(--surface2);
+  transition: border-color .15s, background .15s;
+  font-size: 18px;
+}
+.sel-chip:hover    { border-color: var(--accent); }
+.sel-chip--on      { border-color: var(--accent); background: rgba(0,229,255,.1); }
+
 /* ── Login ─────────────────────────────────────────────── */
 .login-page {
   min-height: 100dvh;
