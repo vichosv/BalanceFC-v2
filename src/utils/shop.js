@@ -23,10 +23,21 @@ export const SHOP_ITEMS = [
   { id:'frame_ice',      category:'frame', name:'Hielo',     emoji:'❄️', price:8,  desc:'Frío como el acero' },
   { id:'frame_gold',     category:'frame', name:'Dorado',    emoji:'✨', price:10, desc:'Solo para los mejores' },
   { id:'frame_rainbow',  category:'frame', name:'Rainbow',   emoji:'🌈', price:10, desc:'No hay uno igual' },
+
+  // ── Stickers ────────────────────────────────────────────────────
+  { id:'sticker_fire',   category:'sticker', name:'Fuego',    emoji:'🔥', price:0,  desc:'Clásico ardiente' },
+  { id:'sticker_star',   category:'sticker', name:'Estrella', emoji:'⭐', price:3,  desc:'Para los que brillan' },
+  { id:'sticker_bolt',   category:'sticker', name:'Rayo',     emoji:'⚡', price:3,  desc:'Velocidad pura' },
+  { id:'sticker_crown',  category:'sticker', name:'Corona',   emoji:'👑', price:5,  desc:'Para reyes del campo' },
+  { id:'sticker_skull',  category:'sticker', name:'Calavera', emoji:'💀', price:5,  desc:'Para los más temidos' },
+  { id:'sticker_lion',   category:'sticker', name:'León',     emoji:'🦁', price:6,  desc:'El rey de la cancha' },
+  { id:'sticker_gem',    category:'sticker', name:'Diamante', emoji:'💎', price:8,  desc:'Clase premium' },
+  { id:'sticker_dragon', category:'sticker', name:'Dragón',   emoji:'🐉', price:10, desc:'Legendario' },
 ];
 
 export const CATEGORIES = [
   { id:'accent',  label:'🎨 Acento',  desc:'Color del OVR y detalles de la carta' },
   { id:'pattern', label:'🔲 Patrón',  desc:'Textura sobre el fondo' },
   { id:'frame',   label:'🖼️ Marco',   desc:'Efecto de borde y glow' },
+  { id:'sticker', label:'🏷️ Sticker', desc:'Emoji bajo el símbolo de posición' },
 ];

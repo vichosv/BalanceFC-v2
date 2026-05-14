@@ -42,10 +42,11 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
 
   // ── Equipamiento cosmético ──
   const equipped    = player.equipped || {};
-  const accentItem  = equipped.accent  ? SHOP_ITEMS.find(i => i.id === equipped.accent)  : null;
-  const patternItem = equipped.pattern ? SHOP_ITEMS.find(i => i.id === equipped.pattern) : null;
-  const frameItem   = equipped.frame   ? SHOP_ITEMS.find(i => i.id === equipped.frame)   : null;
-  const accentColor = accentItem?.color || null;
+  const accentItem   = equipped.accent  ? SHOP_ITEMS.find(i => i.id === equipped.accent)  : null;
+  const patternItem  = equipped.pattern ? SHOP_ITEMS.find(i => i.id === equipped.pattern) : null;
+  const frameItem    = equipped.frame   ? SHOP_ITEMS.find(i => i.id === equipped.frame)   : null;
+  const stickerItem  = equipped.sticker ? SHOP_ITEMS.find(i => i.id === equipped.sticker) : null;
+  const accentColor  = accentItem?.color || null;
   const patternClass = patternItem ? `fp-${patternItem.id.replace('pattern_', '')}` : '';
   const frameClass   = frameItem   ? `ff-${frameItem.id.replace('frame_', '')}`     : '';
 
@@ -97,6 +98,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
           </div>
           <div className="fc-right">
             <div className="fc-spi">{pos.emoji}</div>
+            {stickerItem && <div className="fc-sticker">{stickerItem.emoji}</div>}
           </div>
         </div>
 
