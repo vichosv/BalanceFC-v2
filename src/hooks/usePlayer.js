@@ -10,7 +10,7 @@ export function usePlayer(uid) {
   useEffect(() => {
     if (!uid) { setLoading(false); return; }
     const unsub = onSnapshot(doc(db, 'players', uid), snap => {
-      setPlayer(snap.exists() ? snap.data() : null);
+      setPlayer(snap.exists() ? { uid: snap.id, ...snap.data() } : null);
       setLoading(false);
     });
     return unsub;
@@ -26,7 +26,7 @@ export function usePlayers() {
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'players'), snap => {
-      setPlayers(snap.docs.map(d => d.data()));
+      setPlayers(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
       setLoading(false);
     });
     return unsub;
