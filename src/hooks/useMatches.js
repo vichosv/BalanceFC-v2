@@ -37,15 +37,23 @@ export async function logMatch(data) {
 
   const updates = [];
 
+  const sid = data.seasonId || null;
+
   const updateTeam = (team, score, mvp, wins) => {
     team.forEach(p => {
-      updates.push(
-        updateDoc(doc(db, 'players', p.uid), {
-          'history.matches': increment(1),
-          'history.wins':    increment(wins ? 1 : 0),
-          'history.mvps':    increment(p.uid === mvp ? 1 : 0),
-        })
-      );
+      const isMvp = p.uid === mvp;
+      const global = {
+        'history.matches': increment(1),
+        'history.wins':    increment(wins ? 1 : 0),
+        'history.mvps':    increment(isMvp ? 1 : 0),
+      };
+      // Season-specific stats
+      const seasonal = sid ? {
+        [`seasons.${sid}.matches`]: increment(1),
+        [`seasons.${sid}.wins`]:    increment(wins ? 1 : 0),
+        [`seasons.${sid}.mvps`]:    increment(isMvp ? 1 : 0),
+      } : {};
+      updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal }));
     });
   };
 
