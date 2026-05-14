@@ -137,16 +137,6 @@ export default function PlayersPage({ ctx }) {
               {/* Expandible */}
               {editId === p.uid && (
                 <>
-                  {/* Posición */}
-                  <div style={{ marginBottom:12 }}>
-                    <label>Posición</label>
-                    <select value={p.position} onChange={e => updatePosition(p.uid, e.target.value)}>
-                      {Object.values(POSITIONS).map(pos => (
-                        <option key={pos.id} value={pos.id}>{pos.emoji} {pos.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
                   {/* Sliders */}
                   {SK.map(s => (
                     <div key={s.key} style={{ marginBottom:8 }}>
