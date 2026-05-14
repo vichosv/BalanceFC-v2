@@ -23,7 +23,11 @@ export default function PlayersPage({ ctx }) {
 
   const sorted = [...players]
     .filter(p => (p.nickname || '').toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => overall(b) - overall(a));
+    .sort((a, b) =>
+      tab === 'admin'
+        ? (a.nickname || '').localeCompare(b.nickname || '')
+        : overall(b) - overall(a)
+    );
 
   async function updateStat(uid, key, val) {
     await updateDoc(doc(db, 'players', uid), { [key]: parseInt(val) });
