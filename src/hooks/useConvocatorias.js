@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  collection, onSnapshot, addDoc, updateDoc,
-  deleteDoc, doc, query, orderBy, serverTimestamp
-} from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export function useConvocatorias() {
@@ -25,35 +22,28 @@ export async function createConvocatoria(data) {
   return addDoc(collection(db, 'convocatorias'), {
     ...data,
     confirmados: [],
-    maybe:       [],
-    rechazados:  [],
     status:      'open',
     createdAt:   Date.now(),
   });
 }
 
-export async function respondConvocatoria(convId, allLists, player, response) {
-  // Remove player from all lists first
-  const clean = list => (list || []).filter(p => p.uid !== player.uid);
-
-  const update = {
-    confirmados: clean(allLists.confirmados),
-    maybe:       clean(allLists.maybe),
-    rechazados:  clean(allLists.rechazados),
-  };
-
-  // Add to the chosen list (except if response is 'remove')
-  if (response !== 'remove') {
-    const entry = {
+export async function joinConvocatoria(convId, confirmados, player) {
+  const already = confirmados.some(p => p.uid === player.uid);
+  if (already) return;
+  await updateDoc(doc(db, 'convocatorias', convId), {
+    confirmados: [...confirmados, {
       uid:       player.uid,
       nickname:  player.nickname,
       position:  player.position,
       timestamp: Date.now(),
-    };
-    update[response] = [...update[response], entry];
-  }
+    }],
+  });
+}
 
-  await updateDoc(doc(db, 'convocatorias', convId), update);
+export async function leaveConvocatoria(convId, confirmados, uid) {
+  await updateDoc(doc(db, 'convocatorias', convId), {
+    confirmados: confirmados.filter(p => p.uid !== uid),
+  });
 }
 
 export async function deleteConvocatoria(convId) {
