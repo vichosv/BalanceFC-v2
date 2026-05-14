@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
 import '../components/PlayerCard.css';
-import { overall, SK, uid } from '../utils/stats';
-import { saveClub } from '../firebase/db';
+import { overall, SK } from '../utils/stats';
 
 const POSITIONS = {
   GK:  { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -15,52 +16,30 @@ const POSITIONS = {
 const DEFAULT_STATS = { vel:50, tec:50, def:50, tir:50, sta:50, fis:50 };
 
 export default function PlayersPage({ ctx }) {
-  const { club, isAdmin } = ctx;
-  const players = club?.players ?? [];
+  const { players = [], isAdmin } = ctx;
 
-  const [editId,   setEditId]   = useState(null);
-  const [addName,  setAddName]  = useState('');
-  const [addPos,   setAddPos]   = useState('FWD');
-  const [search,   setSearch]   = useState('');
-  const [error,    setError]    = useState('');
+  const [editId,  setEditId]  = useState(null);
+  const [search,  setSearch]  = useState('');
 
   const sorted = [...players]
-    .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+    .filter(p => (p.nickname||p.name||'').toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => overall(b) - overall(a));
 
-  // ── Add player ────────────────────────────────────────────
-  async function addPlayer() {
-    const name = addName.trim();
-    if (!name) return;
-    if (players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-      setError('Ya existe ese nombre'); return;
-    }
-    const newPlayer = {
-      id: uid(), name, position: addPos, emoji: '⚽',
-      ...DEFAULT_STATS,
-      history: { matches:0, wins:0, losses:0, draws:0, mvps:0, goals:0, assists:0 },
-    };
-    await saveClub({ players: [...players, newPlayer] });
-    setAddName(''); setError('');
+  // ── Update stat ───────────────────────────────────────────
+  async function updateStat(id, key, val) {
+    await updateDoc(doc(db, 'players', id), { [key]: parseInt(val) });
+  }
+
+  // ── Update position ───────────────────────────────────────
+  async function updatePosition(id, pos) {
+    await updateDoc(doc(db, 'players', id), { position: pos });
   }
 
   // ── Remove player ─────────────────────────────────────────
   async function removePlayer(id) {
     if (!window.confirm('¿Eliminar jugador?')) return;
-    await saveClub({ players: players.filter(p => p.id !== id) });
+    await deleteDoc(doc(db, 'players', id));
     if (editId === id) setEditId(null);
-  }
-
-  // ── Update stat ───────────────────────────────────────────
-  async function updateStat(id, key, val) {
-    const updated = players.map(p => p.id === id ? { ...p, [key]: parseInt(val) } : p);
-    await saveClub({ players: updated });
-  }
-
-  // ── Update position ───────────────────────────────────────
-  async function updatePosition(id, pos) {
-    const updated = players.map(p => p.id === id ? { ...p, position: pos } : p);
-    await saveClub({ players: updated });
   }
 
   // ── Photo upload ──────────────────────────────────────────
@@ -70,54 +49,23 @@ export default function PlayersPage({ ctx }) {
     inp.onchange = async e => {
       const file = e.target.files[0]; if (!file) return;
       const b64 = await resizeImage(file, 320);
-      const updated = players.map(p => p.id === id ? { ...p, photo: b64 } : p);
-      await saveClub({ players: updated });
+      await updateDoc(doc(db, 'players', id), { photo: b64 });
     };
     inp.click();
   }
 
   async function removePhoto(id) {
-    const updated = players.map(p => {
-      if (p.id !== id) return p;
-      const { photo, ...rest } = p; return rest;
-    });
-    await saveClub({ players: updated });
+    await updateDoc(doc(db, 'players', id), { photo: null });
   }
-
-  const editing = players.find(p => p.id === editId);
 
   return (
     <div className="page">
       <div className="page-title">👥 Jugadores</div>
 
-      {/* ── Add player (admin) ── */}
-      {isAdmin && (
-        <div className="card" style={{ marginBottom: 14 }}>
-          <div style={{ fontWeight:700, fontSize:13, marginBottom:10 }}>+ Agregar jugador</div>
-          <div className="grid-2" style={{ marginBottom: 10 }}>
-            <div>
-              <label>Nombre</label>
-              <input
-                value={addName}
-                onChange={e => { setAddName(e.target.value); setError(''); }}
-                onKeyDown={e => e.key === 'Enter' && addPlayer()}
-                placeholder="Nombre del jugador..."
-                maxLength={20}
-              />
-            </div>
-            <div>
-              <label>Posición</label>
-              <select value={addPos} onChange={e => setAddPos(e.target.value)}>
-                {Object.values(POSITIONS).map(p => (
-                  <option key={p.id} value={p.id}>{p.emoji} {p.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          {error && <div style={{ color:'var(--red)', fontSize:12, marginBottom:8 }}>⚠️ {error}</div>}
-          <button className="btn btn-ac btn-full" onClick={addPlayer}>+ Agregar</button>
-        </div>
-      )}
+      {/* ── Player count ── */}
+      <div style={{ color:'var(--muted)', fontSize:12, marginBottom:10 }}>
+        {players.length} jugador{players.length !== 1 ? 'es' : ''} registrado{players.length !== 1 ? 's' : ''}
+      </div>
 
       {/* ── Search ── */}
       <input

@@ -147,6 +147,21 @@ input:focus, select:focus { border-color: var(--accent); }
 .sel-chip:hover    { border-color: var(--accent); }
 .sel-chip--on      { border-color: var(--accent); background: rgba(0,229,255,.1); }
 
+/* ── Onboarding ────────────────────────────────────────── */
+.onboarding-wrap {
+  min-height: 100dvh; display: flex; align-items: center;
+  justify-content: center; padding: 24px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.07) 0%, transparent 65%), var(--bg);
+}
+.onboarding-card {
+  width: 100%; max-width: 360px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px 24px;
+}
+.ob-label {
+  font-size: 15px; font-weight: 700; margin-bottom: 12px; text-align: center;
+}
+
 /* ── Login ─────────────────────────────────────────────── */
 .login-page {
   min-height: 100dvh;

@@ -1,43 +1,38 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
-import { getUserProfile, saveUserProfile } from '../firebase/db';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, googleProvider, db } from '../firebase/config';
 
 export function useAuth() {
-  const [user, setUser]       = useState(undefined); // undefined = loading
+  const [user,    setUser]    = useState(undefined); // undefined = loading
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+    let profileUnsub = null;
+
+    const authUnsub = onAuthStateChanged(auth, firebaseUser => {
       setUser(firebaseUser);
+      if (profileUnsub) { profileUnsub(); profileUnsub = null; }
+
       if (firebaseUser) {
-        let p = await getUserProfile(firebaseUser.uid);
-        if (!p) {
-          // First login — create profile
-          p = {
-            uid: firebaseUser.uid,
-            displayName: firebaseUser.displayName,
-            email: firebaseUser.email,
-            photo: firebaseUser.photoURL,
-            playerId: null, // linked player profile
-            isAdmin: false,
-            createdAt: Date.now(),
-          };
-          await saveUserProfile(firebaseUser.uid, p);
-        }
-        setProfile(p);
+        // Real-time subscription to user doc
+        profileUnsub = onSnapshot(doc(db, 'users', firebaseUser.uid), snap => {
+          setProfile(snap.exists() ? snap.data() : null);
+        });
       } else {
         setProfile(null);
       }
     });
-    return unsub;
+
+    return () => { authUnsub(); if (profileUnsub) profileUnsub(); };
   }, []);
 
-  const login = () => signInWithPopup(auth, googleProvider);
+  const login  = () => signInWithPopup(auth, googleProvider);
   const logout = () => signOut(auth);
 
-  const isAdmin  = profile?.isAdmin === true;
-  const loading  = user === undefined;
+  const isAdmin    = profile?.isAdmin    === true;
+  const onboarded  = profile?.onboarded  === true;
+  const loading    = user === undefined;
 
-  return { user, profile, isAdmin, loading, login, logout };
+  return { user, profile, isAdmin, onboarded, loading, login, logout };
 }

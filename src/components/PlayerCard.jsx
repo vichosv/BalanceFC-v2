@@ -93,7 +93,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
           )
         }
 
-        <div className="fc-name">{player.name}</div>
+        <div className="fc-name">{player.nickname || player.name}</div>
         <div className="fc-sub">{pos.name.toUpperCase()}</div>
         <div className="fc-div" />
         <div className="fc-stats">{statsHTML}</div>
