@@ -21,47 +21,46 @@ export function useMatches() {
   return { matches, loading };
 }
 
+// data.playerStats = { [uid]: { goals: n, assists: n } }
 export async function logMatch(data) {
-  const { teamA, teamB, teamC, scoreA, scoreB, scoreC, mvpA, mvpB, mvpC, triangular } = data;
+  const { teamA, teamB, teamC, scoreA, scoreB, scoreC, triangular, playerStats = {}, seasonId } = data;
 
-  // Save match document
   await addDoc(collection(db, 'matches'), { ...data, createdAt: Date.now() });
 
-  // Determine winners (2-team)
-  const aWin = !triangular && scoreA > scoreB;
-  const bWin = !triangular && scoreB > scoreA;
-
-  // Triangular: team with most goals wins; tie → both win
+  const aWin   = !triangular && scoreA > scoreB;
+  const bWin   = !triangular && scoreB > scoreA;
   const triMax = triangular ? Math.max(scoreA, scoreB, scoreC) : 0;
-  const triWin = (score) => triangular && score === triMax;
+  const triWin = score => triangular && score === triMax;
 
+  const sid     = seasonId || null;
   const updates = [];
 
-  const sid = data.seasonId || null;
-
-  const updateTeam = (team, score, mvp, wins) => {
+  const updateTeam = (team, wins) => {
     team.forEach(p => {
-      const isMvp = p.uid === mvp;
+      const ps      = playerStats[p.uid] || {};
+      const goals   = ps.goals   || 0;
+      const assists = ps.assists || 0;
+
       const global = {
         'history.matches': increment(1),
         'history.wins':    increment(wins ? 1 : 0),
-        'history.mvps':    increment(isMvp ? 1 : 0),
+        'history.goals':   increment(goals),
+        'history.assists': increment(assists),
       };
-      // Season-specific stats
       const seasonal = sid ? {
         [`seasons.${sid}.matches`]: increment(1),
         [`seasons.${sid}.wins`]:    increment(wins ? 1 : 0),
-        [`seasons.${sid}.mvps`]:    increment(isMvp ? 1 : 0),
+        [`seasons.${sid}.goals`]:   increment(goals),
+        [`seasons.${sid}.assists`]: increment(assists),
       } : {};
+
       updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal }));
     });
   };
 
-  updateTeam(teamA, scoreA, mvpA, triangular ? triWin(scoreA) : aWin);
-  updateTeam(teamB, scoreB, mvpB, triangular ? triWin(scoreB) : bWin);
-  if (triangular && teamC?.length) {
-    updateTeam(teamC, scoreC, mvpC, triWin(scoreC));
-  }
+  updateTeam(teamA, triangular ? triWin(scoreA) : aWin);
+  updateTeam(teamB, triangular ? triWin(scoreB) : bWin);
+  if (triangular && teamC?.length) updateTeam(teamC, triWin(scoreC));
 
   await Promise.all(updates);
 }
