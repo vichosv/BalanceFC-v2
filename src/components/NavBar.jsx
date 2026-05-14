@@ -1,4 +1,5 @@
 const TABS = [
+  { id:'inicio',    label:'Inicio',    icon:'🏠' },
   { id:'jugadores', label:'Jugadores', icon:'👥' },
   { id:'partido',   label:'Partido',   icon:'⚽' },
   { id:'historial', label:'Historial', icon:'📊' },
