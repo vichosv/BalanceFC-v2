@@ -1,16 +1,45 @@
+import { useState, useEffect } from 'react';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useMatches }       from '../hooks/useMatches';
 import { useSeasons }       from '../hooks/useSeasons';
 import { overall, tier }    from '../utils/stats';
 import '../components/PlayerCard.css';
 
-const NAV_CARDS = [
-  { tab:'jugadores', emoji:'👥', label:'Jugadores',    desc:'Plantel y cartas FC',       color:'var(--accent)',  bg:'rgba(0,229,255,.07)',  border:'rgba(0,229,255,.2)'  },
-  { tab:'partido',   emoji:'⚽', label:'Partido',      desc:'Generar equipos',            color:'var(--green)',   bg:'rgba(0,230,118,.07)',  border:'rgba(0,230,118,.2)'  },
-  { tab:'conv',      emoji:'📋', label:'Convocatoria', desc:'Confirmar asistencia',       color:'var(--yellow)',  bg:'rgba(255,215,64,.07)', border:'rgba(255,215,64,.2)' },
-  { tab:'historial', emoji:'📊', label:'Historial',    desc:'Partidos y ranking',         color:'var(--orange)',  bg:'rgba(255,145,0,.07)',  border:'rgba(255,145,0,.2)'  },
-  { tab:'perfil',    emoji:'👤', label:'Mi perfil',    desc:'Carta, stats y logros',      color:'var(--purple)',  bg:'rgba(196,126,255,.07)',border:'rgba(196,126,255,.2)'},
-];
+// ── Ranking score (igual que HistoryPage) ────────────────────
+function calcPts(p, sid) {
+  const s  = sid ? (p.seasons?.[sid] || {}) : (p.history || {});
+  const pj = s.matches || 0;
+  if (!pj) return 0;
+  const wr  = (s.wins    || 0) / pj;
+  const gpm = (s.goals   || 0) / pj;
+  const apm = (s.assists || 0) / pj;
+  return Math.round(wr * 50 + gpm * 25 + apm * 15 + pj * 2);
+}
+
+// ── Countdown hook ────────────────────────────────────────────
+function useCountdown(targetDate, targetTime) {
+  const [remaining, setRemaining] = useState(null);
+
+  useEffect(() => {
+    if (!targetDate || !targetTime) { setRemaining(null); return; }
+    const tick = () => {
+      const target = new Date(`${targetDate}T${targetTime}`);
+      const diff   = target - Date.now();
+      if (diff <= 0) { setRemaining({ passed: true }); return; }
+      setRemaining({
+        d: Math.floor(diff / 86400000),
+        h: Math.floor(diff % 86400000 / 3600000),
+        m: Math.floor(diff % 3600000  / 60000),
+        s: Math.floor(diff % 60000    / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetDate, targetTime]);
+
+  return remaining;
+}
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -18,121 +47,180 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' });
 }
 
-export default function HomePage({ ctx, onNavigate }) {
+// ─────────────────────────────────────────────────────────────
+export default function HomePage({ ctx }) {
   const { user, players = [], isAdmin } = ctx;
   const { convocatorias } = useConvocatorias();
   const { matches }       = useMatches();
   const { activeSeason }  = useSeasons();
 
-  const player      = players.find(p => p.uid === user?.uid);
-  const ov          = player ? overall(player) : null;
-  const t           = ov ? tier(ov) : null;
+  const sid      = activeSeason?.id || null;
+  const player   = players.find(p => p.uid === user?.uid);
+  const ov       = player ? overall(player) : null;
+  const t        = ov ? tier(ov) : null;
+
   const nextConv    = convocatorias.find(c => c.status === 'open');
   const totalConf   = nextConv?.confirmados?.length || 0;
   const isConfirmed = nextConv?.confirmados?.some(p => p.uid === user?.uid);
+  const countdown   = useCountdown(nextConv?.date, nextConv?.time);
   const lastMatch   = matches[0] || null;
+
+  // ── Ranking ──
+  const ranked = [...players]
+    .map(p => ({ ...p, pts: calcPts(p, sid) }))
+    .sort((a, b) => b.pts - a.pts);
+
+  const myIdx   = ranked.findIndex(p => p.uid === user?.uid);
+  const myRank  = myIdx >= 0 ? myIdx + 1 : null;
+  const above   = myIdx > 0 ? ranked[myIdx - 1] : null;
+  const below   = myIdx >= 0 && myIdx < ranked.length - 1 ? ranked[myIdx + 1] : null;
+
+  // ── Goles esta temporada ──
+  const myGoals = sid
+    ? (player?.seasons?.[sid]?.goals || 0)
+    : (player?.history?.goals || 0);
 
   return (
     <div className="page">
 
       {/* ── Hero ── */}
-      <div style={{ textAlign:'center', padding:'24px 0 28px',
+      <div style={{ textAlign:'center', padding:'24px 0 24px',
         background:'radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.1) 0%, transparent 70%)',
-        borderRadius:20, marginBottom:20 }}>
-        <div style={{ fontSize:56, marginBottom:8,
+        borderRadius:20, marginBottom:16 }}>
+        <div style={{ fontSize:52, marginBottom:6,
           filter:'drop-shadow(0 0 20px rgba(0,229,255,.4))' }}>⚽</div>
         <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
-          fontSize:40, fontWeight:900, letterSpacing:2, lineHeight:1,
+          fontSize:38, fontWeight:900, letterSpacing:2, lineHeight:1,
           background:'linear-gradient(135deg,#fff 0%,var(--accent) 70%)',
           WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
           BalanceFC
         </div>
-        <div style={{ color:'var(--muted)', fontSize:13, marginTop:6 }}>
+        <div style={{ color:'var(--muted)', fontSize:12, marginTop:5 }}>
           Fút de barrio · Stats y equipos justos
         </div>
 
-        {/* Mini carta del usuario */}
         {player && (
           <div style={{ display:'inline-flex', alignItems:'center', gap:12,
-            marginTop:20, background:'var(--surface)', border:'1px solid var(--border)',
+            marginTop:16, background:'var(--surface)', border:'1px solid var(--border)',
             borderRadius:14, padding:'10px 18px' }}>
             {player.photo
-              ? <img src={player.photo} alt="" style={{ width:44, height:44,
+              ? <img src={player.photo} alt="" style={{ width:40, height:40,
                   borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)' }} />
-              : <div className={`fc ${t}`} style={{ width:44, aspectRatio:'.68',
-                  borderRadius:8, overflow:'hidden', flexShrink:0 }}>
+              : <div className={`fc ${t}`} style={{ width:40, aspectRatio:'.68',
+                  borderRadius:6, overflow:'hidden', flexShrink:0 }}>
                   <div className="fc-bg" />
                 </div>
             }
             <div style={{ textAlign:'left' }}>
-              <div style={{ fontWeight:700, fontSize:15 }}>{player.nickname}</div>
-              <div style={{ fontSize:12, color:'var(--muted)' }}>
-                OVR {ov} · {isAdmin ? '⚡ Admin' : 'Jugador'}
+              <div style={{ fontWeight:700, fontSize:14 }}>{player.nickname}</div>
+              <div style={{ fontSize:11, color:'var(--muted)' }}>
+                OVR {ov}{isAdmin ? ' · ⚡ Admin' : ''}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Próxima convocatoria ── */}
-      {nextConv && (
-        <div onClick={() => onNavigate('conv')}
-          style={{ cursor:'pointer', marginBottom:16, padding:'14px 16px', borderRadius:14,
-            background:'rgba(255,215,64,.07)', border:'1px solid rgba(255,215,64,.25)',
-            display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <div>
-            <div style={{ fontSize:11, color:'var(--yellow)', fontWeight:700,
-              textTransform:'uppercase', letterSpacing:1, marginBottom:3 }}>
-              Próximo partido
-            </div>
-            <div style={{ fontWeight:700, fontSize:15, textTransform:'capitalize' }}>
-              {formatDate(nextConv.date)}
-            </div>
-            <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>
-              🕐 {nextConv.time} · 📍 {nextConv.place}
-            </div>
-          </div>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28,
-              fontWeight:900, color: isConfirmed ? 'var(--green)' : 'var(--yellow)' }}>
-              {totalConf}/{nextConv.maxPlayers}
-            </div>
-            <div style={{ fontSize:11, color:'var(--muted)' }}>confirmados</div>
-            {isConfirmed && (
-              <div style={{ fontSize:11, color:'var(--green)', fontWeight:700, marginTop:2 }}>
-                ✅ Vas
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* ── Stats rápidos ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:20 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:16 }}>
         {[
-          { val: players.length,  lbl:'Jugadores' },
-          { val: matches.length,  lbl:'Partidos'  },
-          { val: activeSeason ? activeSeason.name.split(' ')[0] + ' ' + (activeSeason.name.split(' ')[1] || '') : '—',
-            lbl:'Temporada', small: true },
-        ].map(({ val, lbl, small }) => (
+          { val: players.length, lbl: 'Jugadores' },
+          { val: matches.length, lbl: 'Partidos'  },
+          { val: myGoals,        lbl: sid ? 'Goles temp.' : 'Goles' },
+        ].map(({ val, lbl }) => (
           <div key={lbl} style={{ background:'var(--surface)', border:'1px solid var(--border)',
             borderRadius:12, padding:'12px 8px', textAlign:'center' }}>
             <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
-              fontSize: small ? 16 : 26, fontWeight:900, color:'var(--accent)', lineHeight:1.1 }}>
-              {val}
-            </div>
+              fontSize:26, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>{val}</div>
             <div style={{ fontSize:10, color:'var(--muted)', fontWeight:700,
               textTransform:'uppercase', letterSpacing:.5, marginTop:4 }}>{lbl}</div>
           </div>
         ))}
       </div>
 
+      {/* ── Próximo partido + countdown ── */}
+      {nextConv && (
+        <div style={{ marginBottom:16, borderRadius:14, overflow:'hidden',
+          border:'1px solid rgba(255,215,64,.25)', background:'rgba(255,215,64,.05)' }}>
+
+          {/* Info */}
+          <div style={{ padding:'14px 16px', display:'flex',
+            justifyContent:'space-between', alignItems:'center',
+            borderBottom:'1px solid rgba(255,215,64,.15)' }}>
+            <div>
+              <div style={{ fontSize:11, color:'var(--yellow)', fontWeight:700,
+                textTransform:'uppercase', letterSpacing:1, marginBottom:3 }}>
+                Próximo partido
+              </div>
+              <div style={{ fontWeight:700, fontSize:14, textTransform:'capitalize' }}>
+                {formatDate(nextConv.date)}
+              </div>
+              <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>
+                🕐 {nextConv.time} · 📍 {nextConv.place}
+              </div>
+            </div>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26,
+                fontWeight:900, color: isConfirmed ? 'var(--green)' : 'var(--yellow)' }}>
+                {totalConf}/{nextConv.maxPlayers}
+              </div>
+              <div style={{ fontSize:10, color:'var(--muted)' }}>confirmados</div>
+              {isConfirmed && (
+                <div style={{ fontSize:11, color:'var(--green)', fontWeight:700, marginTop:2 }}>✅ Vas</div>
+              )}
+            </div>
+          </div>
+
+          {/* Countdown */}
+          <div style={{ padding:'12px 16px', textAlign:'center' }}>
+            {countdown?.passed ? (
+              <div style={{ color:'var(--green)', fontWeight:700, fontSize:14 }}>¡El partido es ahora!</div>
+            ) : countdown ? (
+              <div style={{ display:'flex', justifyContent:'center', gap:12 }}>
+                {countdown.d > 0 && (
+                  <CountUnit val={countdown.d} lbl="días" />
+                )}
+                <CountUnit val={countdown.h} lbl="hrs" />
+                <CountUnit val={countdown.m} lbl="min" />
+                <CountUnit val={countdown.s} lbl="seg" color="var(--yellow)" />
+              </div>
+            ) : (
+              <div style={{ color:'var(--muted)', fontSize:12 }}>Sin fecha definida</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Ranking ── */}
+      {myRank && (
+        <div style={{ marginBottom:16, borderRadius:14, overflow:'hidden',
+          border:'1px solid var(--border)', background:'var(--surface)' }}>
+          <div style={{ padding:'10px 16px', borderBottom:'1px solid var(--border)',
+            fontSize:11, fontWeight:700, color:'var(--muted)',
+            textTransform:'uppercase', letterSpacing:1 }}>
+            {sid ? `Ranking — ${activeSeason.name}` : 'Ranking global'}
+          </div>
+
+          {/* Jugador arriba */}
+          {above && (
+            <RankRow player={above} rank={myRank - 1} dim />
+          )}
+
+          {/* Yo */}
+          <RankRow player={ranked[myIdx]} rank={myRank} highlight />
+
+          {/* Jugador abajo */}
+          {below && (
+            <RankRow player={below} rank={myRank + 1} dim />
+          )}
+        </div>
+      )}
+
       {/* ── Último partido ── */}
       {lastMatch && (
-        <div onClick={() => onNavigate('historial')}
-          style={{ cursor:'pointer', marginBottom:20, padding:'12px 16px', borderRadius:14,
-            background:'var(--surface)', border:'1px solid var(--border)',
-            display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ padding:'12px 16px', borderRadius:14,
+          background:'var(--surface)', border:'1px solid var(--border)',
+          display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
             <div style={{ fontSize:11, color:'var(--muted)', fontWeight:700,
               textTransform:'uppercase', letterSpacing:1, marginBottom:3 }}>
@@ -140,34 +228,54 @@ export default function HomePage({ ctx, onNavigate }) {
             </div>
             <div style={{ fontSize:13, color:'var(--text)' }}>{lastMatch.format}</div>
           </div>
-          <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26,
-            fontWeight:900, color:'var(--text)' }}>
+          <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
+            fontSize:26, fontWeight:900, color:'var(--text)' }}>
             {lastMatch.scoreA} – {lastMatch.scoreB}
             {lastMatch.triangular ? ` – ${lastMatch.scoreC}` : ''}
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* ── Acceso rápido ── */}
-      <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-        textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>
-        Acceso rápido
+// ── Helpers ───────────────────────────────────────────────────
+function CountUnit({ val, lbl, color = 'var(--text)' }) {
+  return (
+    <div style={{ textAlign:'center', minWidth:42 }}>
+      <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
+        fontSize:30, fontWeight:900, color, lineHeight:1 }}>
+        {String(val).padStart(2, '0')}
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:10 }}>
-        {NAV_CARDS.map(n => (
-          <div key={n.tab} onClick={() => onNavigate(n.tab)}
-            style={{ background:n.bg, border:`1px solid ${n.border}`,
-              borderRadius:14, padding:'14px 14px', cursor:'pointer',
-              transition:'transform .15s, border-color .15s' }}
-            onMouseOver={e => e.currentTarget.style.transform='translateY(-2px)'}
-            onMouseOut={e  => e.currentTarget.style.transform='none'}>
-            <div style={{ fontSize:28, marginBottom:8 }}>{n.emoji}</div>
-            <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16,
-              fontWeight:800, color:n.color, marginBottom:3 }}>{n.label}</div>
-            <div style={{ fontSize:11, color:'var(--muted)' }}>{n.desc}</div>
-          </div>
-        ))}
+      <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
+        textTransform:'uppercase', letterSpacing:.5 }}>{lbl}</div>
+    </div>
+  );
+}
+
+function RankRow({ player, rank, highlight, dim }) {
+  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null;
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:10,
+      padding:'10px 16px',
+      background: highlight ? 'rgba(0,229,255,.07)' : 'transparent',
+      borderLeft: highlight ? '3px solid var(--accent)' : '3px solid transparent',
+      opacity: dim ? 0.5 : 1 }}>
+      <div style={{ width:28, textAlign:'center', fontFamily:"'Barlow Condensed',sans-serif",
+        fontSize: medal ? 18 : 14, fontWeight:700,
+        color: rank <= 3 ? 'var(--yellow)' : 'var(--muted)' }}>
+        {medal || `#${rank}`}
       </div>
+      <div style={{ flex:1 }}>
+        <div style={{ fontWeight: highlight ? 800 : 600, fontSize:14,
+          color: highlight ? 'var(--accent)' : 'var(--text)' }}>
+          {player.nickname}
+        </div>
+        <div style={{ fontSize:11, color:'var(--muted)' }}>
+          {player.pts} pts
+        </div>
+      </div>
+      {highlight && <div style={{ fontSize:11, color:'var(--accent)', fontWeight:700 }}>Tú</div>}
     </div>
   );
 }
