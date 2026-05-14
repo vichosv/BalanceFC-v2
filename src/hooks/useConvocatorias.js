@@ -9,7 +9,15 @@ export function useConvocatorias() {
   useEffect(() => {
     const q = query(collection(db, 'convocatorias'), orderBy('date', 'asc'));
     const unsub = onSnapshot(q, snap => {
-      setConvocatorias(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const now = Date.now();
+      setConvocatorias(
+        snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(c => {
+            if (!c.date || !c.time) return true;
+            return new Date(`${c.date}T${c.time}`).getTime() > now;
+          })
+      );
       setLoading(false);
     });
     return unsub;
