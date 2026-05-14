@@ -48,6 +48,9 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
 
   const wins    = player.history?.wins    ?? 0;
   const matches = player.history?.matches ?? 0;
+  const goals   = player.history?.goals   ?? 0;
+  const assists = player.history?.assists ?? 0;
+  const mvps    = player.history?.mvps    ?? 0;
   const wr      = matches ? Math.round(wins / matches * 100) : 0;
 
   return (
@@ -99,6 +102,9 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
         <div className="fc-stats">{statsHTML}</div>
         <div className="fc-mini">
           {matches} PJ · {wins} V · {wr}% WR
+          {(goals > 0 || assists > 0 || mvps > 0) && (
+            <><br />{goals}G · {assists}A · MVP x{mvps}</>
+          )}
         </div>
       </div>
     </div>

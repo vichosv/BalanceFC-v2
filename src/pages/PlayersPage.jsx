@@ -14,77 +14,62 @@ const POSITIONS = {
   FWD: { id:'FWD', name:'Delantero',  emoji:'🎯' },
 };
 
-const DEFAULT_STATS = { vel:50, tec:50, def:50, tir:50, sta:50, fis:50 };
-
 export default function PlayersPage({ ctx }) {
   const { players = [], isAdmin } = ctx;
 
-  const [editId,  setEditId]  = useState(null);
-  const [search,  setSearch]  = useState('');
+  const [editId, setEditId] = useState(null);
+  const [search, setSearch] = useState('');
 
   const sorted = [...players]
-    .filter(p => (p.nickname||p.name||'').toLowerCase().includes(search.toLowerCase()))
+    .filter(p => (p.nickname || '').toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => overall(b) - overall(a));
 
-  // ── Update stat ───────────────────────────────────────────
-  async function updateStat(id, key, val) {
-    await updateDoc(doc(db, 'players', id), { [key]: parseInt(val) });
+  async function updateStat(uid, key, val) {
+    await updateDoc(doc(db, 'players', uid), { [key]: parseInt(val) });
   }
-
-  // ── Update position ───────────────────────────────────────
-  async function updatePosition(id, pos) {
-    await updateDoc(doc(db, 'players', id), { position: pos });
+  async function updatePosition(uid, pos) {
+    await updateDoc(doc(db, 'players', uid), { position: pos });
   }
-
-  // ── Remove player ─────────────────────────────────────────
-  async function removePlayer(id) {
+  async function removePlayer(uid) {
     if (!window.confirm('¿Eliminar jugador?')) return;
-    await deleteDoc(doc(db, 'players', id));
-    if (editId === id) setEditId(null);
+    await deleteDoc(doc(db, 'players', uid));
+    if (editId === uid) setEditId(null);
   }
-
-  // ── Photo upload ──────────────────────────────────────────
-  function triggerPhoto(id) {
+  async function uploadPhoto(uid) {
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*';
     inp.onchange = async e => {
       const file = e.target.files[0]; if (!file) return;
       const b64 = await resizeImage(file, 320);
-      await updateDoc(doc(db, 'players', id), { photo: b64 });
+      await updateDoc(doc(db, 'players', uid), { photo: b64 });
     };
     inp.click();
   }
-
-  async function removePhoto(id) {
-    await updateDoc(doc(db, 'players', id), { photo: null });
+  async function removePhoto(uid) {
+    await updateDoc(doc(db, 'players', uid), { photo: null });
   }
 
   return (
     <div className="page">
       <div className="page-title">👥 Jugadores</div>
 
-      {/* ── Player count + seed ── */}
+      {/* Header */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
         <div style={{ color:'var(--muted)', fontSize:12 }}>
           {players.length} jugador{players.length !== 1 ? 'es' : ''} registrado{players.length !== 1 ? 's' : ''}
+          {isAdmin && <span style={{ marginLeft:6, color:'var(--accent)', fontWeight:700 }}>· Admin</span>}
         </div>
-        {isAdmin && players.filter(p => !p.isDummy).length === 0 && (
+        {isAdmin && (
           <button className="btn btn-gh" style={{ fontSize:11, padding:'4px 10px' }}
-            onClick={async () => { await seedDummyPlayers(); }}>
+            onClick={() => seedDummyPlayers()}>
             🧪 Cargar demo
           </button>
         )}
       </div>
 
-      {/* ── Search ── */}
-      <input
-        placeholder="🔍 Buscar jugador..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ marginBottom: 12 }}
-      />
+      <input placeholder="🔍 Buscar jugador..." value={search}
+        onChange={e => setSearch(e.target.value)} style={{ marginBottom:12 }} />
 
-      {/* ── Player grid ── */}
       {sorted.length === 0 && (
         <div style={{ textAlign:'center', padding:'48px 0', color:'var(--muted)' }}>
           <div style={{ fontSize:40, marginBottom:8 }}>📋</div>
@@ -94,15 +79,43 @@ export default function PlayersPage({ ctx }) {
 
       <div className="players-grid">
         {sorted.map(p => (
-          <div key={p.uid} className="profile-slot">
-            <PlayerCard player={p} onClick={() => setEditId(editId === p.uid ? null : p.uid)} />
+          <div key={p.uid}>
+            {/* Card con overlays admin */}
+            <div style={{ position:'relative' }}>
+              <PlayerCard player={p}
+                onClick={isAdmin ? () => setEditId(editId === p.uid ? null : p.uid) : undefined} />
 
-            {/* ── Editor (admin) ── */}
+              {/* Admin overlays */}
+              {isAdmin && (
+                <>
+                  {/* Trash top-right */}
+                  <button onClick={() => removePlayer(p.uid)}
+                    style={{ position:'absolute', top:8, right:8, zIndex:10,
+                      width:28, height:28, borderRadius:8,
+                      background:'rgba(0,0,0,.55)', border:'1px solid rgba(255,82,82,.4)',
+                      color:'var(--red)', cursor:'pointer', fontSize:14,
+                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    🗑️
+                  </button>
+                  {/* Photo top-left */}
+                  <button onClick={() => p.photo ? removePhoto(p.uid) : uploadPhoto(p.uid)}
+                    title={p.photo ? 'Quitar foto' : 'Subir foto'}
+                    style={{ position:'absolute', top:8, left:8, zIndex:10,
+                      width:28, height:28, borderRadius:8,
+                      background:'rgba(0,0,0,.55)', border:'1px solid rgba(255,255,255,.2)',
+                      color:'#fff', cursor:'pointer', fontSize:14,
+                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    {p.photo ? '✕' : '📸'}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Stat editor — se abre al tocar la carta */}
             {isAdmin && editId === p.uid && (
-              <div className="card" style={{ borderColor:'var(--border2)', padding:14 }}>
-
+              <div className="card" style={{ marginTop:6, borderColor:'var(--border2)', padding:12 }}>
                 {/* Position */}
-                <div style={{ marginBottom:12 }}>
+                <div style={{ marginBottom:10 }}>
                   <label>Posición</label>
                   <select value={p.position} onChange={e => updatePosition(p.uid, e.target.value)}>
                     {Object.values(POSITIONS).map(pos => (
@@ -111,48 +124,27 @@ export default function PlayersPage({ ctx }) {
                   </select>
                 </div>
 
-                {/* Photo */}
-                <div style={{ marginBottom:12 }}>
-                  <label>Foto de carta</label>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6 }}>
-                    {p.photo && (
-                      <img src={p.photo} alt="foto"
-                        style={{ width:44, height:44, borderRadius:8, objectFit:'cover', border:'2px solid var(--border2)' }} />
-                    )}
-                    <button className="btn btn-ac" style={{ fontSize:12, padding:'6px 10px' }}
-                      onClick={() => triggerPhoto(p.uid)}>
-                      📸 {p.photo ? 'Cambiar' : 'Subir foto'}
-                    </button>
-                    {p.photo && (
-                      <button onClick={() => removePhoto(p.uid)}
-                        style={{ background:'rgba(255,82,82,.18)', border:'1px solid rgba(255,82,82,.4)', borderRadius:6, color:'var(--red)', cursor:'pointer', padding:'6px 8px', fontSize:12 }}>
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-                </div>
+                {/* Photo upload (if no photo yet) */}
+                {!p.photo && (
+                  <button className="btn btn-gh" style={{ width:'100%', fontSize:12, marginBottom:10 }}
+                    onClick={() => uploadPhoto(p.uid)}>
+                    📸 Subir foto de carta
+                  </button>
+                )}
 
                 {/* Stats sliders */}
                 {SK.map(s => (
-                  <div key={s.key} style={{ marginBottom:10 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
-                      <span style={{ fontSize:12, fontWeight:600 }}>{s.emoji} {s.label}</span>
+                  <div key={s.key} style={{ marginBottom:8 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:2 }}>
+                      <span style={{ fontSize:11, color:'var(--muted)' }}>{s.label}</span>
                       <span style={{ fontSize:13, fontWeight:700, color:s.color }}>{p[s.key] ?? 50}</span>
                     </div>
                     <input type="range" min="10" max="100" step="1"
                       value={p[s.key] ?? 50}
                       onChange={e => updateStat(p.uid, s.key, e.target.value)}
-                      style={{ width:'100%', accentColor: s.color }}
-                    />
+                      style={{ width:'100%', accentColor:s.color }} />
                   </div>
                 ))}
-
-                {/* Delete */}
-                <button
-                  style={{ width:'100%', marginTop:4, background:'rgba(255,82,82,.12)', border:'1px solid rgba(255,82,82,.3)', borderRadius:8, color:'var(--red)', cursor:'pointer', padding:'8px', fontSize:13, fontWeight:600 }}
-                  onClick={() => removePlayer(p.uid)}>
-                  🗑️ Eliminar jugador
-                </button>
               </div>
             )}
           </div>
@@ -162,7 +154,6 @@ export default function PlayersPage({ ctx }) {
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────
 function resizeImage(file, maxW) {
   return new Promise(resolve => {
     const img = new Image(), url = URL.createObjectURL(file);
