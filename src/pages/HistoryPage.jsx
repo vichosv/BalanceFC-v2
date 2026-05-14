@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMatches, logMatch, deleteMatch, updateMatch, setMatchVideo } from '../hooks/useMatches';
+import { useMatches, logMatch, deleteMatch, updateMatch, setMatchVideo, castVote } from '../hooks/useMatches';
 import { useSeasons, createSeason, closeSeason, deleteSeason } from '../hooks/useSeasons';
 import { overall } from '../utils/stats';
 
@@ -412,6 +412,7 @@ export default function HistoryPage({ ctx }) {
 
           {matches.map(m => (
             <MatchCard key={m.id} m={m} players={players} isAdmin={isAdmin}
+              userId={user?.uid}
               onEdit={handleEdit} onDelete={handleDelete} />
           ))}
         </>
@@ -515,10 +516,48 @@ export default function HistoryPage({ ctx }) {
 }
 
 // ── Match Card ────────────────────────────────────────────────
-function MatchCard({ m, players, isAdmin, onEdit, onDelete }) {
+function MatchCard({ m, players, isAdmin, onEdit, onDelete, userId }) {
   const [videoEditOpen, setVideoEditOpen] = useState(false);
   const [videoInput,    setVideoInput]    = useState(m.videoUrl || '');
   const [savingVideo,   setSavingVideo]   = useState(false);
+
+  // ── Voting state ──
+  const [showVote, setShowVote] = useState(false);
+  const [mvpPick,  setMvpPick]  = useState('');
+  const [gkPick,   setGkPick]   = useState('');
+  const [voting,   setVoting]   = useState(false);
+
+  const allMatchPlayers = [...(m.teamA||[]), ...(m.teamB||[]), ...(m.teamC||[])];
+  const canVote  = userId && allMatchPlayers.some(p => p.uid === userId);
+  const hasVoted = !!(m.votes?.[userId]);
+  const isVoteOpen = m.createdAt && (Date.now() - m.createdAt < 86400000);
+  const votes      = m.votes || {};
+  const voteCount  = Object.keys(votes).length;
+  const msLeft     = m.createdAt ? Math.max(0, m.createdAt + 86400000 - Date.now()) : 0;
+  const hLeft      = Math.floor(msLeft / 3600000);
+  const mLeft      = Math.floor((msLeft % 3600000) / 60000);
+
+  // GK candidates: prefer position GK, fallback to all
+  const gkCandidates = allMatchPlayers.filter(p => players.find(x => x.uid === p.uid)?.position === 'GK');
+  const gkPool = gkCandidates.length > 0 ? gkCandidates : allMatchPlayers;
+
+  function getVoteWinner(field) {
+    const counts = {};
+    Object.values(votes).forEach(v => { if (v[field]) counts[v[field]] = (counts[v[field]] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    if (!top) return null;
+    return { uid: top[0], count: top[1], player: players.find(p => p.uid === top[0]) };
+  }
+
+  async function handleVote() {
+    if (!mvpPick || !gkPick) return;
+    setVoting(true);
+    try {
+      await castVote(m.id, userId, { mvp: mvpPick, gk: gkPick });
+      setShowVote(false);
+    } catch(e) { alert('Error: ' + e.message); }
+    setVoting(false);
+  }
 
   const keys      = m.triangular ? ['A','B','C'] : ['A','B'];
   const scores    = { A: m.scoreA, B: m.scoreB, C: m.scoreC };
@@ -645,6 +684,112 @@ function MatchCard({ m, players, isAdmin, onEdit, onDelete }) {
         })}
       </div>
 
+      {/* ── Votación: form ── */}
+      {showVote && (
+        <div style={{ padding:'14px', borderTop:'1px solid var(--border)',
+          background:'var(--surface2)' }}>
+          <div style={{ fontSize:11, fontWeight:700, color:'var(--yellow)',
+            textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>
+            🗳️ Votación · {hLeft}h {mLeft}m restantes
+          </div>
+
+          {/* MVP */}
+          <div style={{ marginBottom:12 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'var(--text)', marginBottom:7 }}>
+              ⭐ MVP — mejor jugador
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {allMatchPlayers.map(p => {
+                const pl = players.find(x => x.uid === p.uid);
+                const sel = mvpPick === p.uid;
+                return (
+                  <button key={p.uid} onClick={() => setMvpPick(p.uid)}
+                    style={{ padding:'6px 11px', borderRadius:8, cursor:'pointer', fontSize:12,
+                      fontWeight:700, border: sel ? 'none' : '1px solid var(--border2)',
+                      background: sel ? 'var(--yellow)' : 'var(--surface)',
+                      color: sel ? '#000' : 'var(--text)', transition:'all .15s' }}>
+                    {pl?.emoji || '⚽'} {p.nickname}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Arquero */}
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'var(--text)', marginBottom:7 }}>
+              🧤 Arquero — mejor bajo los palos
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {gkPool.map(p => {
+                const pl = players.find(x => x.uid === p.uid);
+                const sel = gkPick === p.uid;
+                return (
+                  <button key={p.uid} onClick={() => setGkPick(p.uid)}
+                    style={{ padding:'6px 11px', borderRadius:8, cursor:'pointer', fontSize:12,
+                      fontWeight:700, border: sel ? 'none' : '1px solid var(--border2)',
+                      background: sel ? 'var(--accent)' : 'var(--surface)',
+                      color: sel ? '#000' : 'var(--text)', transition:'all .15s' }}>
+                    {pl?.emoji || '🧤'} {p.nickname}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ display:'flex', gap:8 }}>
+            <button onClick={() => setShowVote(false)}
+              style={{ flex:1, padding:'8px', borderRadius:8, border:'1px solid var(--border2)',
+                background:'transparent', color:'var(--muted)', cursor:'pointer', fontSize:13 }}>
+              Cancelar
+            </button>
+            <button onClick={handleVote}
+              disabled={!mvpPick || !gkPick || voting}
+              style={{ flex:2, padding:'8px', borderRadius:8, border:'none', fontSize:13,
+                fontWeight:800, cursor: (!mvpPick || !gkPick) ? 'default' : 'pointer',
+                background: (!mvpPick || !gkPick) ? 'var(--border2)' : 'var(--yellow)',
+                color: (!mvpPick || !gkPick) ? 'var(--muted)' : '#000',
+                transition:'all .15s' }}>
+              {voting ? 'Votando...' : '✅ Confirmar voto'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Votación: resultados ── */}
+      {!isVoteOpen && voteCount > 0 && (() => {
+        const mvpW = getVoteWinner('mvp');
+        const gkW  = getVoteWinner('gk');
+        return (mvpW || gkW) ? (
+          <div style={{ padding:'10px 14px', borderTop:'1px solid var(--border)',
+            background:'rgba(255,215,64,.04)',
+            display:'flex', gap:16, flexWrap:'wrap', alignItems:'center' }}>
+            <span style={{ fontSize:10, fontWeight:700, color:'var(--yellow)',
+              textTransform:'uppercase', letterSpacing:1 }}>
+              Votación ({voteCount})
+            </span>
+            {mvpW?.player && (
+              <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                <span>⭐</span>
+                <span style={{ fontSize:12, fontWeight:700 }}>
+                  {mvpW.player.emoji || '⚽'} {mvpW.player.nickname}
+                </span>
+                <span style={{ fontSize:10, color:'var(--muted)' }}>{mvpW.count}v</span>
+              </div>
+            )}
+            {gkW?.player && (
+              <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                <span>🧤</span>
+                <span style={{ fontSize:12, fontWeight:700 }}>
+                  {gkW.player.emoji || '⚽'} {gkW.player.nickname}
+                </span>
+                <span style={{ fontSize:10, color:'var(--muted)' }}>{gkW.count}v</span>
+              </div>
+            )}
+          </div>
+        ) : null;
+      })()}
+
       {/* ── Video edit inline ── */}
       {videoEditOpen && (
         <div style={{ padding:'10px 14px', borderTop:'1px solid var(--border)',
@@ -666,9 +811,27 @@ function MatchCard({ m, players, isAdmin, onEdit, onDelete }) {
       )}
 
       {/* ── Actions ── */}
-      {(m.videoUrl || isAdmin) && (
+      {(m.videoUrl || isAdmin || (isVoteOpen && canVote) || hasVoted) && (
         <div style={{ padding:'8px 12px', borderTop:'1px solid var(--border)',
-          display:'flex', gap:6, flexWrap:'wrap' }}>
+          display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
+
+          {/* Botón votar */}
+          {isVoteOpen && canVote && !hasVoted && (
+            <button onClick={() => setShowVote(v => !v)}
+              style={{ padding:'6px 12px', borderRadius:8, border:'none', cursor:'pointer',
+                fontWeight:700, fontSize:12,
+                background: showVote ? 'rgba(255,215,64,.35)' : 'rgba(255,215,64,.15)',
+                color:'var(--yellow)' }}>
+              🗳️ Votar
+            </button>
+          )}
+          {isVoteOpen && canVote && !hasVoted && (
+            <span style={{ fontSize:10, color:'var(--muted)' }}>{hLeft}h {mLeft}m</span>
+          )}
+          {hasVoted && (
+            <span style={{ fontSize:11, color:'var(--muted)', fontWeight:700 }}>✅ Votaste</span>
+          )}
+
           {m.videoUrl && (
             <a href={m.videoUrl} target="_blank" rel="noreferrer"
               style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px',

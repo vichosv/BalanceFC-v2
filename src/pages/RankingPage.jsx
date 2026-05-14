@@ -130,6 +130,20 @@ export default function RankingPage({ ctx }) {
       return wr > ((best?.history?.wins||0) / (best?.history?.matches||1)) ? p : best;
     }, null);
 
+  // MVP desde votos cerrados
+  const mvpCounts = {};
+  matches.forEach(m => {
+    if (!m.votes || !Object.keys(m.votes).length) return;
+    if (m.createdAt && Date.now() - m.createdAt < 86400000) return;
+    const counts = {};
+    Object.values(m.votes).forEach(v => { if (v.mvp) counts[v.mvp] = (counts[v.mvp]||0)+1; });
+    const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+    if (top) mvpCounts[top[0]] = (mvpCounts[top[0]]||0)+1;
+  });
+  const mvpTop    = Object.entries(mvpCounts).sort((a,b)=>b[1]-a[1])[0];
+  const topMVP    = mvpTop ? players.find(p => p.uid === mvpTop[0]) : null;
+  const topMVPCnt = mvpTop?.[1] || 0;
+
   // ── Química ──
   const chemistry = computeChemistry(matches).slice(0, 6);
 
@@ -181,6 +195,11 @@ export default function RankingPage({ ctx }) {
           <StatCard
             player={topAssists}
             label={`🅰️ Asistidor (${topAssists.history?.assists})`} />
+        )}
+        {topMVP && (
+          <StatCard
+            player={topMVP}
+            label={`⭐ Más MVP (${topMVPCnt})`} />
         )}
       </div>
 

@@ -91,3 +91,9 @@ export async function updateMatch(oldMatch, newData) {
 export async function setMatchVideo(matchId, videoUrl) {
   await updateDoc(doc(db, 'matches', matchId), { videoUrl: videoUrl || null });
 }
+
+export async function castVote(matchId, uid, { mvp, gk }) {
+  await updateDoc(doc(db, 'matches', matchId), {
+    [`votes.${uid}`]: { mvp, gk, votedAt: Date.now() },
+  });
+}
