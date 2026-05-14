@@ -9,6 +9,13 @@ const TABS = [
 export default function NavBar({ active, onChange }) {
   return (
     <nav className="navbar">
+      {/* Logo — solo visible en desktop (sidebar) */}
+      <div className="nav-logo">
+        <span style={{ fontSize:24 }}>⚽</span>
+        <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20,
+          fontWeight:900, letterSpacing:1, color:'var(--accent)' }}>BalanceFC</span>
+      </div>
+
       {TABS.map(t => (
         <button
           key={t.id}
