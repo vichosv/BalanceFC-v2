@@ -252,38 +252,55 @@ export default function ProfilePage({ ctx }) {
 
 // ── LogrosGrid ─────────────────────────────────────────────────
 function LogrosGrid({ unlocked, locked }) {
+  const all = [
+    ...unlocked.map(l => ({ ...l, _on: true })),
+    ...locked.map(l =>   ({ ...l, _on: false })),
+  ];
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-      {unlocked.map(l => {
+    <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+      {all.map(l => {
         const c = TIER_COLOR[l.tier];
         return (
           <div key={l.id} style={{
-            background: c.bg, border: `1px solid ${c.border}`,
-            borderRadius: 10, padding: '10px 10px 8px',
-            display: 'flex', flexDirection: 'column', gap: 3,
+            display:'flex', alignItems:'center', gap:12,
+            padding:'10px 12px', borderRadius:12,
+            background: l._on ? c.bg : 'rgba(255,255,255,.03)',
+            border: `1px solid ${l._on ? c.border : 'rgba(255,255,255,.08)'}`,
+            opacity: l._on ? 1 : 0.42,
           }}>
-            <div style={{ fontSize: 22, lineHeight: 1 }}>{l.emoji}</div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: c.text, lineHeight: 1.2 }}>{l.name}</div>
-            <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.3 }}>{l.desc}</div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: c.text,
-              textTransform: 'uppercase', letterSpacing: .6, marginTop: 2 }}>{l.tier}</div>
+            {/* Icono estilo Steam */}
+            <div style={{
+              width:46, height:46, borderRadius:10, flexShrink:0,
+              background: l._on ? `rgba(0,0,0,.35)` : 'rgba(255,255,255,.04)',
+              border: `1.5px solid ${l._on ? c.border : 'rgba(255,255,255,.1)'}`,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:26, filter: l._on ? 'none' : 'grayscale(1) brightness(.5)',
+              boxShadow: l._on ? `0 0 14px ${c.border}55` : 'none',
+            }}>
+              {l._on ? l.emoji : '🔒'}
+            </div>
+            {/* Texto */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13, fontWeight:800, lineHeight:1.2, marginBottom:2,
+                color: l._on ? c.text : 'var(--muted)' }}>
+                {l.name}
+              </div>
+              <div style={{ fontSize:10, color:'var(--muted)', lineHeight:1.35 }}>
+                {l.desc}
+              </div>
+            </div>
+            {/* Badge tier */}
+            {l._on && (
+              <div style={{
+                fontSize:8, fontWeight:800, color:c.text,
+                textTransform:'uppercase', letterSpacing:.8,
+                background: c.bg, border:`1px solid ${c.border}`,
+                borderRadius:5, padding:'2px 6px', flexShrink:0,
+              }}>{l.tier}</div>
+            )}
           </div>
         );
       })}
-      {locked.map(l => (
-        <div key={l.id} style={{
-          background: 'rgba(255,255,255,.03)', border: '1px solid var(--border)',
-          borderRadius: 10, padding: '10px 10px 8px',
-          display: 'flex', flexDirection: 'column', gap: 3,
-          opacity: 0.45,
-        }}>
-          <div style={{ fontSize: 22, lineHeight: 1, filter: 'grayscale(1)' }}>🔒</div>
-          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--muted)', lineHeight: 1.2 }}>{l.name}</div>
-          <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.3 }}>{l.desc}</div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--muted)',
-            textTransform: 'uppercase', letterSpacing: .6, marginTop: 2 }}>{l.tier}</div>
-        </div>
-      ))}
     </div>
   );
 }

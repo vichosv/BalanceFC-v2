@@ -204,32 +204,46 @@ export default function PlayerProfileSheet({ player, onClose }) {
                     {unlocked.length}/{unlocked.length + locked.length}
                   </span>
                 </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                  {unlocked.map(l => {
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {[
+                    ...unlocked.map(l => ({ ...l, _on:true  })),
+                    ...locked.slice(0,6).map(l => ({ ...l, _on:false })),
+                  ].map(l => {
                     const c = TIER_COLOR[l.tier];
                     return (
                       <div key={l.id} style={{
-                        background: c.bg, border: `1px solid ${c.border}`,
-                        borderRadius: 10, padding: '8px 10px',
-                        display: 'flex', flexDirection: 'column', gap: 2,
+                        display:'flex', alignItems:'center', gap:10,
+                        padding:'9px 11px', borderRadius:11,
+                        background: l._on ? c.bg : 'rgba(255,255,255,.03)',
+                        border:`1px solid ${l._on ? c.border : 'rgba(255,255,255,.08)'}`,
+                        opacity: l._on ? 1 : 0.42,
                       }}>
-                        <div style={{ fontSize:20, lineHeight:1 }}>{l.emoji}</div>
-                        <div style={{ fontSize:11, fontWeight:800, color:c.text, lineHeight:1.2 }}>{l.name}</div>
-                        <div style={{ fontSize:10, color:'var(--muted)', lineHeight:1.3 }}>{l.desc}</div>
+                        <div style={{
+                          width:40, height:40, borderRadius:9, flexShrink:0,
+                          background:'rgba(0,0,0,.35)',
+                          border:`1.5px solid ${l._on ? c.border : 'rgba(255,255,255,.1)'}`,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          fontSize:22, filter: l._on ? 'none' : 'grayscale(1) brightness(.5)',
+                          boxShadow: l._on ? `0 0 12px ${c.border}44` : 'none',
+                        }}>
+                          {l._on ? l.emoji : '🔒'}
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:12, fontWeight:800, lineHeight:1.2, marginBottom:1,
+                            color: l._on ? c.text : 'var(--muted)' }}>{l.name}</div>
+                          <div style={{ fontSize:10, color:'var(--muted)', lineHeight:1.3 }}>{l.desc}</div>
+                        </div>
+                        {l._on && (
+                          <div style={{ fontSize:7, fontWeight:800, color:c.text,
+                            textTransform:'uppercase', letterSpacing:.8,
+                            background:c.bg, border:`1px solid ${c.border}`,
+                            borderRadius:4, padding:'2px 5px', flexShrink:0 }}>
+                            {l.tier}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
-                  {locked.slice(0, 4).map(l => (
-                    <div key={l.id} style={{
-                      background:'rgba(255,255,255,.03)', border:'1px solid var(--border)',
-                      borderRadius:10, padding:'8px 10px',
-                      display:'flex', flexDirection:'column', gap:2, opacity:.4,
-                    }}>
-                      <div style={{ fontSize:20, lineHeight:1, filter:'grayscale(1)' }}>🔒</div>
-                      <div style={{ fontSize:11, fontWeight:800, color:'var(--muted)', lineHeight:1.2 }}>{l.name}</div>
-                      <div style={{ fontSize:10, color:'var(--muted)', lineHeight:1.3 }}>{l.desc}</div>
-                    </div>
-                  ))}
                 </div>
               </>
             );

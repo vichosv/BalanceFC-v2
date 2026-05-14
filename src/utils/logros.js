@@ -143,6 +143,13 @@ export const LOGROS = [
 
   // ── OVR ────────────────────────────────────────────────────
   {
+    id: 'ovr65',
+    emoji: '📊', name: 'En Progreso',
+    desc: 'OVR 65 o superior',
+    tier: 'common',
+    check: (p) => overall(p) >= 65,
+  },
+  {
     id: 'ovr70',
     emoji: '📈', name: 'En Forma',
     desc: 'OVR 70 o superior',
@@ -150,11 +157,39 @@ export const LOGROS = [
     check: (p) => overall(p) >= 70,
   },
   {
+    id: 'ovr75',
+    emoji: '⚡', name: 'Prometedor',
+    desc: 'OVR 75 o superior',
+    tier: 'rare',
+    check: (p) => overall(p) >= 75,
+  },
+  {
+    id: 'ovr80',
+    emoji: '🔥', name: 'Top',
+    desc: 'OVR 80 o superior',
+    tier: 'rare',
+    check: (p) => overall(p) >= 80,
+  },
+  {
     id: 'ovr82',
     emoji: '💎', name: 'Élite',
     desc: 'OVR 82 o superior',
     tier: 'epic',
     check: (p) => overall(p) >= 82,
+  },
+  {
+    id: 'ovr85',
+    emoji: '🌟', name: 'Estrella',
+    desc: 'OVR 85 o superior',
+    tier: 'epic',
+    check: (p) => overall(p) >= 85,
+  },
+  {
+    id: 'ovr87',
+    emoji: '👑', name: 'Crack',
+    desc: 'OVR 87 o superior',
+    tier: 'legendary',
+    check: (p) => overall(p) >= 87,
   },
   {
     id: 'ovr90',

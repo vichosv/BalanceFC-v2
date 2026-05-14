@@ -108,6 +108,7 @@ export default function RankingPage({ ctx }) {
   const ranked = [...players]
     .filter(p => (getStats(p).matches || 0) > 0)
     .map(p => {
+      const stats = getStats(p);
       return {
         ...p,
         _stats: stats,
