@@ -4,6 +4,7 @@ import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
 import '../components/PlayerCard.css';
 import { overall, SK } from '../utils/stats';
+import { seedDummyPlayers } from '../utils/seedPlayers';
 
 const POSITIONS = {
   GK:  { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -62,9 +63,17 @@ export default function PlayersPage({ ctx }) {
     <div className="page">
       <div className="page-title">👥 Jugadores</div>
 
-      {/* ── Player count ── */}
-      <div style={{ color:'var(--muted)', fontSize:12, marginBottom:10 }}>
-        {players.length} jugador{players.length !== 1 ? 'es' : ''} registrado{players.length !== 1 ? 's' : ''}
+      {/* ── Player count + seed ── */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+        <div style={{ color:'var(--muted)', fontSize:12 }}>
+          {players.length} jugador{players.length !== 1 ? 'es' : ''} registrado{players.length !== 1 ? 's' : ''}
+        </div>
+        {isAdmin && players.filter(p => !p.isDummy).length === 0 && (
+          <button className="btn btn-gh" style={{ fontSize:11, padding:'4px 10px' }}
+            onClick={async () => { await seedDummyPlayers(); }}>
+            🧪 Cargar demo
+          </button>
+        )}
       </div>
 
       {/* ── Search ── */}
@@ -85,17 +94,17 @@ export default function PlayersPage({ ctx }) {
 
       <div className="players-grid">
         {sorted.map(p => (
-          <div key={p.id} className="profile-slot">
-            <PlayerCard player={p} onClick={() => setEditId(editId === p.id ? null : p.id)} />
+          <div key={p.uid} className="profile-slot">
+            <PlayerCard player={p} onClick={() => setEditId(editId === p.uid ? null : p.uid)} />
 
             {/* ── Editor (admin) ── */}
-            {isAdmin && editId === p.id && (
+            {isAdmin && editId === p.uid && (
               <div className="card" style={{ borderColor:'var(--border2)', padding:14 }}>
 
                 {/* Position */}
                 <div style={{ marginBottom:12 }}>
                   <label>Posición</label>
-                  <select value={p.position} onChange={e => updatePosition(p.id, e.target.value)}>
+                  <select value={p.position} onChange={e => updatePosition(p.uid, e.target.value)}>
                     {Object.values(POSITIONS).map(pos => (
                       <option key={pos.id} value={pos.id}>{pos.emoji} {pos.name}</option>
                     ))}
@@ -111,11 +120,11 @@ export default function PlayersPage({ ctx }) {
                         style={{ width:44, height:44, borderRadius:8, objectFit:'cover', border:'2px solid var(--border2)' }} />
                     )}
                     <button className="btn btn-ac" style={{ fontSize:12, padding:'6px 10px' }}
-                      onClick={() => triggerPhoto(p.id)}>
+                      onClick={() => triggerPhoto(p.uid)}>
                       📸 {p.photo ? 'Cambiar' : 'Subir foto'}
                     </button>
                     {p.photo && (
-                      <button onClick={() => removePhoto(p.id)}
+                      <button onClick={() => removePhoto(p.uid)}
                         style={{ background:'rgba(255,82,82,.18)', border:'1px solid rgba(255,82,82,.4)', borderRadius:6, color:'var(--red)', cursor:'pointer', padding:'6px 8px', fontSize:12 }}>
                         🗑️
                       </button>
@@ -132,7 +141,7 @@ export default function PlayersPage({ ctx }) {
                     </div>
                     <input type="range" min="10" max="100" step="1"
                       value={p[s.key] ?? 50}
-                      onChange={e => updateStat(p.id, s.key, e.target.value)}
+                      onChange={e => updateStat(p.uid, s.key, e.target.value)}
                       style={{ width:'100%', accentColor: s.color }}
                     />
                   </div>
@@ -141,7 +150,7 @@ export default function PlayersPage({ ctx }) {
                 {/* Delete */}
                 <button
                   style={{ width:'100%', marginTop:4, background:'rgba(255,82,82,.12)', border:'1px solid rgba(255,82,82,.3)', borderRadius:8, color:'var(--red)', cursor:'pointer', padding:'8px', fontSize:13, fontWeight:600 }}
-                  onClick={() => removePlayer(p.id)}>
+                  onClick={() => removePlayer(p.uid)}>
                   🗑️ Eliminar jugador
                 </button>
               </div>
