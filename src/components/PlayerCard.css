@@ -35,7 +35,7 @@
 }
 .fc-name  { font-size: 15px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; text-align: center; line-height: 1.1; }
 .fc-sub   { font-size: 10px; font-weight: 600; opacity: .72; letter-spacing: 1px; margin-top: 2px; }
-.fc-div   { width: 70%; height: 1px; background: rgba(255,255,255,.18); margin: 5px 0; }
+.fc-div   { width: 70%; height: 1px; background: var(--card-accent, rgba(255,255,255,.18)); opacity: .45; margin: 5px 0; }
 .fc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 6px; width: 100%; }
 .fc-stat  { display: flex; flex-direction: column; align-items: center; }
 .fc-snum  { font-size: 15px; font-weight: 900; line-height: 1; }
@@ -66,3 +66,48 @@
 .t-legend   .fc-in { color: #fff8dc; }
 .t-diamond  .fc-shine { background: linear-gradient(135deg,rgba(255,255,255,.28) 0%,transparent 45%,rgba(180,230,255,.1) 100%); }
 .t-legend   .fc-shine { background: linear-gradient(135deg,rgba(255,255,255,.22) 0%,transparent 50%,rgba(255,220,80,.12) 100%); }
+
+/* ── Accent override ───────────────────────────────────────── */
+.fc-ov { color: var(--card-accent, inherit); }
+
+/* ── Patterns ──────────────────────────────────────────────── */
+.fc-pattern { position:absolute; inset:0; z-index:1; pointer-events:none; }
+.fp-carbon {
+  background:
+    repeating-linear-gradient( 45deg, rgba(0,0,0,.35) 0, rgba(0,0,0,.35) 1px, transparent 1px, transparent 8px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,.35) 0, rgba(0,0,0,.35) 1px, transparent 1px, transparent 8px);
+}
+.fp-stripes {
+  background: repeating-linear-gradient(-45deg,
+    rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 2px,
+    transparent 2px, transparent 14px);
+}
+.fp-dots {
+  background: radial-gradient(circle, rgba(255,255,255,.18) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+.fp-hex {
+  background:
+    linear-gradient(60deg,  rgba(255,255,255,.07) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.07) 75%),
+    linear-gradient(-60deg, rgba(255,255,255,.07) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.07) 75%);
+  background-size: 20px 35px;
+}
+.fp-wave {
+  background: repeating-linear-gradient(0deg,
+    transparent 0, transparent 8px,
+    rgba(255,255,255,.07) 8px, rgba(255,255,255,.07) 9px);
+}
+
+/* ── Frames ────────────────────────────────────────────────── */
+.ff-fire     { box-shadow: 0 0 0 2px #ff6600, 0 0 22px rgba(255,100,0,.75), 0 0 48px rgba(255,50,0,.35); }
+.ff-electric { box-shadow: 0 0 0 2px #00aaff, 0 0 22px rgba(0,180,255,.75), 0 0 48px rgba(0,100,255,.35); }
+.ff-ice      { box-shadow: 0 0 0 2px #88ddff, 0 0 22px rgba(130,210,255,.75), 0 0 48px rgba(100,170,255,.35); }
+.ff-gold     { box-shadow: 0 0 0 2.5px #ffd700, 0 0 22px rgba(255,215,0,.8), 0 0 48px rgba(255,180,0,.4); }
+@keyframes rainbow-glow {
+  0%   { box-shadow: 0 0 0 2px #ff0080, 0 0 22px rgba(255,0,128,.7), 0 0 48px rgba(255,0,128,.3); }
+  25%  { box-shadow: 0 0 0 2px #ffd700, 0 0 22px rgba(255,215,0,.7), 0 0 48px rgba(255,215,0,.3); }
+  50%  { box-shadow: 0 0 0 2px #00e5ff, 0 0 22px rgba(0,229,255,.7), 0 0 48px rgba(0,229,255,.3); }
+  75%  { box-shadow: 0 0 0 2px #00e676, 0 0 22px rgba(0,230,118,.7), 0 0 48px rgba(0,230,118,.3); }
+  100% { box-shadow: 0 0 0 2px #ff0080, 0 0 22px rgba(255,0,128,.7), 0 0 48px rgba(255,0,128,.3); }
+}
+.ff-rainbow { animation: rainbow-glow 3s linear infinite; }

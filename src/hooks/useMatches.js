@@ -48,7 +48,11 @@ function applyTeamStats(team, wins, playerStats, sid, mult, updates) {
       [`seasons.${sid}.goals`]:   increment(goals),
       [`seasons.${sid}.assists`]: increment(assists),
     } : {};
-    updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal }));
+    // 🪙 Monedas: +2 por partido + 1 por gol (solo al agregar, no al borrar)
+    const coinUpdate = mult > 0
+      ? { coins: increment(2 + (ps.goals || 0)) }
+      : {};
+    updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal, ...coinUpdate }));
   });
 }
 

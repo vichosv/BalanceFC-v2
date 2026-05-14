@@ -3,9 +3,10 @@ const TABS = [
   { id:'jugadores', label:'Jugadores', icon:'👥' },
   { id:'partido',   label:'Equipos',   icon:'⚽' },
   { id:'historial', label:'Historial', icon:'📊' },
-  { id:'ranking',   label:'Ranking',   icon:'🏆' },
+  { id:'ranking',   label:'Ranking',      icon:'🏆' },
+  { id:'tienda',    label:'Tienda',       icon:'🛍️' },
   { id:'conv',      label:'Convocatoria', icon:'📋' },
-  { id:'perfil',    label:'Perfil',    icon:'👤' },
+  { id:'perfil',    label:'Perfil',       icon:'👤' },
 ];
 
 export default function NavBar({ active, onChange }) {

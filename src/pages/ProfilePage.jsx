@@ -88,6 +88,14 @@ export default function ProfilePage({ ctx }) {
         <PlayerCard player={displayPlayer} />
       </div>
 
+      {/* ── Saldo tienda ── */}
+      <div style={{ textAlign:'center', marginBottom:10 }}>
+        <span style={{ background:'var(--surface)', border:'1px solid var(--border)',
+          borderRadius:8, padding:'4px 14px', fontSize:13, fontWeight:700, color:'var(--accent)' }}>
+          🪙 {player.coins || 0} goles
+        </span>
+      </div>
+
       {/* ── Badge admin ── */}
       {isAdmin && (
         <div style={{ textAlign:'center', marginBottom:14 }}>

@@ -9,6 +9,7 @@ import HistoryPage   from './HistoryPage';
 import RankingPage   from './RankingPage';
 import ConvPage      from './ConvPage';
 import ProfilePage   from './ProfilePage';
+import ShopPage      from './ShopPage';
 
 export default function MainLayout() {
   const [tab, setTab] = useState('inicio');
@@ -25,6 +26,7 @@ export default function MainLayout() {
         {tab === 'partido'   && <MatchPage   ctx={ctx} />}
         {tab === 'historial' && <HistoryPage ctx={ctx} />}
         {tab === 'ranking'   && <RankingPage ctx={ctx} />}
+        {tab === 'tienda'    && <ShopPage     ctx={ctx} />}
         {tab === 'conv'      && <ConvPage    ctx={ctx} />}
         {tab === 'perfil'    && <ProfilePage ctx={ctx} />}
       </div>

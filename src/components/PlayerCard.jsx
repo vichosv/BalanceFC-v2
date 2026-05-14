@@ -1,4 +1,5 @@
 import { overall, tier, SK } from '../utils/stats';
+import { SHOP_ITEMS } from '../utils/shop';
 
 const POSITIONS = {
   GK:  { short:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -39,6 +40,15 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
   const t   = tier(ov);
   const pos = POSITIONS[player.position] || POSITIONS.MID;
 
+  // ── Equipamiento cosmético ──
+  const equipped    = player.equipped || {};
+  const accentItem  = equipped.accent  ? SHOP_ITEMS.find(i => i.id === equipped.accent)  : null;
+  const patternItem = equipped.pattern ? SHOP_ITEMS.find(i => i.id === equipped.pattern) : null;
+  const frameItem   = equipped.frame   ? SHOP_ITEMS.find(i => i.id === equipped.frame)   : null;
+  const accentColor = accentItem?.color || null;
+  const patternClass = patternItem ? `fp-${patternItem.id.replace('pattern_', '')}` : '';
+  const frameClass   = frameItem   ? `ff-${frameItem.id.replace('frame_', '')}`     : '';
+
   const statsHTML = SK.map(s => (
     <div key={s.key} className="fc-stat">
       <div className="fc-snum">{player[s.key] ?? 50}</div>
@@ -54,7 +64,14 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
   const wr      = matches ? Math.round(wins / matches * 100) : 0;
 
   return (
-    <div className={`fc t-${t}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+    <div
+      className={`fc t-${t} ${frameClass}`}
+      onClick={onClick}
+      style={{
+        cursor: onClick ? 'pointer' : 'default',
+        ...(accentColor ? { '--card-accent': accentColor } : {}),
+      }}
+    >
       <div className="fc-bg" />
       {player.photo && (
         <>
@@ -62,6 +79,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
           <div className="fc-photo-overlay" />
         </>
       )}
+      {patternClass && <div className={`fc-pattern ${patternClass}`} />}
       <div className="fc-shine" />
       <div className="fc-frame-el" />
 
