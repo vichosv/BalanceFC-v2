@@ -34,7 +34,7 @@ function shareConvocatoria(conv, titulares, reserva) {
   if (titulares.length > 0) {
     lines.push('Confirmados (' + titulares.length + '/' + conv.maxPlayers + '):');
     titulares.forEach((p, i) => {
-      lines.push('  ' + (i + 1) + '. ' + (POS_TEXT[p.position] || '') + ' ' + p.nickname);
+      lines.push('  ' + (i + 1) + '. ' + p.nickname);
     });
   } else {
     lines.push('Sin confirmados aun.');
@@ -44,7 +44,7 @@ function shareConvocatoria(conv, titulares, reserva) {
     lines.push('');
     lines.push('Reserva (' + reserva.length + '):');
     reserva.forEach((p, i) => {
-      lines.push('  ' + (i + 1) + '. ' + (POS_TEXT[p.position] || '') + ' ' + p.nickname);
+      lines.push('  ' + (i + 1) + '. ' + p.nickname);
     });
   }
 
@@ -60,7 +60,7 @@ export default function ConvPage({ ctx }) {
   const [showForm,   setShowForm]   = useState(false);
   const [expanded,   setExpanded]   = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({ date:'', time:'20:00', place:'', format:'5v5', maxPlayers:10 });
+  const [form, setForm] = useState({ date:'', time:'20:00', place:'', format:'6v6', maxPlayers:12 });
 
   async function handleCreate() {
     if (!form.date || !form.place) return;
