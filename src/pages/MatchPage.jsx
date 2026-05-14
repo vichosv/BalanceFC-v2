@@ -90,7 +90,7 @@ export default function MatchPage({ ctx }) {
 
   return (
     <div className="page">
-      <div className="page-title">⚽ Partido</div>
+      <div className="page-title">⚽ Equipos</div>
 
       {/* ── Config ── */}
       <div className="card" style={{ marginBottom:12 }}>
@@ -323,23 +323,35 @@ function PlayerDot({ player, toLabel, onClick, side }) {
     <div onClick={onClick} title={toLabel ? `→ Equipo ${toLabel}` : undefined}
       style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: side ? 0 : 5,
         cursor:'pointer', flexShrink:0, ...(side ? {} : { minWidth:58 }) }}>
-      <div style={{
-        width: side ? 48 : 50,
-        height: side ? 48 : 50,
-        borderRadius:'50%',
-        background: player.photo
-          ? `url(${player.photo}) center/cover`
-          : 'linear-gradient(145deg,#07183a,#0d2560)',
-        display:'flex', alignItems:'center', justifyContent:'center',
-        fontFamily:'Barlow Condensed', fontWeight:900,
-        fontSize: side ? 20 : 19, color:'#fff',
-        border:`2.5px solid ${borderColor}`,
-        boxShadow:'0 3px 14px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.4)',
-        transition:'transform .15s',
-      }}
-        onMouseOver={e => e.currentTarget.style.transform='scale(1.1)'}
-        onMouseOut={e  => e.currentTarget.style.transform='scale(1)'}>
-        {!player.photo && ov}
+      <div style={{ position:'relative' }}>
+        <div style={{
+          width: side ? 48 : 50,
+          height: side ? 48 : 50,
+          borderRadius:'50%',
+          background: player.photo
+            ? `url(${player.photo}) center/cover`
+            : 'linear-gradient(145deg,#07183a,#0d2560)',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontFamily:'Barlow Condensed', fontWeight:900,
+          fontSize: side ? 20 : 19, color:'#fff',
+          border:`2.5px solid ${borderColor}`,
+          boxShadow:'0 3px 14px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.4)',
+          transition:'transform .15s',
+        }}
+          onMouseOver={e => e.currentTarget.style.transform='scale(1.1)'}
+          onMouseOut={e  => e.currentTarget.style.transform='scale(1)'}>
+          {!player.photo && ov}
+        </div>
+        {player.photo && (
+          <div style={{
+            position:'absolute', bottom:-3, left:'50%', transform:'translateX(-50%)',
+            background:'rgba(0,0,0,.88)', borderRadius:4, padding:'1px 5px',
+            fontFamily:'Barlow Condensed', fontWeight:900, fontSize:10,
+            color:'var(--accent)', lineHeight:1.5,
+            border:'1px solid rgba(0,229,255,.35)', whiteSpace:'nowrap',
+            pointerEvents:'none',
+          }}>{ov}</div>
+        )}
       </div>
       {/* Nombre debajo solo en triangular */}
       {!side && (

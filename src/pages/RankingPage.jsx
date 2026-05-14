@@ -89,22 +89,25 @@ function computeChemistry(matches) {
 // ═════════════════════════════════════════════════════════════
 export default function RankingPage({ ctx }) {
   const { players = [], user } = ctx;
-  const { activeSeason, loading: lS } = useSeasons();
+  const { seasons, activeSeason, loading: lS } = useSeasons();
   const { matches,      loading: lM } = useMatches();
   const [view, setView] = useState(activeSeason ? 'season' : 'global');
 
   if (lS || lM) return <div className="page" style={{ color:'var(--muted)' }}>Cargando...</div>;
 
-  const sid = activeSeason?.id || null;
+  const sid        = activeSeason?.id || null;
+  const prevSeason = seasons.find(s => s.status === 'closed') || null;
+
+  function getStats(p) {
+    if (view === 'season' && sid)                  return p.seasons?.[sid]        || {};
+    if (view === 'prev'   && prevSeason)            return p.seasons?.[prevSeason.id] || {};
+    return p.history || {};
+  }
 
   // ── Lista rankeada ──
   const ranked = [...players]
-    .filter(p => {
-      const stats = view === 'season' && sid ? (p.seasons?.[sid] || {}) : (p.history || {});
-      return (stats.matches || 0) > 0;
-    })
+    .filter(p => (getStats(p).matches || 0) > 0)
     .map(p => {
-      const stats = view === 'season' && sid ? (p.seasons?.[sid] || {}) : (p.history || {});
       return {
         ...p,
         _stats: stats,
@@ -207,16 +210,17 @@ export default function RankingPage({ ctx }) {
       <div style={{ display:'flex', gap:4, marginBottom:14, background:'var(--surface2)',
         borderRadius:10, padding:4 }}>
         {[
-          ...(sid ? [{ id:'season', label:`⚡ ${activeSeason.name}` }] : []),
-          { id:'global', label:'🌍 Global' },
+          ...(sid        ? [{ id:'season', label: activeSeason.name,       icon:'⚡' }] : []),
+          ...(prevSeason ? [{ id:'prev',   label: prevSeason.name,         icon:'📜' }] : []),
+          { id:'global', label:'Global', icon:'🌍' },
         ].map(t => (
           <button key={t.id} onClick={() => setView(t.id)}
             style={{ flex:1, padding:'7px 4px', borderRadius:8, border:'none', cursor:'pointer',
-              fontWeight:700, fontSize:12, transition:'all .15s',
+              fontWeight:700, fontSize:11, transition:'all .15s',
               background: view === t.id ? 'var(--surface)' : 'transparent',
               color:      view === t.id ? 'var(--accent)'  : 'var(--muted)',
               boxShadow:  view === t.id ? '0 1px 4px rgba(0,0,0,.3)' : 'none' }}>
-            {t.label}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>

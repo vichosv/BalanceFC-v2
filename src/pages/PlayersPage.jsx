@@ -6,6 +6,7 @@ import PlayerProfileSheet from '../components/PlayerProfileSheet';
 import '../components/PlayerCard.css';
 import { overall, SK } from '../utils/stats';
 import { seedDummyPlayers } from '../utils/seedPlayers';
+import { LOGROS, TIER_COLOR } from '../utils/logros';
 
 const POSITIONS = {
   GK:  { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -41,6 +42,13 @@ export default function PlayersPage({ ctx }) {
     if (!window.confirm('¿Eliminar jugador?')) return;
     await deleteDoc(doc(db, 'players', uid));
     if (editId === uid) setEditId(null);
+  }
+
+  async function toggleManualLogro(uid, current, logId) {
+    const next = current.includes(logId)
+      ? current.filter(id => id !== logId)
+      : [...current, logId];
+    await updateDoc(doc(db, 'players', uid), { manualLogros: next });
   }
 
   return (
@@ -154,6 +162,34 @@ export default function PlayersPage({ ctx }) {
                         style={{ width:'100%', accentColor:s.color }} />
                     </div>
                   ))}
+
+                  {/* Logros manuales */}
+                  <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid var(--border)' }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)',
+                      textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>
+                      🏅 Logros manuales
+                    </div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+                      {LOGROS.map(l => {
+                        const isOn = (p.manualLogros || []).includes(l.id);
+                        const c    = TIER_COLOR[l.tier];
+                        return (
+                          <button key={l.id}
+                            onClick={() => toggleManualLogro(p.uid, p.manualLogros || [], l.id)}
+                            style={{
+                              padding:'3px 8px', borderRadius:6,
+                              border:`1px solid ${isOn ? c.border : 'var(--border2)'}`,
+                              background: isOn ? c.bg : 'transparent',
+                              color: isOn ? c.text : 'var(--muted)',
+                              cursor:'pointer', fontSize:10, fontWeight:700,
+                              transition:'all .15s',
+                            }}>
+                            {l.emoji} {l.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </>
               )}
             </div>

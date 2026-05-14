@@ -1,6 +1,8 @@
 import { useMatches } from '../hooks/useMatches';
 import { useSeasons } from '../hooks/useSeasons';
 import { overall, SK, tier } from '../utils/stats';
+import { computeLogros, TIER_COLOR } from '../utils/logros';
+import HexRadar from '../components/HexRadar';
 import '../components/PlayerCard.css';
 
 const POSITIONS = {
@@ -166,28 +168,72 @@ export default function PlayerProfileSheet({ player, onClose }) {
             </div>
           )}
 
-          {/* Barras de habilidades */}
+          {/* Radar + valores */}
           <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)',
-            textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>
+            textTransform:'uppercase', letterSpacing:1, marginBottom:4 }}>
             Atributos
           </div>
-          {SK.map(sk => {
-            const val = player[sk.key] ?? 50;
+          <div style={{ display:'flex', justifyContent:'center', margin:'0 auto 4px' }}>
+            <HexRadar player={player} size={200} />
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, marginBottom:8 }}>
+            {SK.map(sk => {
+              const val = player[sk.key] ?? 50;
+              return (
+                <div key={sk.key} style={{ textAlign:'center', padding:'4px 0' }}>
+                  <div style={{ fontSize:15, fontWeight:900, color:sk.color, lineHeight:1 }}>{val}</div>
+                  <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
+                    letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
+                    {sk.label.slice(0,3)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Logros */}
+          {(() => {
+            const { unlocked, locked } = computeLogros(player, { mvpCount });
+            if (!unlocked.length && !locked.length) return null;
             return (
-              <div key={sk.key} style={{ marginBottom:8 }}>
-                <div style={{ display:'flex', justifyContent:'space-between',
-                  marginBottom:3, fontSize:12 }}>
-                  <span style={{ color:'var(--muted)' }}>{sk.emoji} {sk.label}</span>
-                  <span style={{ fontWeight:800, color:sk.color }}>{val}</span>
+              <>
+                <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)',
+                  textTransform:'uppercase', letterSpacing:1, margin:'16px 0 10px' }}>
+                  Logros
+                  <span style={{ marginLeft:8, color:'var(--accent)' }}>
+                    {unlocked.length}/{unlocked.length + locked.length}
+                  </span>
                 </div>
-                <div style={{ height:5, borderRadius:3, background:'var(--border2)' }}>
-                  <div style={{ height:'100%', borderRadius:3,
-                    width:`${val}%`, background:sk.color,
-                    transition:'width .6s cubic-bezier(.4,0,.2,1)' }} />
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
+                  {unlocked.map(l => {
+                    const c = TIER_COLOR[l.tier];
+                    return (
+                      <div key={l.id} style={{
+                        background: c.bg, border: `1px solid ${c.border}`,
+                        borderRadius: 10, padding: '8px 10px',
+                        display: 'flex', flexDirection: 'column', gap: 2,
+                      }}>
+                        <div style={{ fontSize:20, lineHeight:1 }}>{l.emoji}</div>
+                        <div style={{ fontSize:11, fontWeight:800, color:c.text, lineHeight:1.2 }}>{l.name}</div>
+                        <div style={{ fontSize:10, color:'var(--muted)', lineHeight:1.3 }}>{l.desc}</div>
+                      </div>
+                    );
+                  })}
+                  {locked.slice(0, 4).map(l => (
+                    <div key={l.id} style={{
+                      background:'rgba(255,255,255,.03)', border:'1px solid var(--border)',
+                      borderRadius:10, padding:'8px 10px',
+                      display:'flex', flexDirection:'column', gap:2, opacity:.4,
+                    }}>
+                      <div style={{ fontSize:20, lineHeight:1, filter:'grayscale(1)' }}>🔒</div>
+                      <div style={{ fontSize:11, fontWeight:800, color:'var(--muted)', lineHeight:1.2 }}>{l.name}</div>
+                      <div style={{ fontSize:10, color:'var(--muted)', lineHeight:1.3 }}>{l.desc}</div>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              </>
             );
-          })}
+          })()}
 
           {/* Últimos partidos */}
           {recentMatches.length > 0 && (

@@ -2,8 +2,11 @@ import { useState, useRef } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { usePlayer } from '../hooks/usePlayer';
+import { useMatches } from '../hooks/useMatches';
 import PlayerCard from '../components/PlayerCard';
 import { SK, overall } from '../utils/stats';
+import HexRadar from '../components/HexRadar';
+import { computeLogros, TIER_COLOR } from '../utils/logros';
 
 const POSITIONS = [
   { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -34,6 +37,7 @@ async function compressImage(file, maxPx = 500) {
 export default function ProfilePage({ ctx }) {
   const { user, isAdmin, logout } = ctx;
   const { player, loading } = usePlayer(user?.uid);
+  const { matches } = useMatches();
 
   const [editing,  setEditing]  = useState(false);
   const [form,     setForm]     = useState(null);
@@ -96,19 +100,27 @@ export default function ProfilePage({ ctx }) {
       {/* ── Stats ── */}
       <div className="card" style={{ marginBottom:12 }}>
         <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-          textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>Atributos</div>
+          textTransform:'uppercase', letterSpacing:1, marginBottom:4 }}>Atributos</div>
 
-        {SK.map(s => (
-          <div key={s.key} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-            <span style={{ width:72, fontSize:12, color:'var(--muted)' }}>{s.label}</span>
-            <div style={{ flex:1, height:5, borderRadius:3, background:'var(--border2)', overflow:'hidden' }}>
-              <div style={{ width:`${player[s.key] || 50}%`, height:'100%', borderRadius:3,
-                background: s.color, transition:'width .4s' }} />
+        {/* Radar hexagonal */}
+        <div style={{ display:'flex', justifyContent:'center', margin:'0 auto 4px' }}>
+          <HexRadar player={displayPlayer} size={200} />
+        </div>
+
+        {/* Valores numéricos */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, marginBottom:8 }}>
+          {SK.map(s => (
+            <div key={s.key} style={{ textAlign:'center', padding:'4px 0' }}>
+              <div style={{ fontSize:15, fontWeight:900, color:s.color, lineHeight:1 }}>
+                {displayPlayer[s.key] || 50}
+              </div>
+              <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
+                letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
+                {s.label.slice(0,3)}
+              </div>
             </div>
-            <span style={{ fontSize:13, fontWeight:700, width:24, textAlign:'right',
-              color: s.color }}>{player[s.key] || 50}</span>
-          </div>
-        ))}
+          ))}
+        </div>
 
         {/* Resumen numérico */}
         <div style={{ display:'flex', justifyContent:'space-around', marginTop:10,
@@ -130,22 +142,29 @@ export default function ProfilePage({ ctx }) {
       </div>
 
       {/* ── Logros ── */}
-      {player.logros?.length > 0 && (
-        <div className="card" style={{ marginBottom:12 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-            textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>Logros</div>
-          {player.logros.map((l, i) => (
-            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0',
-              borderBottom: i < player.logros.length - 1 ? '1px solid var(--border)' : 'none' }}>
-              <span style={{ fontSize:22 }}>{l.emoji || '🏅'}</span>
-              <div>
-                <div style={{ fontWeight:700, fontSize:13 }}>{l.name}</div>
-                {l.desc && <div style={{ fontSize:11, color:'var(--muted)' }}>{l.desc}</div>}
-              </div>
+      {(() => {
+        const mvpCount = matches.filter(m => {
+          if (!m.votes || !Object.keys(m.votes).length) return false;
+          if (m.createdAt && Date.now() - m.createdAt < 86400000) return false;
+          const counts = {};
+          Object.values(m.votes).forEach(v => { if (v.mvp) counts[v.mvp] = (counts[v.mvp]||0)+1; });
+          return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] === player.uid;
+        }).length;
+        const { unlocked, locked } = computeLogros(player, { mvpCount });
+        return (
+          <div className="card" style={{ marginBottom:12 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+              marginBottom:12 }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+                textTransform:'uppercase', letterSpacing:1 }}>Logros</span>
+              <span style={{ fontSize:11, color:'var(--accent)', fontWeight:700 }}>
+                {unlocked.length}/{unlocked.length + locked.length}
+              </span>
             </div>
-          ))}
-        </div>
-      )}
+            <LogrosGrid unlocked={unlocked} locked={locked} />
+          </div>
+        );
+      })()}
 
       {/* ── Editar ── */}
       {!editing ? (
@@ -227,6 +246,44 @@ export default function ProfilePage({ ctx }) {
         onClick={logout}>
         Cerrar sesión
       </button>
+    </div>
+  );
+}
+
+// ── LogrosGrid ─────────────────────────────────────────────────
+function LogrosGrid({ unlocked, locked }) {
+  return (
+    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+      {unlocked.map(l => {
+        const c = TIER_COLOR[l.tier];
+        return (
+          <div key={l.id} style={{
+            background: c.bg, border: `1px solid ${c.border}`,
+            borderRadius: 10, padding: '10px 10px 8px',
+            display: 'flex', flexDirection: 'column', gap: 3,
+          }}>
+            <div style={{ fontSize: 22, lineHeight: 1 }}>{l.emoji}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: c.text, lineHeight: 1.2 }}>{l.name}</div>
+            <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.3 }}>{l.desc}</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: c.text,
+              textTransform: 'uppercase', letterSpacing: .6, marginTop: 2 }}>{l.tier}</div>
+          </div>
+        );
+      })}
+      {locked.map(l => (
+        <div key={l.id} style={{
+          background: 'rgba(255,255,255,.03)', border: '1px solid var(--border)',
+          borderRadius: 10, padding: '10px 10px 8px',
+          display: 'flex', flexDirection: 'column', gap: 3,
+          opacity: 0.45,
+        }}>
+          <div style={{ fontSize: 22, lineHeight: 1, filter: 'grayscale(1)' }}>🔒</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--muted)', lineHeight: 1.2 }}>{l.name}</div>
+          <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.3 }}>{l.desc}</div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--muted)',
+            textTransform: 'uppercase', letterSpacing: .6, marginTop: 2 }}>{l.tier}</div>
+        </div>
+      ))}
     </div>
   );
 }

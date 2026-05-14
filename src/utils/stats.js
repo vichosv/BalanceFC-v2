@@ -4,7 +4,7 @@ export const SK = [
   { key:'tec', label:'Técnica',    emoji:'🎯', color:'#ffd740', chip:'sc-tec', cls:'rt', desc:'Control y pase' },
   { key:'def', label:'Defensa',    emoji:'🛡️', color:'#448aff', chip:'sc-def', cls:'rd', desc:'Marca y posición' },
   { key:'tir', label:'Tiro',       emoji:'💥', color:'#ff5252', chip:'sc-tir', cls:'rti',desc:'Potencia y precisión' },
-  { key:'sta', label:'Resistencia',emoji:'🫀', color:'#ff9100', chip:'sc-sta', cls:'rs', desc:'Aguante físico' },
+  { key:'sta', label:'Stamina',    emoji:'🫀', color:'#ff9100', chip:'sc-sta', cls:'rs', desc:'Aguante físico' },
   { key:'fis', label:'Físico',     emoji:'💪', color:'#c47eff', chip:'sc-fis', cls:'rf', desc:'Fuerza e impacto' },
 ];
 
