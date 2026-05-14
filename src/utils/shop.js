@@ -3,8 +3,8 @@ export const SHOP_ITEMS = [
   // ── Accents ────────────────────────────────────────────────────
   { id:'accent_cyan',    category:'accent', name:'Cian',       emoji:'🔵', color:'#00e5ff', price:0,  desc:'Color por defecto' },
   { id:'accent_gold',    category:'accent', name:'Dorado',     emoji:'🌟', color:'#ffd700', price:10, desc:'Brilla como campeón' },
-  { id:'accent_red',     category:'accent', name:'Fuego',      emoji:'🔴', color:'#ff4444', price:5,  desc:'Intensidad pura' },
-  { id:'accent_green',   category:'accent', name:'Verde',      emoji:'💚', color:'#00e676', price:5,  desc:'El color del gol' },
+  { id:'accent_red',     category:'accent', name:'Fuego',      emoji:'🔴', color:'#ff4444', price:0,  desc:'Intensidad pura' },
+  { id:'accent_green',   category:'accent', name:'Verde',      emoji:'💚', color:'#00e676', price:0,  desc:'El color del gol' },
   { id:'accent_purple',  category:'accent', name:'Púrpura',    emoji:'💜', color:'#b44fff', price:5,  desc:'Misterio y clase' },
   { id:'accent_orange',  category:'accent', name:'Naranja',    emoji:'🟠', color:'#ff9100', price:5,  desc:'Energía y potencia' },
   { id:'accent_pink',    category:'accent', name:'Rosa',       emoji:'🩷', color:'#ff4db3', price:7,  desc:'Destacar con estilo' },

@@ -5,6 +5,7 @@ const TABS = [
   { id:'historial', label:'Historial', icon:'📊' },
   { id:'ranking',   label:'Ranking',      icon:'🏆' },
   { id:'tienda',    label:'Tienda',       icon:'🛍️' },
+  { id:'apuestas',  label:'Apuestas',     icon:'🎰' },
   { id:'conv',      label:'Convocatoria', icon:'📋' },
   { id:'perfil',    label:'Perfil',       icon:'👤' },
 ];

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  collection, onSnapshot, addDoc, deleteDoc,
-  query, orderBy, doc, updateDoc, increment,
+  collection, onSnapshot, addDoc, deleteDoc, getDocs,
+  query, orderBy, where, doc, updateDoc, increment,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
@@ -67,12 +67,60 @@ function buildStatUpdates(matchData, mult) {
   return updates;
 }
 
+// ── Bet resolution ────────────────────────────────────────────
+async function resolveBets(matchData) {
+  const { teamA, teamB, teamC, triangular, playerStats = {}, scoreA, scoreB } = matchData;
+  const { wA, wB, wC } = computeWins(matchData);
+  const goalDiff = triangular ? 0 : Math.abs((scoreA || 0) - (scoreB || 0));
+
+  const allPlayers = [
+    ...(teamA  || []).map(p => ({ uid: p.uid, won: wA })),
+    ...(teamB  || []).map(p => ({ uid: p.uid, won: wB })),
+    ...(triangular ? (teamC || []).map(p => ({ uid: p.uid, won: wC })) : []),
+  ];
+  const uids = allPlayers.map(p => p.uid).filter(Boolean);
+  if (!uids.length) return;
+
+  // Firestore 'in' supports up to 30 items — futsal fits easily
+  const q = query(
+    collection(db, 'bets'),
+    where('uid', 'in', uids),
+    where('status', '==', 'pending'),
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return;
+
+  const updates = [];
+  snap.docs.forEach(betDoc => {
+    const bet    = betDoc.data();
+    const info   = allPlayers.find(p => p.uid === bet.uid);
+    if (!info) return;
+    const ps     = playerStats[bet.uid] || {};
+    let won = false;
+    if      (bet.type === 'team_win') won = info.won;
+    else if (bet.type === 'i_score')  won = (ps.goals || 0) >= 1;
+    else if (bet.type === 'big_win')  won = info.won && goalDiff >= 3;
+
+    updates.push(updateDoc(doc(db, 'bets', betDoc.id), {
+      status: won ? 'won' : 'lost',
+      resolvedAt: Date.now(),
+    }));
+    if (won) {
+      updates.push(updateDoc(doc(db, 'players', bet.uid), {
+        coins: increment(bet.amount * 2),
+      }));
+    }
+  });
+  await Promise.all(updates);
+}
+
 // ── Public API ────────────────────────────────────────────────
 
 // data.playerStats = { [uid]: { goals: n, assists: n } }
 export async function logMatch(data) {
   await addDoc(collection(db, 'matches'), { ...data, createdAt: Date.now() });
   await Promise.all(buildStatUpdates(data, 1));
+  await resolveBets(data);
 }
 
 export async function deleteMatch(match) {

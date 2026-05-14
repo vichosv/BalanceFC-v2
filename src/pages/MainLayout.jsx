@@ -10,6 +10,7 @@ import RankingPage   from './RankingPage';
 import ConvPage      from './ConvPage';
 import ProfilePage   from './ProfilePage';
 import ShopPage      from './ShopPage';
+import BetPage       from './BetPage';
 
 export default function MainLayout() {
   const [tab, setTab] = useState('inicio');
@@ -27,6 +28,7 @@ export default function MainLayout() {
         {tab === 'historial' && <HistoryPage ctx={ctx} />}
         {tab === 'ranking'   && <RankingPage ctx={ctx} />}
         {tab === 'tienda'    && <ShopPage     ctx={ctx} />}
+        {tab === 'apuestas'  && <BetPage      ctx={ctx} />}
         {tab === 'conv'      && <ConvPage    ctx={ctx} />}
         {tab === 'perfil'    && <ProfilePage ctx={ctx} />}
       </div>
