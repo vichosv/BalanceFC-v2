@@ -27,7 +27,7 @@ export default function OnboardingPage({ user, onComplete }) {
         id:       user.uid,
         nickname: nickname.trim(),
         position,
-        photo:    user.photoURL || null,
+        photo:    null,
         photos:   [],
         emoji:    '⚽',
         ...BASE_STATS,
