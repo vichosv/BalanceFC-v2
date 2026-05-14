@@ -17,6 +17,7 @@ const POSITIONS = {
 export default function PlayersPage({ ctx }) {
   const { players = [], isAdmin } = ctx;
 
+  const [tab,    setTab]    = useState('vista');
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState('');
 
@@ -35,19 +36,6 @@ export default function PlayersPage({ ctx }) {
     await deleteDoc(doc(db, 'players', uid));
     if (editId === uid) setEditId(null);
   }
-  async function uploadPhoto(uid) {
-    const inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = 'image/*';
-    inp.onchange = async e => {
-      const file = e.target.files[0]; if (!file) return;
-      const b64 = await resizeImage(file, 320);
-      await updateDoc(doc(db, 'players', uid), { photo: b64 });
-    };
-    inp.click();
-  }
-  async function removePhoto(uid) {
-    await updateDoc(doc(db, 'players', uid), { photo: null });
-  }
 
   return (
     <div className="page">
@@ -56,7 +44,7 @@ export default function PlayersPage({ ctx }) {
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
         <div style={{ color:'var(--muted)', fontSize:12 }}>
-          {players.length} jugador{players.length !== 1 ? 'es' : ''} registrado{players.length !== 1 ? 's' : ''}
+          {players.length} jugadores
           {isAdmin && <span style={{ marginLeft:6, color:'var(--accent)', fontWeight:700 }}>· Admin</span>}
         </div>
         {isAdmin && (
@@ -67,104 +55,113 @@ export default function PlayersPage({ ctx }) {
         )}
       </div>
 
-      <input placeholder="🔍 Buscar jugador..." value={search}
-        onChange={e => setSearch(e.target.value)} style={{ marginBottom:12 }} />
-
-      {sorted.length === 0 && (
-        <div style={{ textAlign:'center', padding:'48px 0', color:'var(--muted)' }}>
-          <div style={{ fontSize:40, marginBottom:8 }}>📋</div>
-          <div>No hay jugadores aún</div>
+      {/* Tabs (solo admin ve la de stats) */}
+      {isAdmin && (
+        <div style={{ display:'flex', gap:4, marginBottom:12, background:'var(--surface2)',
+          borderRadius:10, padding:4 }}>
+          {[{ id:'vista', label:'👥 Vista' }, { id:'admin', label:'⚙️ Stats' }].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ flex:1, padding:'7px', borderRadius:8, border:'none', cursor:'pointer',
+                fontWeight:700, fontSize:13, transition:'all .15s',
+                background: tab === t.id ? 'var(--surface)' : 'transparent',
+                color:      tab === t.id ? 'var(--accent)'  : 'var(--muted)',
+                boxShadow:  tab === t.id ? '0 1px 4px rgba(0,0,0,.3)' : 'none' }}>
+              {t.label}
+            </button>
+          ))}
         </div>
       )}
 
-      <div className="players-grid">
-        {sorted.map(p => (
-          <div key={p.uid}>
-            {/* Card con overlays admin */}
-            <div style={{ position:'relative' }}>
-              <PlayerCard player={p}
-                onClick={isAdmin ? () => setEditId(editId === p.uid ? null : p.uid) : undefined} />
+      {/* ═══════════ TAB: VISTA ═══════════ */}
+      {tab === 'vista' && (
+        <>
+          <input placeholder="🔍 Buscar..." value={search}
+            onChange={e => setSearch(e.target.value)} style={{ marginBottom:10 }} />
 
-              {/* Admin overlays */}
-              {isAdmin && (
-                <>
-                  {/* Trash top-right */}
-                  <button onClick={() => removePlayer(p.uid)}
-                    style={{ position:'absolute', top:8, right:8, zIndex:10,
-                      width:28, height:28, borderRadius:8,
-                      background:'rgba(0,0,0,.55)', border:'1px solid rgba(255,82,82,.4)',
-                      color:'var(--red)', cursor:'pointer', fontSize:14,
-                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+          {sorted.length === 0 && (
+            <div style={{ textAlign:'center', padding:'48px 0', color:'var(--muted)' }}>
+              <div style={{ fontSize:40, marginBottom:8 }}>📋</div>
+              <div>No hay jugadores aún</div>
+            </div>
+          )}
+
+          <div className="players-grid">
+            {sorted.map(p => (
+              <PlayerCard key={p.uid} player={p} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ═══════════ TAB: ADMIN STATS ═══════════ */}
+      {tab === 'admin' && isAdmin && (
+        <>
+          <input placeholder="🔍 Buscar..." value={search}
+            onChange={e => setSearch(e.target.value)} style={{ marginBottom:10 }} />
+
+          {sorted.map(p => (
+            <div key={p.uid} className="card" style={{ marginBottom:10, padding:12 }}>
+              {/* Header jugador */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+                marginBottom: editId === p.uid ? 12 : 0, cursor:'pointer' }}
+                onClick={() => setEditId(editId === p.uid ? null : p.uid)}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  {p.photo && (
+                    <img src={p.photo} alt="" style={{ width:36, height:36, borderRadius:8,
+                      objectFit:'cover', border:'2px solid var(--border2)' }} />
+                  )}
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:14 }}>{p.nickname}</div>
+                    <div style={{ fontSize:11, color:'var(--muted)' }}>
+                      {POSITIONS[p.position]?.name} · OVR {overall(p)}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:12, color:'var(--muted)' }}>
+                    {editId === p.uid ? '▲' : '▼'}
+                  </span>
+                  <button onClick={e => { e.stopPropagation(); removePlayer(p.uid); }}
+                    style={{ background:'rgba(255,82,82,.12)', border:'1px solid rgba(255,82,82,.3)',
+                      borderRadius:6, color:'var(--red)', cursor:'pointer',
+                      padding:'4px 8px', fontSize:12 }}>
                     🗑️
                   </button>
-                  {/* Photo top-left */}
-                  <button onClick={() => p.photo ? removePhoto(p.uid) : uploadPhoto(p.uid)}
-                    title={p.photo ? 'Quitar foto' : 'Subir foto'}
-                    style={{ position:'absolute', top:8, left:8, zIndex:10,
-                      width:28, height:28, borderRadius:8,
-                      background:'rgba(0,0,0,.55)', border:'1px solid rgba(255,255,255,.2)',
-                      color:'#fff', cursor:'pointer', fontSize:14,
-                      display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    {p.photo ? '✕' : '📸'}
-                  </button>
+                </div>
+              </div>
+
+              {/* Expandible */}
+              {editId === p.uid && (
+                <>
+                  {/* Posición */}
+                  <div style={{ marginBottom:12 }}>
+                    <label>Posición</label>
+                    <select value={p.position} onChange={e => updatePosition(p.uid, e.target.value)}>
+                      {Object.values(POSITIONS).map(pos => (
+                        <option key={pos.id} value={pos.id}>{pos.emoji} {pos.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Sliders */}
+                  {SK.map(s => (
+                    <div key={s.key} style={{ marginBottom:8 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:2 }}>
+                        <span style={{ fontSize:12, color:'var(--muted)' }}>{s.label}</span>
+                        <span style={{ fontSize:13, fontWeight:700, color:s.color }}>{p[s.key] ?? 50}</span>
+                      </div>
+                      <input type="range" min="10" max="100" step="1"
+                        value={p[s.key] ?? 50}
+                        onChange={e => updateStat(p.uid, s.key, e.target.value)}
+                        style={{ width:'100%', accentColor:s.color }} />
+                    </div>
+                  ))}
                 </>
               )}
             </div>
-
-            {/* Stat editor — se abre al tocar la carta */}
-            {isAdmin && editId === p.uid && (
-              <div className="card" style={{ marginTop:6, borderColor:'var(--border2)', padding:12 }}>
-                {/* Position */}
-                <div style={{ marginBottom:10 }}>
-                  <label>Posición</label>
-                  <select value={p.position} onChange={e => updatePosition(p.uid, e.target.value)}>
-                    {Object.values(POSITIONS).map(pos => (
-                      <option key={pos.id} value={pos.id}>{pos.emoji} {pos.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Photo upload (if no photo yet) */}
-                {!p.photo && (
-                  <button className="btn btn-gh" style={{ width:'100%', fontSize:12, marginBottom:10 }}
-                    onClick={() => uploadPhoto(p.uid)}>
-                    📸 Subir foto de carta
-                  </button>
-                )}
-
-                {/* Stats sliders */}
-                {SK.map(s => (
-                  <div key={s.key} style={{ marginBottom:8 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:2 }}>
-                      <span style={{ fontSize:11, color:'var(--muted)' }}>{s.label}</span>
-                      <span style={{ fontSize:13, fontWeight:700, color:s.color }}>{p[s.key] ?? 50}</span>
-                    </div>
-                    <input type="range" min="10" max="100" step="1"
-                      value={p[s.key] ?? 50}
-                      onChange={e => updateStat(p.uid, s.key, e.target.value)}
-                      style={{ width:'100%', accentColor:s.color }} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </>
+      )}
     </div>
   );
-}
-
-function resizeImage(file, maxW) {
-  return new Promise(resolve => {
-    const img = new Image(), url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxW / img.width);
-      const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
-      const c = document.createElement('canvas'); c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL('image/jpeg', .72));
-    };
-    img.src = url;
-  });
 }

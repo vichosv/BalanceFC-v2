@@ -128,7 +128,7 @@ input:focus, select:focus { border-color: var(--accent); }
 
 /* ── Grid ──────────────────────────────────────────────── */
 .grid-2         { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.players-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.players-grid   { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .profile-slot   { display: flex; flex-direction: column; gap: 10px; }
 
 /* ── Player selector chips ─────────────────────────────── */
