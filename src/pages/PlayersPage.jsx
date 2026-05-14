@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
+import PlayerProfileSheet from '../components/PlayerProfileSheet';
 import '../components/PlayerCard.css';
 import { overall, SK } from '../utils/stats';
 import { seedDummyPlayers } from '../utils/seedPlayers';
@@ -17,9 +18,10 @@ const POSITIONS = {
 export default function PlayersPage({ ctx }) {
   const { players = [], isAdmin } = ctx;
 
-  const [tab,    setTab]    = useState('vista');
-  const [editId, setEditId] = useState(null);
-  const [search, setSearch] = useState('');
+  const [tab,           setTab]           = useState('vista');
+  const [editId,        setEditId]        = useState(null);
+  const [search,        setSearch]        = useState('');
+  const [viewingPlayer, setViewingPlayer] = useState(null);
 
   const sorted = [...players]
     .filter(p => (p.nickname || '').toLowerCase().includes(search.toLowerCase()))
@@ -91,7 +93,9 @@ export default function PlayersPage({ ctx }) {
 
           <div className="players-grid">
             {sorted.map(p => (
-              <PlayerCard key={p.uid} player={p} />
+              <div key={p.uid} onClick={() => setViewingPlayer(p)} style={{ cursor:'pointer' }}>
+                <PlayerCard player={p} />
+              </div>
             ))}
           </div>
         </>
@@ -155,6 +159,12 @@ export default function PlayersPage({ ctx }) {
             </div>
           ))}
         </>
+      )}
+      {/* ── Perfil público ── */}
+      {viewingPlayer && (
+        <PlayerProfileSheet
+          player={viewingPlayer}
+          onClose={() => setViewingPlayer(null)} />
       )}
     </div>
   );

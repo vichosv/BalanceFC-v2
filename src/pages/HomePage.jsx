@@ -80,6 +80,13 @@ export default function HomePage({ ctx, onNavigate }) {
     ? (player?.seasons?.[sid]?.goals || 0)
     : (player?.history?.goals || 0);
 
+  // ── Votaciones pendientes ──
+  const pendingVotes = matches.filter(m => {
+    if (!m.createdAt || Date.now() - m.createdAt >= 86400000) return false;
+    const inMatch = [...(m.teamA||[]), ...(m.teamB||[]), ...(m.teamC||[])].some(p => p.uid === user?.uid);
+    return inMatch && !m.votes?.[user?.uid];
+  });
+
   return (
     <div className="page">
 
@@ -120,6 +127,31 @@ export default function HomePage({ ctx, onNavigate }) {
           </div>
         )}
       </div>
+
+      {/* ── Votaciones pendientes ── */}
+      {pendingVotes.map(m => {
+        const msLeft = Math.max(0, m.createdAt + 86400000 - Date.now());
+        const hLeft  = Math.floor(msLeft / 3600000);
+        const mLeft  = Math.floor((msLeft % 3600000) / 60000);
+        return (
+          <div key={m.id} onClick={() => onNavigate?.('historial')}
+            style={{ marginBottom:10, borderRadius:12, padding:'12px 16px', cursor:'pointer',
+              background:'rgba(255,215,64,.08)', border:'1px solid rgba(255,215,64,.35)',
+              display:'flex', justifyContent:'space-between', alignItems:'center', gap:10 }}>
+            <div>
+              <div style={{ fontSize:11, fontWeight:800, color:'var(--yellow)',
+                textTransform:'uppercase', letterSpacing:1, marginBottom:2 }}>
+                🗳️ Votación pendiente
+              </div>
+              <div style={{ fontSize:13, fontWeight:700 }}>{m.format}</div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:1 }}>
+                Cierra en {hLeft}h {mLeft}m
+              </div>
+            </div>
+            <span style={{ fontSize:22 }}>→</span>
+          </div>
+        );
+      })}
 
       {/* ── Stats rápidos ── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:16 }}>

@@ -538,8 +538,10 @@ function MatchCard({ m, players, isAdmin, onEdit, onDelete, userId }) {
   const mLeft      = Math.floor((msLeft % 3600000) / 60000);
 
   // GK candidates: prefer position GK, fallback to all
-  const gkCandidates = allMatchPlayers.filter(p => players.find(x => x.uid === p.uid)?.position === 'GK');
-  const gkPool = gkCandidates.length > 0 ? gkCandidates : allMatchPlayers;
+  // Excluir al votante de las opciones (no puede votarse a sí mismo)
+  const mvpPool       = allMatchPlayers.filter(p => p.uid !== userId);
+  const gkCandidates  = mvpPool.filter(p => players.find(x => x.uid === p.uid)?.position === 'GK');
+  const gkPool        = gkCandidates.length > 0 ? gkCandidates : mvpPool;
 
   function getVoteWinner(field) {
     const counts = {};
@@ -699,7 +701,7 @@ function MatchCard({ m, players, isAdmin, onEdit, onDelete, userId }) {
               ⭐ MVP — mejor jugador
             </div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-              {allMatchPlayers.map(p => {
+              {mvpPool.map(p => {
                 const pl = players.find(x => x.uid === p.uid);
                 const sel = mvpPick === p.uid;
                 return (
