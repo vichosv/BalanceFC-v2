@@ -1,34 +1,232 @@
+import { useState, useRef } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { usePlayer } from '../hooks/usePlayer';
+import PlayerCard from '../components/PlayerCard';
+import { SK, overall } from '../utils/stats';
+
+const POSITIONS = [
+  { id:'GK',  name:'Arquero',    emoji:'🧤' },
+  { id:'DEF', name:'Defensor',   emoji:'🛡️' },
+  { id:'MID', name:'Mediocampo', emoji:'⚙️' },
+  { id:'WNG', name:'Extremo',    emoji:'⚡' },
+  { id:'FWD', name:'Delantero',  emoji:'🎯' },
+];
+
+async function compressImage(file, maxPx = 500) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.78));
+    };
+    img.src = url;
+  });
+}
+
 export default function ProfilePage({ ctx }) {
-  const { user, profile, isAdmin, logout } = ctx;
+  const { user, isAdmin, logout } = ctx;
+  const { player, loading } = usePlayer(user?.uid);
+
+  const [editing,  setEditing]  = useState(false);
+  const [form,     setForm]     = useState(null);
+  const [saving,   setSaving]   = useState(false);
+  const fileRef = useRef();
+
+  function startEdit() {
+    setForm({ nickname: player.nickname, position: player.position, photo: player.photo || null });
+    setEditing(true);
+  }
+
+  async function handlePhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const compressed = await compressImage(file);
+    setForm(f => ({ ...f, photo: compressed }));
+  }
+
+  async function saveProfile() {
+    if (!form.nickname.trim()) return;
+    setSaving(true);
+    await updateDoc(doc(db, 'players', user.uid), {
+      nickname: form.nickname.trim(),
+      position: form.position,
+      photo:    form.photo || null,
+    });
+    setEditing(false);
+    setSaving(false);
+  }
+
+  if (loading) return <div className="page" style={{ color:'var(--muted)' }}>Cargando...</div>;
+  if (!player)  return <div className="page" style={{ color:'var(--muted)' }}>Sin perfil</div>;
+
+  const displayPlayer = editing ? { ...player, ...form } : player;
+  const pj   = player.history?.matches || 0;
+  const wins  = player.history?.wins   || 0;
+  const mvps  = player.history?.mvps   || 0;
+  const goals = player.history?.goals  || 0;
+  const wr    = pj ? Math.round(wins / pj * 100) : 0;
 
   return (
     <div className="page">
       <div className="page-title">👤 Mi perfil</div>
-      <div className="card" style={{ textAlign:'center', padding:'24px' }}>
-        {user?.photoURL && (
-          <img src={user.photoURL} alt="avatar"
-            style={{ width:72, height:72, borderRadius:'50%', marginBottom:12, border:'3px solid var(--accent)' }} />
-        )}
-        <div style={{ fontWeight:700, fontSize:18 }}>{user?.displayName}</div>
-        <div style={{ color:'var(--muted)', fontSize:13, marginBottom:8 }}>{user?.email}</div>
-        {isAdmin && (
-          <span style={{ background:'var(--accent)', color:'var(--bg)', borderRadius:6, padding:'2px 10px', fontSize:12, fontWeight:700 }}>
-            Admin
-          </span>
-        )}
-        {profile?.playerId ? (
-          <div style={{ marginTop:16, color:'var(--green)', fontSize:13 }}>
-            ✅ Perfil vinculado a jugador
-          </div>
-        ) : (
-          <div style={{ marginTop:16, color:'var(--muted)', fontSize:13 }}>
-            Aún no vinculado a un jugador
-          </div>
-        )}
-        <button className="btn btn-gh" style={{ marginTop:20, width:'100%' }} onClick={logout}>
-          Cerrar sesión
-        </button>
+
+      {/* ── Carta ── */}
+      <div style={{ maxWidth:190, margin:'0 auto 20px' }}>
+        <PlayerCard player={displayPlayer} />
       </div>
+
+      {/* ── Badge admin ── */}
+      {isAdmin && (
+        <div style={{ textAlign:'center', marginBottom:14 }}>
+          <span style={{ background:'var(--accent)', color:'var(--bg)', borderRadius:6,
+            padding:'3px 12px', fontSize:12, fontWeight:700, letterSpacing:.5 }}>
+            ⚡ Admin
+          </span>
+        </div>
+      )}
+
+      {/* ── Stats ── */}
+      <div className="card" style={{ marginBottom:12 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+          textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>Atributos</div>
+
+        {SK.map(s => (
+          <div key={s.key} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+            <span style={{ width:72, fontSize:12, color:'var(--muted)' }}>{s.label}</span>
+            <div style={{ flex:1, height:5, borderRadius:3, background:'var(--border2)', overflow:'hidden' }}>
+              <div style={{ width:`${player[s.key] || 50}%`, height:'100%', borderRadius:3,
+                background: s.color, transition:'width .4s' }} />
+            </div>
+            <span style={{ fontSize:13, fontWeight:700, width:24, textAlign:'right',
+              color: s.color }}>{player[s.key] || 50}</span>
+          </div>
+        ))}
+
+        {/* Resumen numérico */}
+        <div style={{ display:'flex', justifyContent:'space-around', marginTop:10,
+          borderTop:'1px solid var(--border)', paddingTop:10 }}>
+          {[
+            { val: overall(player), lbl:'OVR' },
+            { val: pj,              lbl:'PJ'  },
+            { val: wins,            lbl:'V'   },
+            { val: goals,           lbl:'GOL' },
+            { val: mvps,            lbl:'MVP' },
+            { val: wr + '%',        lbl:'WR'  },
+          ].map(({ val, lbl }) => (
+            <div key={lbl} style={{ textAlign:'center' }}>
+              <div style={{ fontSize:18, fontWeight:900 }}>{val}</div>
+              <div style={{ fontSize:9, color:'var(--muted)', letterSpacing:.8, fontWeight:700 }}>{lbl}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Logros ── */}
+      {player.logros?.length > 0 && (
+        <div className="card" style={{ marginBottom:12 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+            textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>Logros</div>
+          {player.logros.map((l, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0',
+              borderBottom: i < player.logros.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <span style={{ fontSize:22 }}>{l.emoji || '🏅'}</span>
+              <div>
+                <div style={{ fontWeight:700, fontSize:13 }}>{l.name}</div>
+                {l.desc && <div style={{ fontSize:11, color:'var(--muted)' }}>{l.desc}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Editar ── */}
+      {!editing ? (
+        <button className="btn btn-gh btn-full" onClick={startEdit}>✏️ Editar perfil</button>
+      ) : (
+        <div className="card" style={{ marginBottom:12 }}>
+          <div style={{ fontWeight:700, fontSize:13, marginBottom:14 }}>Editar perfil</div>
+
+          {/* Foto */}
+          <div style={{ marginBottom:14, textAlign:'center' }}>
+            <input type="file" ref={fileRef} accept="image/*"
+              style={{ display:'none' }} onChange={handlePhoto} />
+            {form.photo ? (
+              <div style={{ display:'inline-block', position:'relative' }}>
+                <img src={form.photo} alt="" style={{ width:84, height:84, borderRadius:'50%',
+                  objectFit:'cover', border:'2.5px solid var(--accent)' }} />
+                <button onClick={() => setForm(f => ({ ...f, photo: null }))}
+                  style={{ position:'absolute', top:-4, right:-4, width:22, height:22,
+                    background:'var(--red)', border:'none', borderRadius:'50%',
+                    color:'#fff', cursor:'pointer', fontSize:12,
+                    display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+              </div>
+            ) : (
+              <button className="btn btn-gh" style={{ fontSize:12 }}
+                onClick={() => fileRef.current.click()}>
+                + Foto de perfil
+              </button>
+            )}
+            {form.photo && (
+              <div style={{ marginTop:8 }}>
+                <button className="btn btn-gh" style={{ fontSize:11, padding:'6px 14px' }}
+                  onClick={() => fileRef.current.click()}>Cambiar foto</button>
+              </div>
+            )}
+          </div>
+
+          {/* Nickname */}
+          <div style={{ marginBottom:12 }}>
+            <label>Nickname</label>
+            <input maxLength={16} value={form.nickname}
+              onChange={e => setForm(f => ({ ...f, nickname: e.target.value }))} />
+          </div>
+
+          {/* Posición */}
+          <div style={{ marginBottom:16 }}>
+            <label>Posición</label>
+            <div style={{ display:'flex', flexDirection:'column', gap:6, marginTop:6 }}>
+              {POSITIONS.map(p => (
+                <button key={p.id} onClick={() => setForm(f => ({ ...f, position: p.id }))}
+                  style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px',
+                    borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:600, textAlign:'left',
+                    border: `1.5px solid ${form.position === p.id ? 'var(--accent)' : 'var(--border2)'}`,
+                    background: form.position === p.id ? 'rgba(0,229,255,.1)' : 'var(--surface2)',
+                    color:'var(--text)', transition:'all .15s' }}>
+                  <span style={{ fontSize:18 }}>{p.emoji}</span>
+                  <span>{p.name}</span>
+                  {form.position === p.id && (
+                    <span style={{ marginLeft:'auto', color:'var(--accent)' }}>✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display:'flex', gap:8 }}>
+            <button className="btn btn-gh" style={{ flex:1 }}
+              onClick={() => setEditing(false)}>Cancelar</button>
+            <button className="btn btn-ac" style={{ flex:2 }}
+              disabled={!form.nickname.trim() || saving} onClick={saveProfile}>
+              {saving ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cerrar sesión ── */}
+      <button className="btn btn-gh btn-full"
+        style={{ marginTop:4, color:'var(--red)', borderColor:'rgba(255,82,82,.3)' }}
+        onClick={logout}>
+        Cerrar sesión
+      </button>
     </div>
   );
 }
