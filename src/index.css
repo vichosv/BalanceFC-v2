@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg:       #080c10;
+  --surface:  #0e1318;
+  --surface2: #141b22;
+  --border:   #1e2830;
+  --border2:  #253040;
+  --text:     #e8edf2;
+  --muted:    #6f8492;
+  --accent:   #00e5ff;
+  --accent2:  #00b8d4;
+  --green:    #00e676;
+  --yellow:   #ffd740;
+  --red:      #ff5252;
+  --orange:   #ff9100;
+  --blue:     #448aff;
+  --purple:   #c47eff;
+  --pink:     #f48fb1;
+
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); min-height: 100dvh; }
+
+#root { min-height: 100dvh; }
+
+/* ── Shell ─────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 72px;
+}
+
+.page {
+  padding: 16px;
+}
+
+.page-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  margin-bottom: 14px;
+}
+
+/* ── NavBar ────────────────────────────────────────────── */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color .15s;
+}
+.nav-btn.active  { color: var(--accent); }
+.nav-icon        { font-size: 20px; line-height: 1; }
+.nav-label       { font-size: 10px; font-weight: 600; letter-spacing: .3px; }
+
+/* ── Cards ─────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* ── Buttons ───────────────────────────────────────────── */
+.btn {
+  padding: 11px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background .15s, transform .15s;
+}
+.btn-ac  { background: var(--accent);   color: var(--bg); }
+.btn-ac:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-gh  { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+.btn-gh:hover { border-color: var(--accent); color: var(--accent); }
+.btn-full { width: 100%; margin-bottom: 8px; }
+
+/* ── Login ─────────────────────────────────────────────── */
+.login-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.08) 0%, transparent 70%), var(--bg);
+  padding: 24px;
+}
+
+.login-card {
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+}
+
+.login-logo {
+  font-size: 64px;
+  margin-bottom: 12px;
+}
+
+.login-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 36px;
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.btn-google:hover { border-color: var(--accent); background: var(--surface2); }
