@@ -16,6 +16,34 @@ function splitTitulares(confirmados, max) {
   return { titulares: sorted.slice(0, max), reserva: sorted.slice(max) };
 }
 
+function shareConvocatoria(conv, titulares, reserva) {
+  const dateStr = formatDate(conv.date);
+  const lines = [
+    `⚽ *BalanceFC — Partido convocado*`,
+    `📅 ${dateStr.charAt(0).toUpperCase() + dateStr.slice(1)}`,
+    `🕐 ${conv.time}`,
+    `📍 ${conv.place}`,
+    `🏟️ Formato: ${conv.format}`,
+    ``,
+  ];
+
+  if (titulares.length > 0) {
+    lines.push(`✅ *Confirmados (${titulares.length}/${conv.maxPlayers}):*`);
+    titulares.forEach((p, i) => lines.push(`  ${i + 1}. ${POS_EMOJI[p.position] || ''} ${p.nickname}`));
+  } else {
+    lines.push(`_Todavía no hay confirmados_`);
+  }
+
+  if (reserva.length > 0) {
+    lines.push(``);
+    lines.push(`🟡 *Reserva (${reserva.length}):*`);
+    reserva.forEach((p, i) => lines.push(`  ${i + 1}. ${POS_EMOJI[p.position] || ''} ${p.nickname}`));
+  }
+
+  const text = encodeURIComponent(lines.join('\n'));
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
 export default function ConvPage({ ctx }) {
   const { user, isAdmin } = ctx;
   const { convocatorias, loading } = useConvocatorias();
@@ -182,6 +210,15 @@ export default function ConvPage({ ctx }) {
                     )}
                   </div>
                 )}
+
+                {/* Share WhatsApp */}
+                <button
+                  onClick={() => shareConvocatoria(conv, titulares, reserva)}
+                  style={{ width:'100%', marginTop:8, padding:'10px', borderRadius:8,
+                    border:'1px solid rgba(37,211,102,.3)', background:'rgba(37,211,102,.1)',
+                    color:'#25d366', cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                  📲 Compartir por WhatsApp
+                </button>
 
                 {/* Admin: delete */}
                 {isAdmin && (
