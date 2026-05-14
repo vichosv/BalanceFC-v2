@@ -28,22 +28,32 @@ export async function createConvocatoria(data) {
 }
 
 export async function joinConvocatoria(convId, confirmados, player) {
-  const already = confirmados.some(p => p.uid === player.uid);
-  if (already) return;
-  await updateDoc(doc(db, 'convocatorias', convId), {
-    confirmados: [...confirmados, {
-      uid:       player.uid,
-      nickname:  player.nickname,
-      position:  player.position,
-      timestamp: Date.now(),
-    }],
-  });
+  try {
+    const already = (confirmados || []).some(p => p.uid === player.uid);
+    if (already) return;
+    await updateDoc(doc(db, 'convocatorias', convId), {
+      confirmados: [...(confirmados || []), {
+        uid:       player.uid,
+        nickname:  player.nickname,
+        position:  player.position,
+        timestamp: Date.now(),
+      }],
+    });
+  } catch(e) {
+    console.error('joinConvocatoria:', e);
+    alert('Error al unirse: ' + e.message);
+  }
 }
 
 export async function leaveConvocatoria(convId, confirmados, uid) {
-  await updateDoc(doc(db, 'convocatorias', convId), {
-    confirmados: confirmados.filter(p => p.uid !== uid),
-  });
+  try {
+    await updateDoc(doc(db, 'convocatorias', convId), {
+      confirmados: (confirmados || []).filter(p => p.uid !== uid),
+    });
+  } catch(e) {
+    console.error('leaveConvocatoria:', e);
+    alert('Error al salirse: ' + e.message);
+  }
 }
 
 export async function deleteConvocatoria(convId) {

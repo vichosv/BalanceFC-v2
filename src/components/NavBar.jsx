@@ -3,7 +3,8 @@ const TABS = [
   { id:'jugadores', label:'Jugadores', icon:'👥' },
   { id:'partido',   label:'Equipos',   icon:'⚽' },
   { id:'historial', label:'Historial', icon:'📊' },
-  { id:'conv',      label:'Convocatoria', icon:'📋' },
+  { id:'ranking',   label:'Ranking',   icon:'🏆' },
+  { id:'conv',      label:'Conv.',     icon:'📋' },
   { id:'perfil',    label:'Perfil',    icon:'👤' },
 ];
 

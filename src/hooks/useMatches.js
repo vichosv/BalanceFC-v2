@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  collection, onSnapshot, addDoc,
+  collection, onSnapshot, addDoc, deleteDoc,
   query, orderBy, doc, updateDoc, increment,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -21,46 +21,73 @@ export function useMatches() {
   return { matches, loading };
 }
 
+// ── Shared helpers ────────────────────────────────────────────
+function computeWins({ scoreA, scoreB, scoreC, triangular }) {
+  if (triangular) {
+    const max = Math.max(scoreA, scoreB, scoreC ?? -1);
+    return { wA: scoreA === max, wB: scoreB === max, wC: (scoreC ?? -1) === max };
+  }
+  return { wA: scoreA > scoreB, wB: scoreB > scoreA, wC: false };
+}
+
+function applyTeamStats(team, wins, playerStats, sid, mult, updates) {
+  (team || []).forEach(p => {
+    const ps      = playerStats?.[p.uid] || {};
+    const goals   = (ps.goals   || 0) * mult;
+    const assists = (ps.assists || 0) * mult;
+    const w       = (wins ? 1 : 0) * mult;
+    const global  = {
+      'history.matches': increment(mult),
+      'history.wins':    increment(w),
+      'history.goals':   increment(goals),
+      'history.assists': increment(assists),
+    };
+    const seasonal = sid ? {
+      [`seasons.${sid}.matches`]: increment(mult),
+      [`seasons.${sid}.wins`]:    increment(w),
+      [`seasons.${sid}.goals`]:   increment(goals),
+      [`seasons.${sid}.assists`]: increment(assists),
+    } : {};
+    updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal }));
+  });
+}
+
+function buildStatUpdates(matchData, mult) {
+  const { teamA, teamB, teamC, triangular, playerStats = {}, seasonId } = matchData;
+  const { wA, wB, wC } = computeWins(matchData);
+  const sid = seasonId || null;
+  const updates = [];
+  applyTeamStats(teamA, wA, playerStats, sid, mult, updates);
+  applyTeamStats(teamB, wB, playerStats, sid, mult, updates);
+  if (triangular) applyTeamStats(teamC, wC, playerStats, sid, mult, updates);
+  return updates;
+}
+
+// ── Public API ────────────────────────────────────────────────
+
 // data.playerStats = { [uid]: { goals: n, assists: n } }
 export async function logMatch(data) {
-  const { teamA, teamB, teamC, scoreA, scoreB, scoreC, triangular, playerStats = {}, seasonId } = data;
-
   await addDoc(collection(db, 'matches'), { ...data, createdAt: Date.now() });
+  await Promise.all(buildStatUpdates(data, 1));
+}
 
-  const aWin   = !triangular && scoreA > scoreB;
-  const bWin   = !triangular && scoreB > scoreA;
-  const triMax = triangular ? Math.max(scoreA, scoreB, scoreC) : 0;
-  const triWin = score => triangular && score === triMax;
+export async function deleteMatch(match) {
+  await deleteDoc(doc(db, 'matches', match.id));
+  await Promise.all(buildStatUpdates(match, -1));
+}
 
-  const sid     = seasonId || null;
-  const updates = [];
+export async function updateMatch(oldMatch, newData) {
+  // Preserve original seasonId and createdAt
+  const merged = { ...newData, seasonId: oldMatch.seasonId, createdAt: oldMatch.createdAt };
+  const { id, ...docData } = { ...merged };
+  await updateDoc(doc(db, 'matches', oldMatch.id), docData);
+  // Reverse old stats, apply new stats
+  await Promise.all([
+    ...buildStatUpdates(oldMatch, -1),
+    ...buildStatUpdates(merged,   1),
+  ]);
+}
 
-  const updateTeam = (team, wins) => {
-    team.forEach(p => {
-      const ps      = playerStats[p.uid] || {};
-      const goals   = ps.goals   || 0;
-      const assists = ps.assists || 0;
-
-      const global = {
-        'history.matches': increment(1),
-        'history.wins':    increment(wins ? 1 : 0),
-        'history.goals':   increment(goals),
-        'history.assists': increment(assists),
-      };
-      const seasonal = sid ? {
-        [`seasons.${sid}.matches`]: increment(1),
-        [`seasons.${sid}.wins`]:    increment(wins ? 1 : 0),
-        [`seasons.${sid}.goals`]:   increment(goals),
-        [`seasons.${sid}.assists`]: increment(assists),
-      } : {};
-
-      updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal }));
-    });
-  };
-
-  updateTeam(teamA, triangular ? triWin(scoreA) : aWin);
-  updateTeam(teamB, triangular ? triWin(scoreB) : bWin);
-  if (triangular && teamC?.length) updateTeam(teamC, triWin(scoreC));
-
-  await Promise.all(updates);
+export async function setMatchVideo(matchId, videoUrl) {
+  await updateDoc(doc(db, 'matches', matchId), { videoUrl: videoUrl || null });
 }

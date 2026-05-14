@@ -48,7 +48,7 @@ function formatDate(dateStr) {
 }
 
 // ─────────────────────────────────────────────────────────────
-export default function HomePage({ ctx }) {
+export default function HomePage({ ctx, onNavigate }) {
   const { user, players = [], isAdmin } = ctx;
   const { convocatorias } = useConvocatorias();
   const { matches }       = useMatches();
@@ -139,88 +139,97 @@ export default function HomePage({ ctx }) {
       </div>
 
       {/* ── Próximo partido + countdown ── */}
-      {nextConv && (
-        <div style={{ marginBottom:16, borderRadius:14, overflow:'hidden',
+      <div onClick={() => onNavigate?.('conv')}
+        style={{ marginBottom:16, borderRadius:14, overflow:'hidden', cursor:'pointer',
           border:'1px solid rgba(255,215,64,.25)', background:'rgba(255,215,64,.05)' }}>
 
-          {/* Info */}
-          <div style={{ padding:'14px 16px', display:'flex',
-            justifyContent:'space-between', alignItems:'center',
-            borderBottom:'1px solid rgba(255,215,64,.15)' }}>
+        {nextConv ? (
+          <>
+            {/* Info */}
+            <div style={{ padding:'14px 16px', display:'flex',
+              justifyContent:'space-between', alignItems:'center',
+              borderBottom:'1px solid rgba(255,215,64,.15)' }}>
+              <div>
+                <div style={{ fontSize:11, color:'var(--yellow)', fontWeight:700,
+                  textTransform:'uppercase', letterSpacing:1, marginBottom:3 }}>
+                  Próximo partido
+                </div>
+                <div style={{ fontWeight:700, fontSize:14, textTransform:'capitalize' }}>
+                  {formatDate(nextConv.date)}
+                </div>
+                <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>
+                  🕐 {nextConv.time} · 📍 {nextConv.place}
+                </div>
+              </div>
+              <div style={{ textAlign:'right' }}>
+                <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26,
+                  fontWeight:900, color: isConfirmed ? 'var(--green)' : 'var(--yellow)' }}>
+                  {totalConf}/{nextConv.maxPlayers}
+                </div>
+                <div style={{ fontSize:10, color:'var(--muted)' }}>confirmados</div>
+                {isConfirmed && (
+                  <div style={{ fontSize:11, color:'var(--green)', fontWeight:700, marginTop:2 }}>✅ Vas</div>
+                )}
+              </div>
+            </div>
+
+            {/* Countdown */}
+            <div style={{ padding:'12px 16px', textAlign:'center' }}>
+              {countdown?.passed ? (
+                <div style={{ color:'var(--green)', fontWeight:700, fontSize:14 }}>¡El partido es ahora!</div>
+              ) : countdown ? (
+                <div style={{ display:'flex', justifyContent:'center', gap:12 }}>
+                  {countdown.d > 0 && <CountUnit val={countdown.d} lbl="días" />}
+                  <CountUnit val={countdown.h} lbl="hrs" />
+                  <CountUnit val={countdown.m} lbl="min" />
+                  <CountUnit val={countdown.s} lbl="seg" color="var(--yellow)" />
+                </div>
+              ) : (
+                <div style={{ color:'var(--muted)', fontSize:12 }}>Sin fecha definida</div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div style={{ padding:'16px', display:'flex', justifyContent:'space-between',
+            alignItems:'center' }}>
             <div>
               <div style={{ fontSize:11, color:'var(--yellow)', fontWeight:700,
                 textTransform:'uppercase', letterSpacing:1, marginBottom:3 }}>
                 Próximo partido
               </div>
-              <div style={{ fontWeight:700, fontSize:14, textTransform:'capitalize' }}>
-                {formatDate(nextConv.date)}
-              </div>
-              <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>
-                🕐 {nextConv.time} · 📍 {nextConv.place}
-              </div>
+              <div style={{ fontSize:13, color:'var(--muted)' }}>Sin partido programado</div>
             </div>
-            <div style={{ textAlign:'right' }}>
-              <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26,
-                fontWeight:900, color: isConfirmed ? 'var(--green)' : 'var(--yellow)' }}>
-                {totalConf}/{nextConv.maxPlayers}
-              </div>
-              <div style={{ fontSize:10, color:'var(--muted)' }}>confirmados</div>
-              {isConfirmed && (
-                <div style={{ fontSize:11, color:'var(--green)', fontWeight:700, marginTop:2 }}>✅ Vas</div>
-              )}
-            </div>
+            <span style={{ fontSize:20 }}>📋</span>
           </div>
-
-          {/* Countdown */}
-          <div style={{ padding:'12px 16px', textAlign:'center' }}>
-            {countdown?.passed ? (
-              <div style={{ color:'var(--green)', fontWeight:700, fontSize:14 }}>¡El partido es ahora!</div>
-            ) : countdown ? (
-              <div style={{ display:'flex', justifyContent:'center', gap:12 }}>
-                {countdown.d > 0 && (
-                  <CountUnit val={countdown.d} lbl="días" />
-                )}
-                <CountUnit val={countdown.h} lbl="hrs" />
-                <CountUnit val={countdown.m} lbl="min" />
-                <CountUnit val={countdown.s} lbl="seg" color="var(--yellow)" />
-              </div>
-            ) : (
-              <div style={{ color:'var(--muted)', fontSize:12 }}>Sin fecha definida</div>
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Ranking ── */}
       {myRank && (
-        <div style={{ marginBottom:16, borderRadius:14, overflow:'hidden',
-          border:'1px solid var(--border)', background:'var(--surface)' }}>
+        <div onClick={() => onNavigate?.('ranking')}
+          style={{ marginBottom:16, borderRadius:14, overflow:'hidden', cursor:'pointer',
+            border:'1px solid var(--border)', background:'var(--surface)' }}>
           <div style={{ padding:'10px 16px', borderBottom:'1px solid var(--border)',
-            fontSize:11, fontWeight:700, color:'var(--muted)',
-            textTransform:'uppercase', letterSpacing:1 }}>
-            {sid ? `Ranking — ${activeSeason.name}` : 'Ranking global'}
+            display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+              textTransform:'uppercase', letterSpacing:1 }}>
+              {sid ? `Ranking — ${activeSeason.name}` : 'Ranking global'}
+            </span>
+            <span style={{ fontSize:10, color:'var(--accent)' }}>Ver completo →</span>
           </div>
 
-          {/* Jugador arriba */}
-          {above && (
-            <RankRow player={above} rank={myRank - 1} dim />
-          )}
-
-          {/* Yo */}
+          {above && <RankRow player={above} rank={myRank - 1} dim />}
           <RankRow player={ranked[myIdx]} rank={myRank} highlight />
-
-          {/* Jugador abajo */}
-          {below && (
-            <RankRow player={below} rank={myRank + 1} dim />
-          )}
+          {below && <RankRow player={below} rank={myRank + 1} dim />}
         </div>
       )}
 
       {/* ── Último partido ── */}
       {lastMatch && (
-        <div style={{ padding:'12px 16px', borderRadius:14,
-          background:'var(--surface)', border:'1px solid var(--border)',
-          display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div onClick={() => onNavigate?.('historial')}
+          style={{ padding:'12px 16px', borderRadius:14, cursor:'pointer',
+            background:'var(--surface)', border:'1px solid var(--border)',
+            display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
             <div style={{ fontSize:11, color:'var(--muted)', fontWeight:700,
               textTransform:'uppercase', letterSpacing:1, marginBottom:3 }}>
@@ -228,10 +237,13 @@ export default function HomePage({ ctx }) {
             </div>
             <div style={{ fontSize:13, color:'var(--text)' }}>{lastMatch.format}</div>
           </div>
-          <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
-            fontSize:26, fontWeight:900, color:'var(--text)' }}>
-            {lastMatch.scoreA} – {lastMatch.scoreB}
-            {lastMatch.triangular ? ` – ${lastMatch.scoreC}` : ''}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:2 }}>
+            <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
+              fontSize:26, fontWeight:900, color:'var(--text)' }}>
+              {lastMatch.scoreA} – {lastMatch.scoreB}
+              {lastMatch.triangular ? ` – ${lastMatch.scoreC}` : ''}
+            </div>
+            <span style={{ fontSize:10, color:'var(--accent)' }}>Ver historial →</span>
           </div>
         </div>
       )}

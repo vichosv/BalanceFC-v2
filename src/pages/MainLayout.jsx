@@ -6,6 +6,7 @@ import HomePage      from './HomePage';
 import PlayersPage   from './PlayersPage';
 import MatchPage     from './MatchPage';
 import HistoryPage   from './HistoryPage';
+import RankingPage   from './RankingPage';
 import ConvPage      from './ConvPage';
 import ProfilePage   from './ProfilePage';
 
@@ -23,6 +24,7 @@ export default function MainLayout() {
         {tab === 'jugadores' && <PlayersPage ctx={ctx} />}
         {tab === 'partido'   && <MatchPage   ctx={ctx} />}
         {tab === 'historial' && <HistoryPage ctx={ctx} />}
+        {tab === 'ranking'   && <RankingPage ctx={ctx} />}
         {tab === 'conv'      && <ConvPage    ctx={ctx} />}
         {tab === 'perfil'    && <ProfilePage ctx={ctx} />}
       </div>

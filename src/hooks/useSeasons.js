@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, updateDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 export function useSeasons() {
@@ -20,12 +20,13 @@ export function useSeasons() {
   return { seasons, activeSeason, loading };
 }
 
-export async function createSeason(name, createdBy) {
+export async function createSeason(name, createdBy, endDate = null) {
   return addDoc(collection(db, 'seasons'), {
     name,
     status:    'open',
     createdBy,
     createdAt: Date.now(),
+    ...(endDate ? { endDate } : {}),
   });
 }
 
@@ -34,4 +35,8 @@ export async function closeSeason(seasonId) {
     status:   'closed',
     closedAt: Date.now(),
   });
+}
+
+export async function deleteSeason(seasonId) {
+  await deleteDoc(doc(db, 'seasons', seasonId));
 }

@@ -252,7 +252,7 @@ function FacingField({ teamA, teamB, avgA, avgB, onMove }) {
           const pB = sortedB[i];
           return (
             <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 8px 1fr',
-              alignItems:'center', gap:4 }}>
+              alignItems:'center', gap:6 }}>
               {/* Team A: nombre izq, círculo der */}
               {pA ? (
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:7 }}
@@ -324,17 +324,17 @@ function PlayerDot({ player, toLabel, onClick, side }) {
       style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: side ? 0 : 5,
         cursor:'pointer', flexShrink:0, ...(side ? {} : { minWidth:58 }) }}>
       <div style={{
-        width: side ? 42 : 50,
-        height: side ? 42 : 50,
+        width: side ? 48 : 50,
+        height: side ? 48 : 50,
         borderRadius:'50%',
         background: player.photo
           ? `url(${player.photo}) center/cover`
           : 'linear-gradient(145deg,#07183a,#0d2560)',
         display:'flex', alignItems:'center', justifyContent:'center',
         fontFamily:'Barlow Condensed', fontWeight:900,
-        fontSize: side ? 15 : 19, color:'#e8f4ff',
+        fontSize: side ? 20 : 19, color:'#fff',
         border:`2.5px solid ${borderColor}`,
-        boxShadow:'0 3px 14px rgba(0,0,0,.7)',
+        boxShadow:'0 3px 14px rgba(0,0,0,.7), inset 0 0 8px rgba(0,0,0,.4)',
         transition:'transform .15s',
       }}
         onMouseOver={e => e.currentTarget.style.transform='scale(1.1)'}

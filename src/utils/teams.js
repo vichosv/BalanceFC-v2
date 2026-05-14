@@ -56,9 +56,37 @@ export function generate3Teams(players, mode = 'smart') {
 // ── Remix ─────────────────────────────────────────────────
 export function remixTeams(teams, mode = 'smart') {
   if (teams.triangular) {
-    const all = [...teams.A, ...teams.B, ...teams.C].sort(() => Math.random() - 0.5);
+    // Perturbamos los scores para que el algoritmo greedy produzca un resultado diferente
+    const all = [...teams.A, ...teams.B, ...teams.C]
+      .map(p => ({ ...p, score: (p.score || overall(p)) + (Math.random() - 0.5) * 20 }))
+      .sort(() => Math.random() - 0.5);
     return generate3Teams(all, mode);
   }
-  const all = [...teams.A, ...teams.B].sort(() => Math.random() - 0.5);
-  return generate2Teams(all, mode);
+
+  // Para 2 equipos: hacemos swaps aleatorios forzados entre equipos
+  let A = [...teams.A];
+  let B = [...teams.B];
+
+  // Mínimo 2 swaps, máximo la mitad del equipo más pequeño
+  const minSwaps = 2;
+  const maxSwaps = Math.max(minSwaps, Math.floor(Math.min(A.length, B.length) / 2));
+  const numSwaps = minSwaps + Math.floor(Math.random() * (maxSwaps - minSwaps + 1));
+
+  const usedA = new Set();
+  const usedB = new Set();
+
+  for (let i = 0; i < numSwaps; i++) {
+    // Elegir índices no usados
+    const availA = A.map((_, i) => i).filter(i => !usedA.has(i));
+    const availB = B.map((_, i) => i).filter(i => !usedB.has(i));
+    if (!availA.length || !availB.length) break;
+
+    const idxA = availA[Math.floor(Math.random() * availA.length)];
+    const idxB = availB[Math.floor(Math.random() * availB.length)];
+
+    [A[idxA], B[idxB]] = [B[idxB], A[idxA]];
+    usedA.add(idxA); usedB.add(idxB);
+  }
+
+  return { A, B, avgA: teamAvg(A), avgB: teamAvg(B), triangular: false };
 }
