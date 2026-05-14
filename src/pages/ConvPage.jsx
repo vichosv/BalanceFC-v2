@@ -16,32 +16,40 @@ function splitTitulares(confirmados, max) {
   return { titulares: sorted.slice(0, max), reserva: sorted.slice(max) };
 }
 
+const POS_TEXT = { GK:'GK', DEF:'DEF', MID:'MID', WNG:'WNG', FWD:'FWD' };
+
 function shareConvocatoria(conv, titulares, reserva) {
   const dateStr = formatDate(conv.date);
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   const lines = [
-    `⚽ *BalanceFC — Partido convocado*`,
-    `📅 ${dateStr.charAt(0).toUpperCase() + dateStr.slice(1)}`,
-    `🕐 ${conv.time}`,
-    `📍 ${conv.place}`,
-    `🏟️ Formato: ${conv.format}`,
-    ``,
+    'BALANCEFC - Partido convocado',
+    '',
+    'Fecha:   ' + cap(dateStr),
+    'Hora:    ' + conv.time,
+    'Lugar:   ' + conv.place,
+    'Formato: ' + conv.format,
+    '',
   ];
 
   if (titulares.length > 0) {
-    lines.push(`✅ *Confirmados (${titulares.length}/${conv.maxPlayers}):*`);
-    titulares.forEach((p, i) => lines.push(`  ${i + 1}. ${POS_EMOJI[p.position] || ''} ${p.nickname}`));
+    lines.push('Confirmados (' + titulares.length + '/' + conv.maxPlayers + '):');
+    titulares.forEach((p, i) => {
+      lines.push('  ' + (i + 1) + '. ' + (POS_TEXT[p.position] || '') + ' ' + p.nickname);
+    });
   } else {
-    lines.push(`_Todavía no hay confirmados_`);
+    lines.push('Sin confirmados aun.');
   }
 
   if (reserva.length > 0) {
-    lines.push(``);
-    lines.push(`🟡 *Reserva (${reserva.length}):*`);
-    reserva.forEach((p, i) => lines.push(`  ${i + 1}. ${POS_EMOJI[p.position] || ''} ${p.nickname}`));
+    lines.push('');
+    lines.push('Reserva (' + reserva.length + '):');
+    reserva.forEach((p, i) => {
+      lines.push('  ' + (i + 1) + '. ' + (POS_TEXT[p.position] || '') + ' ' + p.nickname);
+    });
   }
 
   const text = encodeURIComponent(lines.join('\n'));
-  window.open(`https://wa.me/?text=${text}`, '_blank');
+  window.open('https://wa.me/?text=' + text, '_blank');
 }
 
 export default function ConvPage({ ctx }) {
