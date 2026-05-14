@@ -9,15 +9,21 @@ export function useConvocatorias() {
   useEffect(() => {
     const q = query(collection(db, 'convocatorias'), orderBy('date', 'asc'));
     const unsub = onSnapshot(q, snap => {
-      const now = Date.now();
-      setConvocatorias(
-        snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .filter(c => {
-            if (!c.date || !c.time) return true;
-            return new Date(`${c.date}T${c.time}`).getTime() > now;
-          })
-      );
+      const now  = Date.now();
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Eliminar de Firestore las convocatorias cuya hora ya pasó
+      docs.forEach(c => {
+        if (c.date && c.time) {
+          const matchTime = new Date(`${c.date}T${c.time}`).getTime();
+          if (matchTime <= now) deleteDoc(doc(db, 'convocatorias', c.id));
+        }
+      });
+
+      setConvocatorias(docs.filter(c => {
+        if (!c.date || !c.time) return true;
+        return new Date(`${c.date}T${c.time}`).getTime() > now;
+      }));
       setLoading(false);
     });
     return unsub;
