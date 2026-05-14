@@ -6,7 +6,7 @@ import PlayerProfileSheet from '../components/PlayerProfileSheet';
 import '../components/PlayerCard.css';
 import { overall, SK } from '../utils/stats';
 import { seedDummyPlayers } from '../utils/seedPlayers';
-import { LOGROS, TIER_COLOR } from '../utils/logros';
+import { MANUAL_LOGROS, TIER_COLOR } from '../utils/logros';
 
 const POSITIONS = {
   GK:  { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -170,7 +170,7 @@ export default function PlayersPage({ ctx }) {
                       🏅 Logros manuales
                     </div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                      {LOGROS.map(l => {
+                      {MANUAL_LOGROS.map(l => {
                         const isOn = (p.manualLogros || []).includes(l.id);
                         const c    = TIER_COLOR[l.tier];
                         return (
