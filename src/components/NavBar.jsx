@@ -1,7 +1,7 @@
 const TABS = [
   { id:'inicio',    label:'Inicio',    icon:'🏠' },
   { id:'jugadores', label:'Jugadores', icon:'👥' },
-  { id:'partido',   label:'Partido',   icon:'⚽' },
+  { id:'partido',   label:'Equipos',   icon:'⚽' },
   { id:'historial', label:'Historial', icon:'📊' },
   { id:'conv',      label:'Convocatoria', icon:'📋' },
   { id:'perfil',    label:'Perfil',    icon:'👤' },

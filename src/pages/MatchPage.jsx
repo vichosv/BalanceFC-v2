@@ -8,6 +8,7 @@ const MODES   = [
   { value:'overall', label:'Solo overall' },
 ];
 const TEAM_COLORS = { A:'var(--green)', B:'var(--blue)', C:'var(--orange)' };
+const MAX_DIFF = 8; // diferencia máxima para la barra de balance
 const TEAM_LABELS = { A:'Equipo A', B:'Equipo B', C:'Equipo C' };
 
 export default function MatchPage({ ctx }) {
@@ -173,7 +174,7 @@ export default function MatchPage({ ctx }) {
                   <div style={{
                     height:'100%', borderRadius:4,
                     background:'linear-gradient(90deg,var(--green),var(--accent))',
-                    width:`${(teams.avgA / (teams.avgA + teams.avgB)) * 100}%`,
+                    width:`${Math.min(95, Math.max(5, 50 + (teams.avgA - teams.avgB) / MAX_DIFF * 50))}%`,
                     transition:'width .8s cubic-bezier(.4,0,.2,1)'
                   }} />
                 </div>
@@ -190,12 +191,19 @@ export default function MatchPage({ ctx }) {
           </div>
 
           {/* Team blocks */}
-          {teamKeys.map(k => (
-            <TeamField key={k} team={teams[k]} label={TEAM_LABELS[k]}
-              color={TEAM_COLORS[k]} teamKey={k}
-              toLabel={k === 'A' ? 'B' : k === 'B' ? (teams.triangular ? 'C' : 'A') : 'A'}
-              onMove={movePlayer} avg={teams[`avg${k}`] || 0} />
-          ))}
+          {teams.triangular ? (
+            teamKeys.map(k => (
+              <TeamField key={k} team={teams[k]} label={TEAM_LABELS[k]}
+                color={TEAM_COLORS[k]} teamKey={k}
+                toLabel={k === 'A' ? 'B' : k === 'B' ? 'C' : 'A'}
+                onMove={movePlayer} avg={teams[`avg${k}`] || 0} />
+            ))
+          ) : (
+            <FacingField
+              teamA={teams.A} teamB={teams.B}
+              avgA={teams.avgA} avgB={teams.avgB}
+              onMove={movePlayer} />
+          )}
 
           {/* Acciones */}
           <div style={{ display:'flex', gap:8, marginTop:4 }}>
@@ -212,6 +220,76 @@ export default function MatchPage({ ctx }) {
   );
 }
 
+// ── Facing layout (2 equipos) ─────────────────────────────────
+function FacingField({ teamA, teamB, avgA, avgB, onMove }) {
+  const sortedA = [...teamA].sort((a, b) => overall(b) - overall(a));
+  const sortedB = [...teamB].sort((a, b) => overall(b) - overall(a));
+  const rows    = Math.max(sortedA.length, sortedB.length);
+
+  return (
+    <div style={{ borderRadius:14, overflow:'hidden', marginBottom:12,
+      border:'1px solid rgba(100,180,255,0.15)',
+      background:'linear-gradient(180deg,rgba(0,15,60,.92) 0%,rgba(0,40,110,.82) 50%,rgba(0,15,60,.92) 100%)' }}>
+
+      {/* Header */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr',
+        borderBottom:'1px solid rgba(100,180,255,0.15)' }}>
+        {[{ label:'⚽ Equipo A', color:'var(--green)', avg:avgA },
+          { label:'⚽ Equipo B', color:'var(--blue)',  avg:avgB }].map((h, i) => (
+          <div key={i} style={{ display:'flex', justifyContent: i===0 ? 'flex-start' : 'flex-end',
+            alignItems:'center', gap:8, padding:'8px 14px',
+            borderRight: i===0 ? '1px solid rgba(100,180,255,0.15)' : 'none' }}>
+            <span style={{ color:h.color, fontWeight:700, fontSize:13 }}>{h.label}</span>
+            <span style={{ color:h.color, fontSize:12 }}>· {h.avg.toFixed(1)}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Rows */}
+      <div style={{ padding:'10px 8px', display:'flex', flexDirection:'column', gap:6 }}>
+        {Array.from({ length: rows }).map((_, i) => {
+          const pA = sortedA[i];
+          const pB = sortedB[i];
+          return (
+            <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 8px 1fr',
+              alignItems:'center', gap:4 }}>
+              {/* Team A: nombre izq, círculo der */}
+              {pA ? (
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:7 }}
+                  onClick={() => onMove(pA.uid, 'A')} title="Mover a B">
+                  <span style={{ fontSize:12, fontWeight:700, color:'#e8f4ff',
+                    textShadow:'0 1px 4px rgba(0,0,0,.8)', textAlign:'right',
+                    maxWidth:80, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {pA.nickname}
+                  </span>
+                  <PlayerDot player={pA} side="left" />
+                </div>
+              ) : <div />}
+
+              {/* Divisor central */}
+              <div style={{ width:1, alignSelf:'stretch', background:'rgba(100,180,255,0.2)' }} />
+
+              {/* Team B: círculo izq, nombre der */}
+              {pB ? (
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-start', gap:7 }}
+                  onClick={() => onMove(pB.uid, 'B')} title="Mover a A">
+                  <PlayerDot player={pB} side="right" />
+                  <span style={{ fontSize:12, fontWeight:700, color:'#e8f4ff',
+                    textShadow:'0 1px 4px rgba(0,0,0,.8)', textAlign:'left',
+                    maxWidth:80, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {pB.nickname}
+                  </span>
+                </div>
+              ) : <div />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Team field (triangular) ───────────────────────────────────
 function TeamField({ team, label, color, teamKey, toLabel, onMove, avg }) {
   return (
     <div style={{ borderRadius:14, overflow:'hidden', marginBottom:12,
@@ -226,7 +304,7 @@ function TeamField({ team, label, color, teamKey, toLabel, onMove, avg }) {
         padding:'14px 8px', minHeight:140,
         display:'flex', flexWrap:'wrap', justifyContent:'center', alignItems:'center', gap:10,
       }}>
-        {team.map(p => (
+        {[...team].sort((a, b) => overall(b) - overall(a)).map(p => (
           <PlayerDot key={p.uid} player={p} toLabel={toLabel}
             onClick={() => onMove(p.uid, teamKey)} />
         ))}
@@ -235,34 +313,42 @@ function TeamField({ team, label, color, teamKey, toLabel, onMove, avg }) {
   );
 }
 
-function PlayerDot({ player, toLabel, onClick }) {
+function PlayerDot({ player, toLabel, onClick, side }) {
   const ov = overall(player);
+  // side = 'left' (Team A) | 'right' (Team B) | undefined (triangular)
+  const borderColor = side === 'left'  ? 'rgba(0,230,118,0.6)'
+                    : side === 'right' ? 'rgba(68,138,255,0.6)'
+                    : 'rgba(100,170,255,0.55)';
   return (
-    <div onClick={onClick} title={`${player.nickname} → Equipo ${toLabel}`}
-      style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5,
-        cursor:'pointer', minWidth:58 }}>
+    <div onClick={onClick} title={toLabel ? `→ Equipo ${toLabel}` : undefined}
+      style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: side ? 0 : 5,
+        cursor:'pointer', flexShrink:0, ...(side ? {} : { minWidth:58 }) }}>
       <div style={{
-        width:50, height:50, borderRadius:'50%',
+        width: side ? 42 : 50,
+        height: side ? 42 : 50,
+        borderRadius:'50%',
         background: player.photo
           ? `url(${player.photo}) center/cover`
           : 'linear-gradient(145deg,#07183a,#0d2560)',
         display:'flex', alignItems:'center', justifyContent:'center',
-        fontFamily:'Barlow Condensed', fontWeight:900, fontSize:19, color:'#e8f4ff',
-        border:'2.5px solid rgba(100,170,255,0.55)',
+        fontFamily:'Barlow Condensed', fontWeight:900,
+        fontSize: side ? 15 : 19, color:'#e8f4ff',
+        border:`2.5px solid ${borderColor}`,
         boxShadow:'0 3px 14px rgba(0,0,0,.7)',
         transition:'transform .15s',
       }}
-        onMouseOver={e => e.currentTarget.style.transform='scale(1.12)'}
+        onMouseOver={e => e.currentTarget.style.transform='scale(1.1)'}
         onMouseOut={e  => e.currentTarget.style.transform='scale(1)'}>
         {!player.photo && ov}
       </div>
-      <div style={{
-        fontFamily:'Barlow Condensed', fontSize:13, fontWeight:800, color:'#fff',
-        textShadow:'0 1px 4px rgba(0,0,0,1)',
-        maxWidth:70, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-      }}>
-        {(player.nickname || '').toUpperCase()}
-      </div>
+      {/* Nombre debajo solo en triangular */}
+      {!side && (
+        <div style={{ fontFamily:'Barlow Condensed', fontSize:13, fontWeight:800, color:'#fff',
+          textShadow:'0 1px 4px rgba(0,0,0,1)',
+          maxWidth:70, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          {(player.nickname || '').toUpperCase()}
+        </div>
+      )}
     </div>
   );
 }
