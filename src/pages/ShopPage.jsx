@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { doc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
-import { CATEGORIES, addShopItem, setShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS } from '../utils/shop';
+import { CATEGORIES, addShopItem, setShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS, MYSTERY_BOX_PRICE } from '../utils/shop';
 import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
@@ -39,7 +39,9 @@ function blankItem(category) {
   if (category === 'frame')      return { ...base, borderColor:'#ff6600', glowColor:'#ff3300' };
   if (category === 'pattern')    return { ...base, cssBackground:'' };
   if (category === 'background') return { ...base, color1:'#1a1a1e', color2:'#3a3a44', color3:'#22222a', angle:150 };
-  return base; // sticker
+  if (category === 'wallpaper')  return { ...base, color1:'#1a1a1e', color2:'#3a3a44', color3:'#22222a', angle:150 };
+  if (category === 'title')      return { ...base, emoji:'🏷️' };
+  return base; // sticker, mascot
 }
 
 function hexToRgba(hex, a) {
@@ -56,7 +58,18 @@ function buildCustomItem(form) {
     price: Number(form.price) || 0, desc: form.desc,
   };
   if (form.category === 'accent')     return { ...base, color: form.color };
+  if (form.category === 'title')      return base; // sólo campos base
   if (form.category === 'sticker')    return { ...base, imageUrl: form.imageUrl || null };
+  if (form.category === 'mascot')     return { ...base, imageUrl: form.imageUrl || null };
+  if (form.category === 'wallpaper') {
+    if (form.imageUrl) {
+      return { ...base, imageUrl: form.imageUrl,
+        cssBackground: `url(${form.imageUrl}) center/cover no-repeat` };
+    }
+    return { ...base,
+      color1: form.color1, color2: form.color2, color3: form.color3, angle: form.angle,
+      cssBackground: `linear-gradient(${form.angle}deg, ${form.color1} 0%, ${form.color2} 45%, ${form.color3} 100%)` };
+  }
   if (form.category === 'frame') {
     const bc = form.borderColor, gc = form.glowColor;
     return { ...base, borderColor: bc, glowColor: gc, cssBoxShadow:
@@ -97,7 +110,7 @@ function itemToForm(item) {
   if (item.category === 'accent')     return { ...f, color: item.color || '#00e5ff' };
   if (item.category === 'frame')      return { ...f, borderColor: item.borderColor || '#ff6600', glowColor: item.glowColor || '#ff3300' };
   if (item.category === 'pattern')    return { ...f, cssBackground: item.cssBackground || '' };
-  if (item.category === 'background') return { ...f,
+  if (item.category === 'background' || item.category === 'wallpaper') return { ...f,
     color1: item.color1 || '#1a1a1e', color2: item.color2 || '#3a3a44',
     color3: item.color3 || '#22222a', angle: item.angle ?? 150 };
   return f;
@@ -120,7 +133,8 @@ const BET_LABEL = { team_win:'Mi equipo gana', i_score:'Yo meto un gol', big_win
 // ── All tabs ──────────────────────────────────────────────────
 const ALL_TABS = [
   ...CATEGORIES,
-  { id:'apuestas', label:'🎰 Apostar', desc:'Apuesta tus monedas al resultado del partido' },
+  { id:'mystery',  label:'🎁 Caja',     desc:'Gasta monedas y gana un item aleatorio' },
+  { id:'apuestas', label:'🎰 Apostar',  desc:'Apuesta tus monedas al resultado del partido' },
 ];
 
 export default function ShopPage({ ctx }) {
@@ -142,6 +156,10 @@ export default function ShopPage({ ctx }) {
   const [betAmounts, setBetAmounts] = useState({ team_win:1, i_score:1, big_win:1 });
   const [betConfirm, setBetConfirm] = useState(null);
   const [placing,    setPlacing]    = useState(null);
+
+  // mystery box
+  const [revealItem,  setRevealItem]  = useState(null);
+  const [openingBox,  setOpeningBox]  = useState(false);
 
   if (!player) return <div className="page" style={{ color:'var(--muted)' }}>Cargando...</div>;
 
@@ -173,6 +191,30 @@ export default function ShopPage({ ctx }) {
 
   function previewPlayer(item) {
     return { ...player, equipped: { ...equipped, [item.category]: item.id } };
+  }
+
+  // ── Mystery box ───────────────────────────────────────────
+  async function openMysteryBox() {
+    if (coins < MYSTERY_BOX_PRICE || openingBox) return;
+    // Items elegibles: con precio > 0, que el jugador NO tenga ya
+    const candidates = allItems.filter(it =>
+      it.price > 0 && !inventory.has(it.id)
+    );
+    if (!candidates.length) {
+      alert('¡Ya tienes todos los items disponibles! Espera a que el admin agregue más.');
+      return;
+    }
+    setOpeningBox(true);
+    try {
+      const item = candidates[Math.floor(Math.random() * candidates.length)];
+      await updateDoc(doc(db, 'players', user.uid), {
+        coins:     increment(-MYSTERY_BOX_PRICE),
+        inventory: arrayUnion(item.id),
+      });
+      setRevealItem(item);
+    } finally {
+      setOpeningBox(false);
+    }
   }
 
   // ── Bet helpers ───────────────────────────────────────────
@@ -250,8 +292,55 @@ export default function ShopPage({ ctx }) {
         {ALL_TABS.find(c => c.id === cat)?.desc}
       </div>
 
-      {/* ══ APUESTAS TAB ══ */}
-      {cat === 'apuestas' ? (
+      {/* ══ MYSTERY BOX TAB ══ */}
+      {cat === 'mystery' ? (
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
+          padding:'20px 0', gap:18 }}>
+          <div style={{
+            fontSize:90, lineHeight:1,
+            filter:'drop-shadow(0 6px 18px rgba(0,229,255,.35))',
+            animation: openingBox ? 'spin 0.6s ease-in-out infinite' : 'none',
+          }}>
+            🎁
+          </div>
+          <style>{`@keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }`}</style>
+
+          <div style={{ textAlign:'center', maxWidth:300 }}>
+            <div style={{ fontSize:20, fontWeight:900, marginBottom:4 }}>Caja Misteriosa</div>
+            <div style={{ fontSize:12, color:'var(--muted)' }}>
+              Gasta <b style={{ color:'var(--accent)' }}>🪙 {MYSTERY_BOX_PRICE}</b> y obtén un item
+              <br/>aleatorio que aún no tengas
+            </div>
+          </div>
+
+          <button
+            disabled={coins < MYSTERY_BOX_PRICE || openingBox}
+            onClick={openMysteryBox}
+            style={{
+              padding:'14px 32px', borderRadius:14, border:'none',
+              background: coins >= MYSTERY_BOX_PRICE ? 'var(--accent)' : 'var(--surface2)',
+              color:      coins >= MYSTERY_BOX_PRICE ? '#000'          : 'var(--muted)',
+              fontWeight:900, fontSize:15,
+              cursor: coins >= MYSTERY_BOX_PRICE ? 'pointer' : 'default',
+              boxShadow: coins >= MYSTERY_BOX_PRICE ? '0 6px 22px rgba(0,229,255,.4)' : 'none',
+              transition:'all .15s',
+            }}>
+            {openingBox ? 'Abriendo...' : `Abrir caja 🪙 ${MYSTERY_BOX_PRICE}`}
+          </button>
+
+          {coins < MYSTERY_BOX_PRICE && (
+            <div style={{ fontSize:11, color:'var(--red)' }}>
+              Necesitas 🪙 {MYSTERY_BOX_PRICE - coins} más
+            </div>
+          )}
+
+          <div style={{ fontSize:11, color:'var(--muted)', textAlign:'center', maxWidth:280,
+            marginTop:10, lineHeight:1.5 }}>
+            La caja te puede dar cualquier item de la tienda: acentos, marcos, patrones,
+            stickers, fondos, títulos, mascotas o wallpapers.
+          </div>
+        </div>
+      ) : cat === 'apuestas' ? (
         <div>
           {/* Sin partido */}
           {!conv ? (
@@ -596,6 +685,47 @@ export default function ShopPage({ ctx }) {
         );
       })()}
 
+      {/* ── Modal revelación de caja ── */}
+      {revealItem && (() => {
+        const it = revealItem;
+        const catLabel = CATEGORIES.find(c => c.id === it.category)?.label || it.category;
+        return (
+          <div onClick={() => setRevealItem(null)}
+            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)',
+              display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:24 }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ background:'var(--surface)', borderRadius:20, padding:'32px 28px',
+                width:'100%', maxWidth:320, border:'2px solid var(--accent)',
+                boxShadow:'0 0 60px rgba(0,229,255,.45)',
+                display:'flex', flexDirection:'column', alignItems:'center', gap:14,
+                textAlign:'center' }}>
+              <div style={{ fontSize:11, color:'var(--accent)', fontWeight:800,
+                textTransform:'uppercase', letterSpacing:2 }}>¡Felicidades!</div>
+              <div style={{ fontSize:13, color:'var(--muted)' }}>{catLabel}</div>
+              <div style={{ width:96, height:96, display:'flex',
+                alignItems:'center', justifyContent:'center',
+                background:'var(--surface2)', borderRadius:16,
+                border:'1px solid var(--border)' }}>
+                {it.imageUrl ? (
+                  <img src={it.imageUrl} alt=""
+                    style={{ maxWidth:'80%', maxHeight:'80%', objectFit:'contain' }} />
+                ) : (
+                  <span style={{ fontSize:54 }}>{it.emoji}</span>
+                )}
+              </div>
+              <div style={{ fontSize:20, fontWeight:900 }}>{it.name}</div>
+              <div style={{ fontSize:12, color:'var(--muted)' }}>{it.desc}</div>
+              <button onClick={() => setRevealItem(null)}
+                style={{ width:'100%', padding:'10px', borderRadius:10, border:'none',
+                  background:'var(--accent)', color:'#000', fontWeight:800, fontSize:13,
+                  cursor:'pointer', marginTop:6 }}>
+                ¡Genial!
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Modal admin: agregar item ── */}
       {adminForm && (() => {
         const f = adminForm;
@@ -674,24 +804,24 @@ export default function ShopPage({ ctx }) {
               <input style={inputStyle} type="number" min={0} value={f.price}
                 onChange={e => setAdminForm({ ...f, price:e.target.value })} />
 
-              {/* Subida de imagen (sticker / pattern / background) */}
-              {(f.category === 'sticker' || f.category === 'pattern' || f.category === 'background') && (
+              {/* Subida de imagen (sticker / pattern / background / mascot / wallpaper) */}
+              {['sticker','pattern','background','mascot','wallpaper'].includes(f.category) && (
                 <>
                   <label style={labelStyle}>
                     Imagen (PNG, JPG)
-                    {f.category === 'sticker' && ' — usa PNG con transparencia'}
+                    {(f.category === 'sticker' || f.category === 'mascot') && ' — usa PNG con transparencia'}
                   </label>
                   {f.imageUrl ? (
                     <div style={{ display:'flex', alignItems:'center', gap:10, marginTop:4 }}>
                       <div style={{
                         width:64, height:64, borderRadius:8,
-                        background: f.category === 'sticker' ? 'var(--surface2)'
+                        background: (f.category === 'sticker' || f.category === 'mascot') ? 'var(--surface2)'
                           : f.category === 'pattern'  ? `url(${f.imageUrl}) repeat`
                           : `url(${f.imageUrl}) center/cover`,
                         display:'flex', alignItems:'center', justifyContent:'center',
                         border:'1px solid var(--border)', overflow:'hidden',
                       }}>
-                        {f.category === 'sticker' && (
+                        {(f.category === 'sticker' || f.category === 'mascot') && (
                           <img src={f.imageUrl} alt=""
                             style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain' }} />
                         )}
@@ -711,9 +841,9 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const maxPx = f.category === 'background' ? 400
-                                    : f.category === 'pattern'    ? 200
-                                    : 160; // sticker
+                        const maxPx = (f.category === 'background' || f.category === 'wallpaper') ? 500
+                                    : f.category === 'pattern' ? 200
+                                    : 160; // sticker, mascot
                         const dataUrl = await compressImage(file, maxPx, 0.9);
                         setAdminForm({ ...f, imageUrl: dataUrl });
                       }}
@@ -746,7 +876,7 @@ export default function ShopPage({ ctx }) {
                 </>
               )}
 
-              {f.category === 'background' && !f.imageUrl && (
+              {(f.category === 'background' || f.category === 'wallpaper') && !f.imageUrl && (
                 <>
                   <div style={{ fontSize:10, color:'var(--muted)', marginTop:8 }}>
                     O usa un degradado de colores:

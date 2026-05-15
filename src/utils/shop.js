@@ -37,15 +37,58 @@ export const DEFAULT_SHOP_ITEMS = [
   { id:'sticker_lion',   category:'sticker', name:'León',     emoji:'🦁', price:6,  desc:'El rey de la cancha' },
   { id:'sticker_gem',    category:'sticker', name:'Diamante', emoji:'💎', price:8,  desc:'Clase premium' },
   { id:'sticker_dragon', category:'sticker', name:'Dragón',   emoji:'🐉', price:10, desc:'Legendario' },
+
+  // ── Titles (estilo Valorant) ───────────────────────────────
+  { id:'title_novato',     category:'title', name:'Novato',         emoji:'🌱', price:0,  desc:'Recién empezando' },
+  { id:'title_pibe',       category:'title', name:'El Pibe',        emoji:'🧒', price:5,  desc:'Habilidad natural' },
+  { id:'title_centro',     category:'title', name:'Mediocampista',  emoji:'⚙️', price:5,  desc:'Maneja el ritmo' },
+  { id:'title_goleador',   category:'title', name:'Goleador',       emoji:'⚽', price:8,  desc:'Sentido del gol' },
+  { id:'title_muralla',    category:'title', name:'La Muralla',     emoji:'🧱', price:8,  desc:'No pasa nadie' },
+  { id:'title_crack',      category:'title', name:'El Crack',       emoji:'⭐', price:10, desc:'Clase mundial' },
+  { id:'title_leyenda',    category:'title', name:'Leyenda',        emoji:'👑', price:15, desc:'Inmortal en la cancha' },
+
+  // ── Mascots (perfil) ───────────────────────────────────────
+  { id:'mascot_dog',     category:'mascot', name:'Perro',     emoji:'🐶', price:0,  desc:'El mejor amigo' },
+  { id:'mascot_cat',     category:'mascot', name:'Gato',      emoji:'🐱', price:3,  desc:'Tranquilo y elegante' },
+  { id:'mascot_fox',     category:'mascot', name:'Zorro',     emoji:'🦊', price:5,  desc:'Astuto en la jugada' },
+  { id:'mascot_lion',    category:'mascot', name:'León',      emoji:'🦁', price:6,  desc:'Coraje absoluto' },
+  { id:'mascot_eagle',   category:'mascot', name:'Águila',    emoji:'🦅', price:7,  desc:'Visión panorámica' },
+  { id:'mascot_tiger',   category:'mascot', name:'Tigre',     emoji:'🐯', price:8,  desc:'Feroz y veloz' },
+  { id:'mascot_dragon',  category:'mascot', name:'Dragón',    emoji:'🐲', price:10, desc:'Poder mítico' },
+  { id:'mascot_unicorn', category:'mascot', name:'Unicornio', emoji:'🦄', price:10, desc:'Único e irrepetible' },
+
+  // ── Wallpapers (perfil) ────────────────────────────────────
+  { id:'wallpaper_cancha',   category:'wallpaper', name:'Cancha clásica', emoji:'🟩', price:0,
+    color1:'#0a3d1f', color2:'#0a1a0e', color3:'#000000', angle:135,
+    cssBackground:'linear-gradient(135deg, #0a3d1f 0%, #0a1a0e 45%, #000000 100%)',
+    desc:'El verde de siempre' },
+  { id:'wallpaper_sunset',   category:'wallpaper', name:'Atardecer', emoji:'🌅', price:8,
+    color1:'#4a1a3d', color2:'#a83264', color3:'#ff8c42', angle:160,
+    cssBackground:'linear-gradient(160deg, #4a1a3d 0%, #a83264 45%, #ff8c42 100%)',
+    desc:'Calidez de fin de partido' },
+  { id:'wallpaper_space',    category:'wallpaper', name:'Espacio', emoji:'🌌', price:10,
+    color1:'#000010', color2:'#1a0a4a', color3:'#4a1a8c', angle:150,
+    cssBackground:'linear-gradient(150deg, #000010 0%, #1a0a4a 45%, #4a1a8c 100%)',
+    desc:'Para los que vuelan alto' },
+  { id:'wallpaper_forest',   category:'wallpaper', name:'Bosque', emoji:'🌲', price:7,
+    color1:'#0a2a1a', color2:'#1a4a2a', color3:'#3a6a3a', angle:140,
+    cssBackground:'linear-gradient(140deg, #0a2a1a 0%, #1a4a2a 45%, #3a6a3a 100%)',
+    desc:'Conexión con la naturaleza' },
 ];
 
 export const CATEGORIES = [
-  { id:'accent',     label:'🎨 Acento',   desc:'Color del OVR y detalles de la carta' },
-  { id:'pattern',    label:'🔲 Patrón',   desc:'Textura sobre el fondo' },
-  { id:'frame',      label:'🖼️ Marco',    desc:'Efecto de borde y glow' },
-  { id:'sticker',    label:'🏷️ Sticker',  desc:'Emoji bajo el símbolo de posición' },
-  { id:'background', label:'🌌 Fondo',    desc:'Fondo de la carta (sobreescribe el tier)' },
+  { id:'accent',     label:'🎨 Acento',    desc:'Color del OVR y detalles de la carta' },
+  { id:'pattern',    label:'🔲 Patrón',    desc:'Textura sobre el fondo' },
+  { id:'frame',      label:'🖼️ Marco',     desc:'Efecto de borde y glow' },
+  { id:'sticker',    label:'🏷️ Sticker',   desc:'Emoji bajo el símbolo de posición' },
+  { id:'background', label:'🌌 Fondo',     desc:'Fondo de la carta (sobreescribe el tier)' },
+  { id:'title',      label:'📛 Título',    desc:'Frase corta junto a tu nombre' },
+  { id:'mascot',     label:'🐾 Mascota',   desc:'Mascota que acompaña tu perfil' },
+  { id:'wallpaper',  label:'🌅 Wallpaper', desc:'Fondo de tu página de perfil' },
 ];
+
+// ── Mystery box ───────────────────────────────────────────────
+export const MYSTERY_BOX_PRICE = 15;
 
 // ── Module-level singleton (single Firestore listener) ─────────
 let _customItems = [];
