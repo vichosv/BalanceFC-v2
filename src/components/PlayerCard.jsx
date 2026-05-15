@@ -49,6 +49,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
   const frameItem      = find(equipped.frame);
   const stickerItem    = find(equipped.sticker);
   const backgroundItem = find(equipped.background);
+  const titleItem      = find(equipped.title);
 
   const accentColor    = accentItem?.color || null;
   // Hardcoded items use CSS classes; custom items use inline CSS
@@ -138,7 +139,9 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
         }
 
         <div className="fc-name">{player.nickname || player.name}</div>
-        <div className="fc-sub">{pos.name.toUpperCase()}</div>
+        <div className="fc-sub">
+          {titleItem ? titleItem.name.toUpperCase() : pos.name.toUpperCase()}
+        </div>
         <div className="fc-div" />
         <div className="fc-stats">{statsHTML}</div>
         <div className="fc-mini">

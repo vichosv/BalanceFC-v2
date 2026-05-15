@@ -14,13 +14,6 @@ export const DEFAULT_SHOP_ITEMS = [
   { id:'accent_pink',    category:'accent', name:'Rosa',       emoji:'🩷', color:'#ff4db3', price:7,  desc:'Destacar con estilo' },
   { id:'accent_white',   category:'accent', name:'Blanco',     emoji:'⚪', color:'#ffffff', price:7,  desc:'Elegancia minimalista' },
 
-  // ── Patterns ───────────────────────────────────────────────
-  { id:'pattern_carbon',  category:'pattern', name:'Carbon Fiber', emoji:'🔲', price:8,  desc:'Material de alto rendimiento' },
-  { id:'pattern_stripes', category:'pattern', name:'Rayas',        emoji:'↗️', price:4,  desc:'Clásico futbolero' },
-  { id:'pattern_dots',    category:'pattern', name:'Puntos',       emoji:'⚫', price:4,  desc:'Sutil y distintivo' },
-  { id:'pattern_hex',     category:'pattern', name:'Hexágonos',    emoji:'⬡',  price:10, desc:'Tecnología y precisión' },
-  { id:'pattern_wave',    category:'pattern', name:'Ondas',        emoji:'〰️', price:6,  desc:'Fluido y dinámico' },
-
   // ── Frames ─────────────────────────────────────────────────
   { id:'frame_fire',     category:'frame', name:'Llamas',    emoji:'🔥', price:7,  desc:'Para los que marcan diferencia' },
   { id:'frame_electric', category:'frame', name:'Eléctrico', emoji:'⚡', price:7,  desc:'Velocidad y descarga' },
@@ -47,16 +40,6 @@ export const DEFAULT_SHOP_ITEMS = [
   { id:'title_crack',      category:'title', name:'El Crack',       emoji:'⭐', price:10, desc:'Clase mundial' },
   { id:'title_leyenda',    category:'title', name:'Leyenda',        emoji:'👑', price:15, desc:'Inmortal en la cancha' },
 
-  // ── Mascots (perfil) ───────────────────────────────────────
-  { id:'mascot_dog',     category:'mascot', name:'Perro',     emoji:'🐶', price:0,  desc:'El mejor amigo' },
-  { id:'mascot_cat',     category:'mascot', name:'Gato',      emoji:'🐱', price:3,  desc:'Tranquilo y elegante' },
-  { id:'mascot_fox',     category:'mascot', name:'Zorro',     emoji:'🦊', price:5,  desc:'Astuto en la jugada' },
-  { id:'mascot_lion',    category:'mascot', name:'León',      emoji:'🦁', price:6,  desc:'Coraje absoluto' },
-  { id:'mascot_eagle',   category:'mascot', name:'Águila',    emoji:'🦅', price:7,  desc:'Visión panorámica' },
-  { id:'mascot_tiger',   category:'mascot', name:'Tigre',     emoji:'🐯', price:8,  desc:'Feroz y veloz' },
-  { id:'mascot_dragon',  category:'mascot', name:'Dragón',    emoji:'🐲', price:10, desc:'Poder mítico' },
-  { id:'mascot_unicorn', category:'mascot', name:'Unicornio', emoji:'🦄', price:10, desc:'Único e irrepetible' },
-
   // ── Wallpapers (perfil) ────────────────────────────────────
   { id:'wallpaper_cancha',   category:'wallpaper', name:'Cancha clásica', emoji:'🟩', price:0,
     color1:'#0a3d1f', color2:'#0a1a0e', color3:'#000000', angle:135,
@@ -78,12 +61,10 @@ export const DEFAULT_SHOP_ITEMS = [
 
 export const CATEGORIES = [
   { id:'accent',     label:'🎨 Acento',    desc:'Color del OVR y detalles de la carta' },
-  { id:'pattern',    label:'🔲 Patrón',    desc:'Textura sobre el fondo' },
   { id:'frame',      label:'🖼️ Marco',     desc:'Efecto de borde y glow' },
   { id:'sticker',    label:'🏷️ Sticker',   desc:'Emoji bajo el símbolo de posición' },
   { id:'background', label:'🌌 Fondo',     desc:'Fondo de la carta (sobreescribe el tier)' },
-  { id:'title',      label:'📛 Título',    desc:'Frase corta junto a tu nombre' },
-  { id:'mascot',     label:'🐾 Mascota',   desc:'Mascota que acompaña tu perfil' },
+  { id:'title',      label:'📛 Título',    desc:'Aparece en tu carta donde va la posición' },
   { id:'wallpaper',  label:'🌅 Wallpaper', desc:'Fondo de tu página de perfil' },
 ];
 

@@ -84,8 +84,6 @@ export default function ProfilePage({ ctx }) {
   // Cosméticos del perfil
   const equipped     = player.equipped || {};
   const findItem     = id => id ? shopItems.find(i => i.id === id) : null;
-  const titleItem    = findItem(equipped.title);
-  const mascotItem   = findItem(equipped.mascot);
   const wallpaperItem = findItem(equipped.wallpaper);
   const wallpaperBg  = wallpaperItem?.cssBackground || null;
 
@@ -98,51 +96,10 @@ export default function ProfilePage({ ctx }) {
     } : undefined}>
       <div className="page-title">👤 Mi perfil</div>
 
-      {/* ── Carta + mascota ── */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
-        gap:14, marginBottom:8 }}>
-        {mascotItem && (
-          <div style={{ flexShrink:0, display:'flex', flexDirection:'column',
-            alignItems:'center', gap:4 }}>
-            <div style={{
-              width:64, height:64, borderRadius:'50%',
-              background:'var(--surface)', border:'2px solid var(--border)',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              filter:'drop-shadow(0 4px 12px rgba(0,0,0,.4))',
-            }}>
-              {mascotItem.imageUrl ? (
-                <img src={mascotItem.imageUrl} alt=""
-                  style={{ width:'80%', height:'80%', objectFit:'contain' }} />
-              ) : (
-                <span style={{ fontSize:36 }}>{mascotItem.emoji}</span>
-              )}
-            </div>
-            <span style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
-              letterSpacing:.5 }}>{mascotItem.name}</span>
-          </div>
-        )}
-        <div style={{ width:190, flexShrink:0 }}>
-          <PlayerCard player={displayPlayer} />
-        </div>
+      {/* ── Carta ── */}
+      <div style={{ maxWidth:190, margin:'0 auto 20px' }}>
+        <PlayerCard player={displayPlayer} />
       </div>
-
-      {/* ── Título (estilo Valorant) ── */}
-      {titleItem && (
-        <div style={{ textAlign:'center', marginBottom:14 }}>
-          <span style={{
-            display:'inline-block',
-            background:'linear-gradient(135deg, rgba(0,229,255,.15), rgba(0,229,255,.05))',
-            border:'1px solid var(--accent)',
-            borderRadius:20, padding:'4px 14px',
-            fontSize:12, fontWeight:700, letterSpacing:1,
-            color:'var(--accent)', textTransform:'uppercase',
-          }}>
-            ⟨ {titleItem.name} ⟩
-          </span>
-        </div>
-      )}
-
-      {!titleItem && <div style={{ marginBottom:12 }} />}
 
       {/* ── Saldo tienda ── */}
       <div style={{ textAlign:'center', marginBottom:10 }}>
