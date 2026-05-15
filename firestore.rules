@@ -41,11 +41,33 @@ service cloud.firestore {
     function uid()    { return request.auth.uid; }
     function isAdmin() {
       return isAuth()
-        && exists(/databases/$(database)/documents/players/$(uid()))
-        && get(/databases/$(database)/documents/players/$(uid())).data.isAdmin == true;
+        && exists(/databases/$(database)/documents/users/$(uid()))
+        && get(/databases/$(database)/documents/users/$(uid())).data.isAdmin == true;
     }
     function changedKeys() {
       return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ──────────────── USERS ────────────────
+    // Doc por usuario con isAdmin, onboarded, email, etc.
+    // El propio usuario crea su doc en el onboarding.
+    // isAdmin solo lo puede cambiar otro admin.
+    match /users/{userId} {
+      allow read: if isAuth();
+
+      allow create: if isAuth()
+                    && userId == uid()
+                    && request.resource.data.isAdmin == false;
+
+      allow update: if isAuth() && (
+        isAdmin()  // Admin puede editar cualquier user (incluyendo cambiar isAdmin de otros)
+        ||
+        // El propio usuario puede editar SOLO campos no-isAdmin
+        (userId == uid()
+         && changedKeys().hasOnly(['displayName','email','onboarded','photoURL']))
+      );
+
+      allow delete: if isAdmin();
     }
 
     // ──────────────── PLAYERS ────────────────
