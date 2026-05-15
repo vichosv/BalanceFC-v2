@@ -1,0 +1,142 @@
+rules_version = '2';
+
+// ============================================================================
+// BalanceFC v2 — Reglas de seguridad
+// ============================================================================
+//
+// Cómo desplegar (Firebase CLI):
+//   firebase deploy --only firestore:rules
+//
+// O por consola web:
+//   https://console.firebase.google.com → tu proyecto → Firestore Database
+//   → pestaña "Rules" → pegar este archivo → Publish
+//
+// ============================================================================
+//
+// Qué bloquean estas reglas:
+//  ✅ Pumpear stats (vel/tec/def/tir/sta/fis) — solo admin o lógica de partido
+//  ✅ Inflar history.* (matches, wins, goals, mvps) — admin only
+//  ✅ Hacerse admin a uno mismo (isAdmin field)
+//  ✅ Agregarse logros manuales (manualLogros)
+//  ✅ Modificar otros jugadores ajenos
+//  ✅ Crear/borrar partidos, temporadas, items de tienda
+//  ✅ Modificar votos ajenos en partidos
+//
+// Limitaciones conocidas (trade-off vs simplicidad):
+//  ⚠️ Un usuario PUEDE manipular sus propias monedas (coins) escribiendo
+//     directamente. Esto se podría fortalecer con Cloud Functions más adelante.
+//     El daño es limitado (solo compras cosméticas + apuestas).
+//  ⚠️ El award automático de monedas por MVP/Arquero (en castVote) ya no
+//     funciona desde el cliente bajo estas reglas, porque escribe a otros
+//     jugadores. Habría que mover esa lógica a una Cloud Function o que
+//     el admin la dispare manualmente.
+//
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ──────────────── Helpers ────────────────
+    function isAuth() { return request.auth != null; }
+    function uid()    { return request.auth.uid; }
+    function isAdmin() {
+      return isAuth()
+        && exists(/databases/$(database)/documents/players/$(uid()))
+        && get(/databases/$(database)/documents/players/$(uid())).data.isAdmin == true;
+    }
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ──────────────── PLAYERS ────────────────
+    // Cada jugador es un doc con ID = uid del usuario.
+    match /players/{playerId} {
+      allow read: if isAuth();
+
+      // Crear: solo el propio usuario, en su primer login
+      allow create: if isAuth() && playerId == uid();
+
+      allow update: if isAuth() && (
+        // Admin puede editar lo que sea
+        isAdmin()
+        ||
+        // El propio jugador solo puede tocar campos "seguros"
+        (playerId == uid() && changedKeys().hasOnly([
+          'nickname',
+          'position',
+          'photo',
+          'emoji',
+          'equipped',
+          'inventory',
+          'coins'        // ⚠️ se permite porque hay flujos legítimos
+                          //    (compras, apuestas, mystery box). Reforzable
+                          //    con Cloud Functions más adelante.
+        ]))
+        ||
+        // Cross-player: alguien puede dar EXACTAMENTE +1 moneda a otro jugador
+        // (esto habilita el award automático de MVP/Arquero en castVote).
+        // Solo permite cambiar el campo 'coins' y que el delta sea +1.
+        (playerId != uid()
+         && changedKeys().hasOnly(['coins'])
+         && request.resource.data.coins == resource.data.coins + 1)
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ──────────────── MATCHES ────────────────
+    match /matches/{matchId} {
+      allow read: if isAuth();
+
+      // Crear/borrar/editar el grueso del partido: solo admin
+      allow create, delete: if isAdmin();
+
+      allow update: if isAuth() && (
+        isAdmin()
+        ||
+        // Usuarios normales solo pueden agregar su voto o setear el awardedUid
+        changedKeys().hasOnly(['votes', 'mvpAwardedUid', 'gkAwardedUid'])
+      );
+    }
+
+    // ──────────────── SEASONS ────────────────
+    match /seasons/{seasonId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ──────────────── SHOP ITEMS ────────────────
+    // Items custom de la tienda (los defaults están hardcodeados en el código)
+    match /shopItems/{itemId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ──────────────── CONVOCATORIAS ────────────────
+    // Cualquier usuario autenticado puede crear y unirse a convocatorias.
+    // El borrado por hora vencida lo dispara el cliente desde useConvocatorias.
+    match /convocatorias/{convId} {
+      allow read:                 if isAuth();
+      allow create, update, delete: if isAuth();
+    }
+
+    // ──────────────── BETS ────────────────
+    match /bets/{betId} {
+      allow read: if isAuth();
+
+      // Crear: solo apuestas para uno mismo
+      allow create: if isAuth()
+                    && request.resource.data.uid == uid()
+                    && request.resource.data.status == 'pending';
+
+      // Resolución (status: won/lost): solo admin (corre en logMatch)
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Bloqueo por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

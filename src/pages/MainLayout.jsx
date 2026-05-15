@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { useAuth }   from '../hooks/useAuth';
+import { useAuth }    from '../hooks/useAuth';
 import { usePlayers } from '../hooks/usePlayer';
+import { useMatches } from '../hooks/useMatches';
+import { useGameNotifications } from '../hooks/useGameNotifications';
+import { ToastProvider } from '../components/ToastProvider';
 import NavBar        from '../components/NavBar';
 import HomePage      from './HomePage';
 import PlayersPage   from './PlayersPage';
@@ -11,12 +14,17 @@ import ConvPage      from './ConvPage';
 import ProfilePage   from './ProfilePage';
 import ShopPage      from './ShopPage';
 
-export default function MainLayout() {
+function Shell() {
   const [tab, setTab] = useState('inicio');
   const auth    = useAuth();
   const { players, loading } = usePlayers();
+  const { matches } = useMatches();
 
   const ctx = { ...auth, players, loadingPlayers: loading };
+
+  // Player actual (para watchers automáticos de notificaciones)
+  const player = players.find(p => p.uid === auth.user?.uid);
+  useGameNotifications(player, matches);
 
   return (
     <div className="app-shell">
@@ -32,5 +40,13 @@ export default function MainLayout() {
       </div>
       <NavBar active={tab} onChange={setTab} />
     </div>
+  );
+}
+
+export default function MainLayout() {
+  return (
+    <ToastProvider>
+      <Shell />
+    </ToastProvider>
   );
 }

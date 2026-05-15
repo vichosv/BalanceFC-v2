@@ -10,6 +10,7 @@ import HexRadar from '../components/HexRadar';
 import StatEvolutionChart from '../components/StatEvolutionChart';
 import { computeLogros } from '../utils/logros';
 import LogrosGrid from '../components/LogrosGrid';
+import { useToast } from '../components/ToastProvider';
 
 const POSITIONS = [
   { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -42,6 +43,7 @@ export default function ProfilePage({ ctx }) {
   const { player, loading } = usePlayer(user?.uid);
   const { matches } = useMatches();
   const shopItems = useShopItems();
+  const toast = useToast();
 
   const [editing,  setEditing]  = useState(false);
   const [form,     setForm]     = useState(null);
@@ -63,13 +65,19 @@ export default function ProfilePage({ ctx }) {
   async function saveProfile() {
     if (!form.nickname.trim()) return;
     setSaving(true);
-    await updateDoc(doc(db, 'players', user.uid), {
-      nickname: form.nickname.trim(),
-      position: form.position,
-      photo:    form.photo || null,
-    });
-    setEditing(false);
-    setSaving(false);
+    try {
+      await updateDoc(doc(db, 'players', user.uid), {
+        nickname: form.nickname.trim(),
+        position: form.position,
+        photo:    form.photo || null,
+      });
+      toast.success('Perfil actualizado', { icon:'✅' });
+      setEditing(false);
+    } catch (e) {
+      toast.error('Error al guardar el perfil');
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) return <div className="page" style={{ color:'var(--muted)' }}>Cargando...</div>;

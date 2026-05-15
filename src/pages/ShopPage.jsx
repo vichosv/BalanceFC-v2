@@ -6,6 +6,7 @@ import { CATEGORIES, addShopItem, setShopItem, deleteShopItem, DEFAULT_SHOP_ITEM
 import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
+import { useToast } from '../components/ToastProvider';
 
 // Un item está "en Firestore" si tiene createdAt o updatedAt (default puro no los tiene)
 const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
@@ -130,6 +131,7 @@ export default function ShopPage({ ctx }) {
   const { user, isAdmin, players = [] } = ctx;
   const player = players.find(p => p.uid === user?.uid);
   const [cat, setCat] = useState('accent');
+  const toast = useToast();
 
   // shop preview modal
   const [preview, setPreview] = useState(null);
@@ -163,18 +165,29 @@ export default function ShopPage({ ctx }) {
 
   async function buyItem(item) {
     if (coins < item.price) return;
-    await updateDoc(doc(db, 'players', user.uid), {
-      coins:     increment(-item.price),
-      inventory: arrayUnion(item.id),
-    });
+    try {
+      await updateDoc(doc(db, 'players', user.uid), {
+        coins:     increment(-item.price),
+        inventory: arrayUnion(item.id),
+      });
+      toast.success(`Compraste ${item.emoji} ${item.name}`, { icon:'🛒' });
+    } catch (e) {
+      toast.error('Error al comprar el item');
+    }
     setPreview(null);
   }
 
   async function equipItem(item) {
     const next = isEquipped(item) ? null : item.id;
-    await updateDoc(doc(db, 'players', user.uid), {
-      [`equipped.${item.category}`]: next,
-    });
+    try {
+      await updateDoc(doc(db, 'players', user.uid), {
+        [`equipped.${item.category}`]: next,
+      });
+      if (next) toast.info(`Equipado: ${item.name}`, { icon: item.emoji });
+      else      toast.info(`Desequipado: ${item.name}`, { icon: item.emoji });
+    } catch (e) {
+      toast.error('Error al equipar');
+    }
     setPreview(null);
   }
 
@@ -188,7 +201,7 @@ export default function ShopPage({ ctx }) {
     // Items elegibles: con precio > 0, que el jugador NO tenga ya
     const pool = allItems.filter(it => it.price > 0 && !inventory.has(it.id));
     if (!pool.length) {
-      alert('¡Ya tienes todos los items disponibles! Espera a que el admin agregue más.');
+      toast.info('¡Ya tienes todos los items! Espera a que el admin agregue más', { icon:'📦' });
       return;
     }
     // Tomar hasta 3 únicos sin repetir
@@ -206,6 +219,9 @@ export default function ShopPage({ ctx }) {
         inventory: arrayUnion(...items.map(i => i.id)),
       });
       setRevealItem(items);
+      toast.success(`¡Caja abierta! Ganaste ${items.length} items`, { icon:'🎁' });
+    } catch (e) {
+      toast.error('Error al abrir la caja');
     } finally {
       setOpeningBox(false);
     }
@@ -231,8 +247,15 @@ export default function ShopPage({ ctx }) {
     const { type, amount } = betConfirm;
     if (coins < amount) return;
     setPlacing(type);
-    try { await placeBet(user.uid, type, amount); }
-    finally { setPlacing(null); setBetConfirm(null); }
+    try {
+      await placeBet(user.uid, type, amount);
+      toast.info(`Apuesta registrada · 🪙${amount} → 🪙${amount*2}`, { icon:'🎰' });
+    } catch (e) {
+      toast.error('Error al apostar');
+    } finally {
+      setPlacing(null);
+      setBetConfirm(null);
+    }
   }
 
   // ── Render ────────────────────────────────────────────────
