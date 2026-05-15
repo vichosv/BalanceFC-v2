@@ -10,6 +10,28 @@ import { useBets, placeBet } from '../hooks/useBets';
 // Un item está "en Firestore" si tiene createdAt o updatedAt (default puro no los tiene)
 const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
 
+// Comprime una imagen a data URL (similar al photo de profile)
+function compressImage(file, maxPx = 400, quality = 0.85) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      // PNG conserva transparencia (importante para stickers); JPEG es más liviano para fondos
+      const isPng = file.type === 'image/png' || file.name?.endsWith('.png');
+      resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
+    };
+    img.src = url;
+  });
+}
+
 // ── Admin helpers ─────────────────────────────────────────────
 function blankItem(category) {
   const base = { category, name:'', emoji:'⭐', price:5, desc:'' };
@@ -34,16 +56,30 @@ function buildCustomItem(form) {
     price: Number(form.price) || 0, desc: form.desc,
   };
   if (form.category === 'accent')     return { ...base, color: form.color };
-  if (form.category === 'sticker')    return base;
+  if (form.category === 'sticker')    return { ...base, imageUrl: form.imageUrl || null };
   if (form.category === 'frame') {
     const bc = form.borderColor, gc = form.glowColor;
     return { ...base, borderColor: bc, glowColor: gc, cssBoxShadow:
       `0 0 0 2px ${bc}, 0 0 22px ${hexToRgba(gc, 0.75)}, 0 0 48px ${hexToRgba(gc, 0.35)}` };
   }
-  if (form.category === 'pattern')    return { ...base, cssBackground: form.cssBackground };
-  if (form.category === 'background') return { ...base,
-    color1: form.color1, color2: form.color2, color3: form.color3, angle: form.angle,
-    cssBackground: `linear-gradient(${form.angle}deg, ${form.color1} 0%, ${form.color2} 45%, ${form.color3} 100%)` };
+  if (form.category === 'pattern') {
+    // Si subió imagen, usar como background-image. Si no, CSS manual.
+    if (form.imageUrl) {
+      return { ...base, imageUrl: form.imageUrl,
+        cssBackground: `url(${form.imageUrl}) repeat`, };
+    }
+    return { ...base, cssBackground: form.cssBackground };
+  }
+  if (form.category === 'background') {
+    // Imagen como fondo de carta, o degradado de colores
+    if (form.imageUrl) {
+      return { ...base, imageUrl: form.imageUrl,
+        cssBackground: `url(${form.imageUrl}) center/cover no-repeat` };
+    }
+    return { ...base,
+      color1: form.color1, color2: form.color2, color3: form.color3, angle: form.angle,
+      cssBackground: `linear-gradient(${form.angle}deg, ${form.color1} 0%, ${form.color2} 45%, ${form.color3} 100%)` };
+  }
   return base;
 }
 
@@ -56,6 +92,7 @@ function itemToForm(item) {
     emoji: item.emoji || '⭐',
     price: item.price ?? 5,
     desc: item.desc || '',
+    imageUrl: item.imageUrl || null,
   };
   if (item.category === 'accent')     return { ...f, color: item.color || '#00e5ff' };
   if (item.category === 'frame')      return { ...f, borderColor: item.borderColor || '#ff6600', glowColor: item.glowColor || '#ff3300' };
@@ -167,32 +204,28 @@ export default function ShopPage({ ctx }) {
     <div className="page">
       <div className="page-title">🛒 Tienda</div>
 
-      {/* ── Saldo · cómo ganar · carta ── */}
+      {/* ── Saldo + recompensas + carta ── */}
       <div style={{
         display:'flex', alignItems:'center', gap:14,
         background:'var(--surface)', border:'1px solid var(--border)',
         borderRadius:14, padding:'14px 16px', marginBottom:16,
       }}>
-        {/* Col 1: saldo */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
-          <span style={{ fontSize:30, lineHeight:1 }}>🪙</span>
-          <span style={{ fontFamily:"'Barlow Condensed',sans-serif",
-            fontSize:32, fontWeight:900, color:'var(--accent)', lineHeight:1, marginTop:4 }}>
-            {coins}
-          </span>
+        {/* Col 1: saldo + recompensas */}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontSize:26 }}>🪙</span>
+            <span style={{ fontFamily:"'Barlow Condensed',sans-serif",
+              fontSize:38, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>
+              {coins}
+            </span>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:2,
+            fontSize:10, lineHeight:1.4, color:'var(--muted)', marginTop:8 }}>
+            <div><b style={{ color:'var(--accent)' }}>+2</b> jugar · <b style={{ color:'var(--accent)' }}>+1</b> gol</div>
+            <div><b style={{ color:'var(--accent)' }}>+1</b> victoria · <b style={{ color:'var(--accent)' }}>+1</b> MVP · <b style={{ color:'var(--accent)' }}>+1</b> arquero</div>
+          </div>
         </div>
-
-        {/* Col 2: cómo ganar monedas */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:4,
-          fontSize:11, lineHeight:1.3, color:'var(--muted)' }}>
-          <div><b style={{ color:'var(--accent)' }}>+2</b> jugar partido</div>
-          <div><b style={{ color:'var(--accent)' }}>+1</b> por cada gol</div>
-          <div><b style={{ color:'var(--accent)' }}>+1</b> si tu equipo gana</div>
-          <div><b style={{ color:'var(--accent)' }}>+1</b> MVP del partido</div>
-          <div><b style={{ color:'var(--accent)' }}>+1</b> arquero del partido</div>
-        </div>
-
-        {/* Col 3: mini carta */}
+        {/* Col 2: mini carta */}
         <div style={{ width:78, flexShrink:0 }}>
           <PlayerCard player={player} />
         </div>
@@ -421,8 +454,14 @@ export default function ShopPage({ ctx }) {
                     )}
                   </div>
                 )}
-                <div style={{ fontSize:38, lineHeight:1, filter: (!owned && !canBuy) ? 'grayscale(1)' : 'none' }}>
-                  {item.emoji}
+                <div style={{ width:42, height:42, display:'flex', alignItems:'center',
+                  justifyContent:'center', filter: (!owned && !canBuy) ? 'grayscale(1)' : 'none' }}>
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.name}
+                      style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain' }} />
+                  ) : (
+                    <span style={{ fontSize:38, lineHeight:1 }}>{item.emoji}</span>
+                  )}
                 </div>
                 <div style={{ fontSize:13, fontWeight:800,
                   color: active ? 'var(--accent)' : 'var(--text)' }}>
@@ -635,6 +674,55 @@ export default function ShopPage({ ctx }) {
               <input style={inputStyle} type="number" min={0} value={f.price}
                 onChange={e => setAdminForm({ ...f, price:e.target.value })} />
 
+              {/* Subida de imagen (sticker / pattern / background) */}
+              {(f.category === 'sticker' || f.category === 'pattern' || f.category === 'background') && (
+                <>
+                  <label style={labelStyle}>
+                    Imagen (PNG, JPG)
+                    {f.category === 'sticker' && ' — usa PNG con transparencia'}
+                  </label>
+                  {f.imageUrl ? (
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginTop:4 }}>
+                      <div style={{
+                        width:64, height:64, borderRadius:8,
+                        background: f.category === 'sticker' ? 'var(--surface2)'
+                          : f.category === 'pattern'  ? `url(${f.imageUrl}) repeat`
+                          : `url(${f.imageUrl}) center/cover`,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        border:'1px solid var(--border)', overflow:'hidden',
+                      }}>
+                        {f.category === 'sticker' && (
+                          <img src={f.imageUrl} alt=""
+                            style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain' }} />
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setAdminForm({ ...f, imageUrl:null })}
+                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid var(--red)',
+                          background:'rgba(255,82,82,.1)', color:'var(--red)',
+                          fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                        Quitar imagen
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const maxPx = f.category === 'background' ? 400
+                                    : f.category === 'pattern'    ? 200
+                                    : 160; // sticker
+                        const dataUrl = await compressImage(file, maxPx, 0.9);
+                        setAdminForm({ ...f, imageUrl: dataUrl });
+                      }}
+                      style={{ marginTop:4, fontSize:11, color:'var(--muted)' }}
+                    />
+                  )}
+                </>
+              )}
+
               {/* Category-specific */}
               {f.category === 'accent' && (
                 <>
@@ -658,8 +746,11 @@ export default function ShopPage({ ctx }) {
                 </>
               )}
 
-              {f.category === 'background' && (
+              {f.category === 'background' && !f.imageUrl && (
                 <>
+                  <div style={{ fontSize:10, color:'var(--muted)', marginTop:8 }}>
+                    O usa un degradado de colores:
+                  </div>
                   <label style={labelStyle}>Color 1 (esquina sup-izq)</label>
                   <input type="color" value={f.color1}
                     onChange={e => setAdminForm({ ...f, color1:e.target.value })}
@@ -681,9 +772,12 @@ export default function ShopPage({ ctx }) {
                 </>
               )}
 
-              {f.category === 'pattern' && (
+              {f.category === 'pattern' && !f.imageUrl && (
                 <>
-                  <label style={labelStyle}>CSS background (avanzado)</label>
+                  <div style={{ fontSize:10, color:'var(--muted)', marginTop:8 }}>
+                    O usa CSS personalizado (avanzado):
+                  </div>
+                  <label style={labelStyle}>CSS background</label>
                   <textarea style={{ ...inputStyle, fontFamily:'monospace', fontSize:11, minHeight:70 }}
                     value={f.cssBackground}
                     onChange={e => setAdminForm({ ...f, cssBackground:e.target.value })}
