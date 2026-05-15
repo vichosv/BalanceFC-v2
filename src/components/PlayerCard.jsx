@@ -1,5 +1,5 @@
 import { overall, tier, SK } from '../utils/stats';
-import { SHOP_ITEMS } from '../utils/shop';
+import { useShopItems } from '../hooks/useShopItems';
 
 const POSITIONS = {
   GK:  { short:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -36,19 +36,29 @@ function Radar({ p, size = 120 }) {
 }
 
 export default function PlayerCard({ player, onClick, badges = [] }) {
+  const items = useShopItems();
   const ov  = overall(player);
   const t   = tier(ov);
   const pos = POSITIONS[player.position] || POSITIONS.MID;
 
   // ── Equipamiento cosmético ──
-  const equipped    = player.equipped || {};
-  const accentItem   = equipped.accent  ? SHOP_ITEMS.find(i => i.id === equipped.accent)  : null;
-  const patternItem  = equipped.pattern ? SHOP_ITEMS.find(i => i.id === equipped.pattern) : null;
-  const frameItem    = equipped.frame   ? SHOP_ITEMS.find(i => i.id === equipped.frame)   : null;
-  const stickerItem  = equipped.sticker ? SHOP_ITEMS.find(i => i.id === equipped.sticker) : null;
-  const accentColor  = accentItem?.color || null;
-  const patternClass = patternItem ? `fp-${patternItem.id.replace('pattern_', '')}` : '';
-  const frameClass   = frameItem   ? `ff-${frameItem.id.replace('frame_', '')}`     : '';
+  const equipped       = player.equipped || {};
+  const find           = id => id ? items.find(i => i.id === id) : null;
+  const accentItem     = find(equipped.accent);
+  const patternItem    = find(equipped.pattern);
+  const frameItem      = find(equipped.frame);
+  const stickerItem    = find(equipped.sticker);
+  const backgroundItem = find(equipped.background);
+
+  const accentColor    = accentItem?.color || null;
+  // Hardcoded items use CSS classes; custom items use inline CSS
+  const patternClass   = patternItem?.id?.startsWith('pattern_') && !patternItem?.cssBackground
+    ? `fp-${patternItem.id.replace('pattern_', '')}` : '';
+  const frameClass     = frameItem?.id?.startsWith('frame_') && !frameItem?.cssBoxShadow
+    ? `ff-${frameItem.id.replace('frame_', '')}` : '';
+  const patternStyle   = patternItem?.cssBackground ? { background: patternItem.cssBackground } : null;
+  const frameStyle     = frameItem?.cssBoxShadow    ? { boxShadow:  frameItem.cssBoxShadow   } : null;
+  const backgroundStyle= backgroundItem?.cssBackground ? { background: backgroundItem.cssBackground } : null;
 
   const statsHTML = SK.map(s => (
     <div key={s.key} className="fc-stat">
@@ -71,16 +81,19 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
       style={{
         cursor: onClick ? 'pointer' : 'default',
         ...(accentColor ? { '--card-accent': accentColor } : {}),
+        ...(frameStyle || {}),
       }}
     >
-      <div className="fc-bg" />
+      <div className="fc-bg" style={backgroundStyle || undefined} />
       {player.photo && (
         <>
           <div className="fc-photo" style={{ backgroundImage: `url(${player.photo})` }} />
           <div className="fc-photo-overlay" />
         </>
       )}
-      {patternClass && <div className={`fc-pattern ${patternClass}`} />}
+      {(patternClass || patternStyle) && (
+        <div className={`fc-pattern ${patternClass}`} style={patternStyle || undefined} />
+      )}
       <div className="fc-shine" />
       <div className="fc-frame-el" />
 

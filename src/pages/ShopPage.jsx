@@ -2,9 +2,49 @@ import { useState } from 'react';
 import { doc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
-import { SHOP_ITEMS, CATEGORIES } from '../utils/shop';
+import { CATEGORIES, addShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS } from '../utils/shop';
+import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
+
+// IDs of default hardcoded items (can't be deleted by admin)
+const DEFAULT_IDS = new Set(DEFAULT_SHOP_ITEMS.map(i => i.id));
+
+// ── Admin helpers ─────────────────────────────────────────────
+function blankItem(category) {
+  const base = { category, name:'', emoji:'⭐', price:5, desc:'' };
+  if (category === 'accent')     return { ...base, color:'#00e5ff' };
+  if (category === 'frame')      return { ...base, borderColor:'#ff6600', glowColor:'#ff3300' };
+  if (category === 'pattern')    return { ...base, cssBackground:'' };
+  if (category === 'background') return { ...base, color1:'#1a1a1e', color2:'#3a3a44', color3:'#22222a', angle:150 };
+  return base; // sticker
+}
+
+function hexToRgba(hex, a) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2), 16);
+  const g = parseInt(h.slice(2,4), 16);
+  const b = parseInt(h.slice(4,6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function buildCustomItem(form) {
+  const base = {
+    category: form.category, name: form.name, emoji: form.emoji,
+    price: Number(form.price) || 0, desc: form.desc,
+  };
+  if (form.category === 'accent')     return { ...base, color: form.color };
+  if (form.category === 'sticker')    return base;
+  if (form.category === 'frame') {
+    const bc = form.borderColor, gc = form.glowColor;
+    return { ...base, cssBoxShadow:
+      `0 0 0 2px ${bc}, 0 0 22px ${hexToRgba(gc, 0.75)}, 0 0 48px ${hexToRgba(gc, 0.35)}` };
+  }
+  if (form.category === 'pattern')    return { ...base, cssBackground: form.cssBackground };
+  if (form.category === 'background') return { ...base,
+    cssBackground: `linear-gradient(${form.angle}deg, ${form.color1} 0%, ${form.color2} 45%, ${form.color3} 100%)` };
+  return base;
+}
 
 // ── Bet constants ─────────────────────────────────────────────
 const BET_TYPES = [
@@ -27,12 +67,17 @@ const ALL_TABS = [
 ];
 
 export default function ShopPage({ ctx }) {
-  const { user, players = [] } = ctx;
+  const { user, isAdmin, players = [] } = ctx;
   const player = players.find(p => p.uid === user?.uid);
   const [cat, setCat] = useState('accent');
 
   // shop preview modal
   const [preview, setPreview] = useState(null);
+  // admin: new item modal
+  const [adminForm, setAdminForm] = useState(null); // { ...item draft }
+
+  // all items (defaults + Firestore)
+  const allItems = useShopItems();
 
   // bets
   const { convocatorias } = useConvocatorias();
@@ -48,7 +93,7 @@ export default function ShopPage({ ctx }) {
   const equipped  = player.equipped  || {};
 
   // ── Shop helpers ──────────────────────────────────────────
-  const shopItems  = SHOP_ITEMS.filter(i => i.category === cat);
+  const shopItems  = allItems.filter(i => i.category === cat);
   const isOwned    = item => item.price === 0 || inventory.has(item.id);
   const isEquipped = item => equipped[item.category] === item.id;
 
@@ -100,7 +145,7 @@ export default function ShopPage({ ctx }) {
   // ── Render ────────────────────────────────────────────────
   return (
     <div className="page">
-      <div className="page-title">🎨 Personalización</div>
+      <div className="page-title">🛒 Tienda</div>
 
       {/* ── Saldo + mini carta ── */}
       <div style={{
@@ -288,14 +333,28 @@ export default function ShopPage({ ctx }) {
         </div>
       ) : (
         /* ══ SHOP TAB ══ */
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+        <>
+          {/* Admin: agregar item */}
+          {isAdmin && (
+            <button onClick={() => setAdminForm(blankItem(cat))}
+              style={{ width:'100%', padding:'10px', marginBottom:10,
+                background:'rgba(0,229,255,.08)', border:'1.5px dashed var(--accent)',
+                borderRadius:12, color:'var(--accent)', fontWeight:700, fontSize:13,
+                cursor:'pointer' }}>
+              + Agregar {CATEGORIES.find(c => c.id === cat)?.label?.split(' ')[1] || 'item'}
+            </button>
+          )}
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
           {shopItems.map(item => {
-            const owned  = isOwned(item);
-            const active = isEquipped(item);
-            const canBuy = !owned && coins >= item.price;
+            const owned    = isOwned(item);
+            const active   = isEquipped(item);
+            const canBuy   = !owned && coins >= item.price;
+            const isCustom = !DEFAULT_IDS.has(item.id);
 
             return (
               <div key={item.id} style={{
+                position:'relative',
                 borderRadius:14, padding:'14px 12px',
                 display:'flex', flexDirection:'column', alignItems:'center', gap:6,
                 textAlign:'center',
@@ -304,6 +363,22 @@ export default function ShopPage({ ctx }) {
                 opacity: (!owned && !canBuy) ? 0.55 : 1,
                 transition:'all .15s',
               }}>
+                {isAdmin && isCustom && (
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (confirm(`¿Eliminar "${item.name}" de la tienda?`)) {
+                        await deleteShopItem(item.id);
+                      }
+                    }}
+                    title="Eliminar (admin)"
+                    style={{ position:'absolute', top:6, right:6, width:22, height:22,
+                      background:'rgba(255,82,82,.15)', border:'none', borderRadius:'50%',
+                      color:'var(--red)', cursor:'pointer', fontSize:12, lineHeight:1,
+                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    ✕
+                  </button>
+                )}
                 <div style={{ fontSize:38, lineHeight:1, filter: (!owned && !canBuy) ? 'grayscale(1)' : 'none' }}>
                   {item.emoji}
                 </div>
@@ -336,7 +411,8 @@ export default function ShopPage({ ctx }) {
               </div>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {/* ── Modal preview tienda ── */}
@@ -432,6 +508,165 @@ export default function ShopPage({ ctx }) {
                     background:'var(--accent)', color:'#000',
                     fontWeight:800, fontSize:13, cursor:'pointer' }}>
                   {placing ? 'Apostando...' : '¡Apostar!'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Modal admin: agregar item ── */}
+      {adminForm && (() => {
+        const f = adminForm;
+        const built = buildCustomItem(f);
+        const simPlayer = { ...player, equipped: { ...equipped, [f.category]: '__preview__' } };
+        // Inject preview item into items list via a temporary wrapper
+        const inputStyle = { width:'100%', padding:'8px 10px', borderRadius:8,
+          border:'1px solid var(--border)', background:'var(--surface2)',
+          color:'var(--text)', fontSize:13 };
+        const labelStyle = { fontSize:11, color:'var(--muted)', fontWeight:700,
+          display:'block', marginBottom:4, marginTop:8 };
+
+        async function save() {
+          if (!f.name.trim()) { alert('Falta nombre'); return; }
+          await addShopItem(built);
+          setAdminForm(null);
+        }
+
+        return (
+          <div onClick={() => setAdminForm(null)}
+            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.78)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              zIndex:9999, padding:20, overflow:'auto' }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ background:'var(--surface)', borderRadius:18, padding:'20px',
+                width:'100%', maxWidth:380, border:'1px solid var(--border)',
+                maxHeight:'90vh', overflowY:'auto' }}>
+              <div style={{ fontSize:15, fontWeight:800, marginBottom:12 }}>
+                ➕ Nuevo item — {CATEGORIES.find(c => c.id === f.category)?.label}
+              </div>
+
+              {/* Mini preview del efecto */}
+              <div style={{ background:'var(--surface2)', borderRadius:12,
+                padding:14, marginBottom:14, display:'flex', alignItems:'center',
+                justifyContent:'center', gap:14, minHeight:88, position:'relative',
+                overflow:'hidden',
+                ...(f.category === 'background' ? {
+                  background: `linear-gradient(${f.angle}deg, ${f.color1} 0%, ${f.color2} 45%, ${f.color3} 100%)`,
+                } : {}),
+                ...(f.category === 'frame' ? {
+                  boxShadow: built.cssBoxShadow,
+                  border:`1px solid ${f.borderColor}`,
+                } : {}),
+              }}>
+                {f.category === 'pattern' && f.cssBackground && (
+                  <div style={{ position:'absolute', inset:0, background:f.cssBackground }} />
+                )}
+                <div style={{ fontSize:38, lineHeight:1, position:'relative', zIndex:1 }}>{f.emoji}</div>
+                <div style={{ position:'relative', zIndex:1 }}>
+                  <div style={{ fontSize:14, fontWeight:800,
+                    color: f.category === 'accent' ? f.color : 'var(--text)' }}>
+                    {f.name || 'Sin nombre'}
+                  </div>
+                  <div style={{ fontSize:11, color:'var(--muted)' }}>{f.desc || 'Sin descripción'}</div>
+                  <div style={{ fontSize:12, color:'var(--accent)', fontWeight:700, marginTop:2 }}>
+                    🪙 {f.price}
+                  </div>
+                </div>
+              </div>
+
+              {/* Common fields */}
+              <label style={labelStyle}>Nombre</label>
+              <input style={inputStyle} value={f.name} maxLength={20}
+                onChange={e => setAdminForm({ ...f, name:e.target.value })} placeholder="Ej: Galaxia" />
+
+              <label style={labelStyle}>Emoji (icono en la tienda)</label>
+              <input style={inputStyle} value={f.emoji} maxLength={4}
+                onChange={e => setAdminForm({ ...f, emoji:e.target.value })} />
+
+              <label style={labelStyle}>Descripción</label>
+              <input style={inputStyle} value={f.desc} maxLength={50}
+                onChange={e => setAdminForm({ ...f, desc:e.target.value })} placeholder="Breve descripción" />
+
+              <label style={labelStyle}>Precio (🪙)</label>
+              <input style={inputStyle} type="number" min={0} value={f.price}
+                onChange={e => setAdminForm({ ...f, price:e.target.value })} />
+
+              {/* Category-specific */}
+              {f.category === 'accent' && (
+                <>
+                  <label style={labelStyle}>Color</label>
+                  <input type="color" value={f.color}
+                    onChange={e => setAdminForm({ ...f, color:e.target.value })}
+                    style={{ width:'100%', height:42, border:'none', borderRadius:8, cursor:'pointer' }} />
+                </>
+              )}
+
+              {f.category === 'frame' && (
+                <>
+                  <label style={labelStyle}>Color del borde</label>
+                  <input type="color" value={f.borderColor}
+                    onChange={e => setAdminForm({ ...f, borderColor:e.target.value })}
+                    style={{ width:'100%', height:42, border:'none', borderRadius:8, cursor:'pointer' }} />
+                  <label style={labelStyle}>Color del resplandor</label>
+                  <input type="color" value={f.glowColor}
+                    onChange={e => setAdminForm({ ...f, glowColor:e.target.value })}
+                    style={{ width:'100%', height:42, border:'none', borderRadius:8, cursor:'pointer' }} />
+                </>
+              )}
+
+              {f.category === 'background' && (
+                <>
+                  <label style={labelStyle}>Color 1 (esquina sup-izq)</label>
+                  <input type="color" value={f.color1}
+                    onChange={e => setAdminForm({ ...f, color1:e.target.value })}
+                    style={{ width:'100%', height:38, border:'none', borderRadius:8 }} />
+                  <label style={labelStyle}>Color 2 (centro)</label>
+                  <input type="color" value={f.color2}
+                    onChange={e => setAdminForm({ ...f, color2:e.target.value })}
+                    style={{ width:'100%', height:38, border:'none', borderRadius:8 }} />
+                  <label style={labelStyle}>Color 3 (esquina inf-der)</label>
+                  <input type="color" value={f.color3}
+                    onChange={e => setAdminForm({ ...f, color3:e.target.value })}
+                    style={{ width:'100%', height:38, border:'none', borderRadius:8 }} />
+                  <label style={labelStyle}>Ángulo del degradado: {f.angle}°</label>
+                  <input type="range" min={0} max={360} value={f.angle}
+                    onChange={e => setAdminForm({ ...f, angle:Number(e.target.value) })}
+                    style={{ width:'100%' }} />
+                  <div style={{ height:60, borderRadius:8, marginTop:6,
+                    background:`linear-gradient(${f.angle}deg, ${f.color1} 0%, ${f.color2} 45%, ${f.color3} 100%)` }} />
+                </>
+              )}
+
+              {f.category === 'pattern' && (
+                <>
+                  <label style={labelStyle}>CSS background (avanzado)</label>
+                  <textarea style={{ ...inputStyle, fontFamily:'monospace', fontSize:11, minHeight:70 }}
+                    value={f.cssBackground}
+                    onChange={e => setAdminForm({ ...f, cssBackground:e.target.value })}
+                    placeholder="repeating-linear-gradient(45deg, rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 2px, transparent 2px, transparent 14px)" />
+                  {f.cssBackground && (
+                    <div style={{ height:60, borderRadius:8, marginTop:6,
+                      background:`linear-gradient(150deg, #1a1a1e 0%, #3a3a44 45%, #22222a 100%)`,
+                      position:'relative', overflow:'hidden' }}>
+                      <div style={{ position:'absolute', inset:0, background:f.cssBackground }} />
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div style={{ display:'flex', gap:10, marginTop:16 }}>
+                <button onClick={() => setAdminForm(null)}
+                  style={{ flex:1, padding:'10px', borderRadius:10,
+                    border:'1px solid var(--border)', background:'var(--surface2)',
+                    color:'var(--text)', fontWeight:700, fontSize:13, cursor:'pointer' }}>
+                  Cancelar
+                </button>
+                <button onClick={save}
+                  style={{ flex:2, padding:'10px', borderRadius:10, border:'none',
+                    background:'var(--accent)', color:'#000', fontWeight:800,
+                    fontSize:13, cursor:'pointer' }}>
+                  Crear item
                 </button>
               </div>
             </div>
