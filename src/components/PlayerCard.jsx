@@ -17,7 +17,7 @@ const TIER_SYMBOLS = {
   gold:     '🥇',
   emerald:  '💚',
   sapphire: '💙',
-  ruby:     '❤️',
+  ruby:     '♦️',
   diamond:  '💎',
   legend:   '👑',
 };
