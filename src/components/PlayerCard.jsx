@@ -9,6 +9,19 @@ const POSITIONS = {
   FWD: { short:'FWD', name:'Delantero',  emoji:'🎯' },
 };
 
+// Símbolos por tier (basados en OVR)
+const TIER_SYMBOLS = {
+  iron:     '⚙️',
+  bronze:   '🥉',
+  silver:   '🥈',
+  gold:     '🥇',
+  emerald:  '💚',
+  sapphire: '💙',
+  ruby:     '❤️',
+  diamond:  '💎',
+  legend:   '👑',
+};
+
 function Radar({ p, size = 120 }) {
   const cx = size / 2, cy = size / 2, r = size * 0.38;
   const keys = SK.map(s => s.key);
@@ -109,6 +122,10 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
           <div>
             <div className="fc-ov">{ov}</div>
             <div className="fc-pos">{pos.short}</div>
+            <div style={{ fontSize:14, lineHeight:1, marginTop:2,
+              filter:'drop-shadow(0 1px 3px rgba(0,0,0,.6))' }}>
+              {TIER_SYMBOLS[t]}
+            </div>
           </div>
           <div className="fc-right">
             <div className="fc-spi">{pos.emoji}</div>
