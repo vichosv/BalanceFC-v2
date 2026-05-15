@@ -117,7 +117,7 @@ async function applyStatEvolution(matchData) {
   // Fetch player docs + recent matches in parallel
   const [playerSnaps, recentSnap] = await Promise.all([
     Promise.all(uids.map(uid => getDoc(doc(db, 'players', uid)))),
-    getDocs(query(collection(db, 'matches'), orderBy('createdAt', 'desc'), limit(30))),
+    getDocs(query(collection(db, 'matches'), orderBy('createdAt', 'desc'), limit(100))),
   ]);
 
   const playerMap = {};
@@ -235,14 +235,54 @@ async function applyStatEvolution(matchData) {
       // Guardar snapshot en statHistory (máx 50 entradas)
       const prevHistory = p.statHistory || [];
       const snapshot = {
-        ts:    Date.now(),
-        date:  matchData.date || new Date().toISOString().slice(0, 10),
+        matchId: matchData.id || null,
+        ts:      Date.now(),
+        date:    matchData.date || new Date().toISOString().slice(0, 10),
         before, after, delta: { ...cambios },
       };
       const statHistory = [snapshot, ...prevHistory].slice(0, 50);
       updates.push(updateDoc(doc(db, 'players', entry.uid),
         { ...newStats, statHistory }));
     }
+  });
+
+  await Promise.all(updates);
+}
+
+// ── Revertir evolución (al borrar/editar un partido) ──────────
+async function reverseStatEvolution(matchData) {
+  // Recolectar uids afectados
+  const uids = new Set();
+  (matchData.teamA || []).forEach(p => uids.add(p.uid));
+  (matchData.teamB || []).forEach(p => uids.add(p.uid));
+  if (matchData.triangular) {
+    (matchData.teamC || []).forEach(p => uids.add(p.uid));
+  }
+  if (!uids.size) return;
+
+  const arr = [...uids].filter(Boolean);
+  const snaps = await Promise.all(arr.map(uid => getDoc(doc(db, 'players', uid))));
+  const updates = [];
+
+  snaps.forEach((snap, i) => {
+    if (!snap.exists()) return;
+    const p = snap.data();
+    const history = p.statHistory || [];
+    // Buscar snapshot que corresponde a este partido
+    const idx = history.findIndex(s => s.matchId === matchData.id);
+    if (idx === -1) return;  // no había evolución para este match
+    const snapshot = history[idx];
+    // Restaurar valores 'before' del snapshot
+    const restored = {};
+    ['vel','tec','def','tir','sta'].forEach(k => {
+      if (snapshot.before && snapshot.before[k] !== undefined) {
+        restored[k] = snapshot.before[k];
+      }
+    });
+    // Remover el snapshot del array
+    const newHistory = history.filter((_, j) => j !== idx);
+    updates.push(updateDoc(doc(db, 'players', arr[i]),
+      { ...restored, statHistory: newHistory }));
   });
 
   await Promise.all(updates);
@@ -299,14 +339,18 @@ async function resolveBets(matchData) {
 
 // data.playerStats = { [uid]: { goals: n, assists: n } }
 export async function logMatch(data) {
-  await addDoc(collection(db, 'matches'), { ...data, createdAt: Date.now() });
+  const ref = await addDoc(collection(db, 'matches'), { ...data, createdAt: Date.now() });
   await Promise.all(buildStatUpdates(data, 1));
-  await Promise.all([resolveBets(data), applyStatEvolution(data)]);
+  await Promise.all([
+    resolveBets(data),
+    applyStatEvolution({ ...data, id: ref.id }),
+  ]);
 }
 
 export async function deleteMatch(match) {
   await deleteDoc(doc(db, 'matches', match.id));
   await Promise.all(buildStatUpdates(match, -1));
+  await reverseStatEvolution(match);
 }
 
 export async function updateMatch(oldMatch, newData) {
@@ -314,11 +358,13 @@ export async function updateMatch(oldMatch, newData) {
   const merged = { ...newData, seasonId: oldMatch.seasonId, createdAt: oldMatch.createdAt };
   const { id, ...docData } = { ...merged };
   await updateDoc(doc(db, 'matches', oldMatch.id), docData);
-  // Reverse old stats, apply new stats
+  // Reverse old history+stats, apply new history+stats
   await Promise.all([
     ...buildStatUpdates(oldMatch, -1),
     ...buildStatUpdates(merged,   1),
   ]);
+  await reverseStatEvolution(oldMatch);
+  await applyStatEvolution({ ...merged, id: oldMatch.id });
 }
 
 export async function setMatchVideo(matchId, videoUrl) {
