@@ -19,7 +19,7 @@ export default function HexRadar({ player, size = 200 }) {
     pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ') + 'Z';
 
   const outerRings = [0.25, 0.5, 0.75, 1];
-  const statPts    = ORDER.map((k, i) => pt(i, Math.max(0.08, (player[k] ?? 50) / 100)));
+  const statPts    = ORDER.map((k, i) => pt(i, Math.max(0.08, Math.round(player[k] ?? 50) / 100)));
 
   const labelPts = ORDER.map((k, i) => {
     const a = -Math.PI / 2 + (Math.PI * 2 / 6) * i;

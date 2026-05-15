@@ -52,7 +52,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
 
   const statsHTML = SK.map(s => (
     <div key={s.key} className="fc-stat">
-      <div className="fc-snum">{player[s.key] ?? 50}</div>
+      <div className="fc-snum">{Math.round(player[s.key] ?? 50)}</div>
       <div className="fc-slbl">{s.label.slice(0,3).toUpperCase()}</div>
     </div>
   ));

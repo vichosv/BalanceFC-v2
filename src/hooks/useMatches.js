@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  collection, onSnapshot, addDoc, deleteDoc, getDocs,
-  query, orderBy, where, doc, updateDoc, increment,
+  collection, onSnapshot, addDoc, deleteDoc, getDocs, getDoc,
+  query, orderBy, where, limit, doc, updateDoc, increment,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
@@ -67,6 +67,172 @@ function buildStatUpdates(matchData, mult) {
   return updates;
 }
 
+// ── Stat evolution (same logic as v1) ────────────────────────
+// clamp: 1 decimal, range 10-100 (same as v1)
+const clampStat = v => Math.min(100, Math.max(10, Math.round(v * 10) / 10));
+
+function getTopVoter(votes, field) {
+  if (!votes) return null;
+  const counts = {};
+  Object.values(votes).forEach(v => { if (v[field]) counts[v[field]] = (counts[v[field]] || 0) + 1; });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+}
+
+async function applyStatEvolution(matchData) {
+  const {
+    teamA, teamB, teamC, triangular,
+    playerStats = {}, scoreA = 0, scoreB = 0, scoreC = 0, votes,
+  } = matchData;
+  const { wA, wB, wC } = computeWins(matchData);
+
+  const mvpUid = getTopVoter(votes, 'mvp');
+  const gkUid  = getTopVoter(votes, 'gk');
+
+  // Build per-player context
+  const entries = [];
+  if (!triangular) {
+    const marginAB = (scoreA || 0) - (scoreB || 0);
+    (teamA || []).forEach(p => entries.push({
+      uid: p.uid, position: p.position, won: wA,
+      draw: marginAB === 0, margin: marginAB, rivalScore: scoreB || 0,
+    }));
+    (teamB || []).forEach(p => entries.push({
+      uid: p.uid, position: p.position, won: wB,
+      draw: marginAB === 0, margin: -marginAB, rivalScore: scoreA || 0,
+    }));
+  } else {
+    const maxScore = Math.max(scoreA || 0, scoreB || 0, scoreC || 0);
+    [[teamA, scoreA || 0, wA], [teamB, scoreB || 0, wB], [teamC || [], scoreC || 0, wC]]
+      .forEach(([team, score, won]) => {
+        (team || []).forEach(p => entries.push({
+          uid: p.uid, position: p.position, won, draw: false,
+          margin: score - maxScore, rivalScore: maxScore,
+        }));
+      });
+  }
+
+  if (!entries.length) return;
+  const uids = [...new Set(entries.map(e => e.uid).filter(Boolean))];
+
+  // Fetch player docs + recent matches in parallel
+  const [playerSnaps, recentSnap] = await Promise.all([
+    Promise.all(uids.map(uid => getDoc(doc(db, 'players', uid)))),
+    getDocs(query(collection(db, 'matches'), orderBy('createdAt', 'desc'), limit(30))),
+  ]);
+
+  const playerMap = {};
+  playerSnaps.forEach((snap, i) => { if (snap.exists()) playerMap[uids[i]] = snap.data(); });
+  const recentMatches = recentSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Streak of consecutive W/L/D for a player
+  function getStreak(uid) {
+    let streak = 0, result = null;
+    for (const m of recentMatches) {
+      const inA = (m.teamA || []).some(p => p.uid === uid);
+      const inB = (m.teamB || []).some(p => p.uid === uid);
+      const inC = (m.teamC || []).some(p => p.uid === uid);
+      if (!inA && !inB && !inC) continue;
+      const { wA: mA, wB: mB, wC: mC } = computeWins(m);
+      const won  = (inA && mA) || (inB && mB) || (inC && mC);
+      const draw = !m.triangular && (m.scoreA === m.scoreB);
+      const r    = draw ? 'D' : won ? 'W' : 'L';
+      if (result === null) result = r;
+      if (r === result) streak++;
+      else break;
+    }
+    return { streak, result };
+  }
+
+  // Goals in last n matches for a player
+  function golesUltimos(uid, n) {
+    let goals = 0, pj = 0;
+    for (const m of recentMatches) {
+      const inAny = [...(m.teamA || []), ...(m.teamB || []), ...(m.teamC || [])]
+        .some(p => p.uid === uid);
+      if (!inAny) continue;
+      goals += m.playerStats?.[uid]?.goals || 0;
+      pj++;
+      if (pj >= n) break;
+    }
+    return { goals, pj };
+  }
+
+  const updates = [];
+
+  entries.forEach(entry => {
+    const p = playerMap[entry.uid];
+    if (!p) return;
+    const ps          = playerStats[entry.uid] || {};
+    const goles       = ps.goals   || 0;
+    const asistencias = ps.assists || 0;
+    const cambios     = { vel: 0, tec: 0, def: 0, tir: 0, sta: 0 };
+
+    // ⚽ Goles → tir
+    if (goles > 0) {
+      cambios.tir += goles * 1.0;
+      if (goles >= 3) cambios.tir += 2.0; // hat-trick bonus
+    }
+    // 🅰️ Asistencias → tec
+    if (asistencias > 0) cambios.tec += asistencias * 0.8;
+    // ⭐ MVP → tec
+    if (mvpUid === entry.uid) cambios.tec += 1.5;
+
+    // 💪 Resultado → sta
+    if (entry.won)        cambios.sta += 0.5;
+    else if (!entry.draw) cambios.sta -= 0.5;
+
+    // 🛡️ Defensa según margen
+    const lost = Math.abs(entry.margin);
+    if (entry.draw) {
+      cambios.def += 0.8;
+    } else if (entry.won) {
+      if (entry.margin === 1) cambios.def += 0.5; // ganar raspando
+    } else {
+      if      (lost === 1)             cambios.def += 1.0;
+      else if (lost === 2)             cambios.def += 0.5;
+      else if (lost >= 3 && lost <= 4) cambios.def -= 1.0;
+      else if (lost >= 5)              { cambios.def -= 1.5; cambios.sta -= 1.5; }
+    }
+
+    // 🧤 Arquero
+    if (gkUid === entry.uid) {
+      cambios.def += 1.5;
+      if (entry.rivalScore >= 4) cambios.def -= 1.0; // recibió 4+ goles
+    }
+
+    // ⚡ Racha 3+ victorias → vel; 3+ derrotas → sta
+    const { streak, result } = getStreak(entry.uid);
+    if (streak >= 3 && result === 'W') cambios.vel += 1.0;
+    if (streak >= 3 && result === 'L') cambios.sta -= 0.8;
+
+    // 📉 FWD/WNG sin goles en últimos 5 PJ → tir
+    if (entry.position === 'FWD' || entry.position === 'WNG') {
+      const ult = golesUltimos(entry.uid, 5);
+      if (ult.pj >= 5 && ult.goals === 0) cambios.tir -= 0.8;
+    }
+
+    // 📉 10+ PJ sin MVP → tec
+    if ((p.history?.matches || 0) >= 10 && (p.history?.mvps || 0) === 0) cambios.tec -= 0.5;
+
+    // Aplicar con rendimientos decrecientes (subir cuesta más cuanto más alto estás)
+    const newStats = {};
+    let hasChange = false;
+    ['vel', 'tec', 'def', 'tir', 'sta'].forEach(k => {
+      if (cambios[k] === 0) return;
+      const cur    = p[k] || 50;
+      const factor = cambios[k] > 0
+        ? Math.max(0.05, 1 - Math.pow((cur - 10) / 90, 1.8))
+        : 1;
+      const next = clampStat(cur + cambios[k] * factor);
+      if (next !== cur) { newStats[k] = next; hasChange = true; }
+    });
+
+    if (hasChange) updates.push(updateDoc(doc(db, 'players', entry.uid), newStats));
+  });
+
+  await Promise.all(updates);
+}
+
 // ── Bet resolution ────────────────────────────────────────────
 async function resolveBets(matchData) {
   const { teamA, teamB, teamC, triangular, playerStats = {}, scoreA, scoreB } = matchData;
@@ -120,7 +286,7 @@ async function resolveBets(matchData) {
 export async function logMatch(data) {
   await addDoc(collection(db, 'matches'), { ...data, createdAt: Date.now() });
   await Promise.all(buildStatUpdates(data, 1));
-  await resolveBets(data);
+  await Promise.all([resolveBets(data), applyStatEvolution(data)]);
 }
 
 export async function deleteMatch(match) {

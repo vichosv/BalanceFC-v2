@@ -121,7 +121,7 @@ export default function ProfilePage({ ctx }) {
           {SK.map(s => (
             <div key={s.key} style={{ textAlign:'center', padding:'4px 0' }}>
               <div style={{ fontSize:15, fontWeight:900, color:s.color, lineHeight:1 }}>
-                {displayPlayer[s.key] || 50}
+                {Math.round(displayPlayer[s.key] || 50)}
               </div>
               <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
                 letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
