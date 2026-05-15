@@ -314,4 +314,21 @@ export async function castVote(matchId, uid, { mvp, gk }) {
   await updateDoc(doc(db, 'matches', matchId), {
     [`votes.${uid}`]: { mvp, gk, votedAt: Date.now() },
   });
+  // Re-leer y otorgar +1 al MVP / arquero líder (una sola vez por partido)
+  const snap = await getDoc(doc(db, 'matches', matchId));
+  if (!snap.exists()) return;
+  const m = snap.data();
+  const updates = [];
+
+  const mvpUid = getTopVoter(m.votes, 'mvp');
+  if (mvpUid && !m.mvpAwardedUid) {
+    updates.push(updateDoc(doc(db, 'players', mvpUid), { coins: increment(1) }));
+    updates.push(updateDoc(doc(db, 'matches', matchId), { mvpAwardedUid: mvpUid }));
+  }
+  const gkUid = getTopVoter(m.votes, 'gk');
+  if (gkUid && !m.gkAwardedUid) {
+    updates.push(updateDoc(doc(db, 'players', gkUid), { coins: increment(1) }));
+    updates.push(updateDoc(doc(db, 'matches', matchId), { gkAwardedUid: gkUid }));
+  }
+  await Promise.all(updates);
 }

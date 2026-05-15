@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { doc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
-import { CATEGORIES, addShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS } from '../utils/shop';
+import { CATEGORIES, addShopItem, updateShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS } from '../utils/shop';
 import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
@@ -37,13 +37,33 @@ function buildCustomItem(form) {
   if (form.category === 'sticker')    return base;
   if (form.category === 'frame') {
     const bc = form.borderColor, gc = form.glowColor;
-    return { ...base, cssBoxShadow:
+    return { ...base, borderColor: bc, glowColor: gc, cssBoxShadow:
       `0 0 0 2px ${bc}, 0 0 22px ${hexToRgba(gc, 0.75)}, 0 0 48px ${hexToRgba(gc, 0.35)}` };
   }
   if (form.category === 'pattern')    return { ...base, cssBackground: form.cssBackground };
   if (form.category === 'background') return { ...base,
+    color1: form.color1, color2: form.color2, color3: form.color3, angle: form.angle,
     cssBackground: `linear-gradient(${form.angle}deg, ${form.color1} 0%, ${form.color2} 45%, ${form.color3} 100%)` };
   return base;
+}
+
+// Item → form fields (para editar). Si el item no tiene source values, usa defaults
+function itemToForm(item) {
+  const f = {
+    editId: item.id,
+    category: item.category,
+    name: item.name || '',
+    emoji: item.emoji || '⭐',
+    price: item.price ?? 5,
+    desc: item.desc || '',
+  };
+  if (item.category === 'accent')     return { ...f, color: item.color || '#00e5ff' };
+  if (item.category === 'frame')      return { ...f, borderColor: item.borderColor || '#ff6600', glowColor: item.glowColor || '#ff3300' };
+  if (item.category === 'pattern')    return { ...f, cssBackground: item.cssBackground || '' };
+  if (item.category === 'background') return { ...f,
+    color1: item.color1 || '#1a1a1e', color2: item.color2 || '#3a3a44',
+    color3: item.color3 || '#22222a', angle: item.angle ?? 150 };
+  return f;
 }
 
 // ── Bet constants ─────────────────────────────────────────────
@@ -149,24 +169,26 @@ export default function ShopPage({ ctx }) {
 
       {/* ── Saldo + mini carta ── */}
       <div style={{
-        display:'flex', alignItems:'flex-end', justifyContent:'space-between',
+        display:'flex', alignItems:'center', gap:14,
         background:'var(--surface)', border:'1px solid var(--border)',
-        borderRadius:14, padding:'16px 18px 0 18px', marginBottom:16,
-        overflow:'visible',
+        borderRadius:14, padding:14, marginBottom:16,
       }}>
-        <div style={{ paddingBottom:16 }}>
-          <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
-            fontSize:32, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>
-            🪙 {coins}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:26 }}>🪙</span>
+            <span style={{ fontFamily:"'Barlow Condensed',sans-serif",
+              fontSize:38, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>
+              {coins}
+            </span>
           </div>
-          <div style={{ fontSize:11, color:'var(--muted)', marginTop:4 }}>
-            <b style={{ color:'var(--text)' }}>+2</b> por partido
-            · <b style={{ color:'var(--text)' }}>+1</b> por gol
-            · <b style={{ color:'var(--text)' }}>+1</b> si gana
+          <div style={{ fontSize:10, color:'var(--muted)', marginTop:8, lineHeight:1.6 }}>
+            <b style={{ color:'var(--text)' }}>+2</b> partido ·{' '}
+            <b style={{ color:'var(--text)' }}>+1</b> gol ·{' '}
+            <b style={{ color:'var(--text)' }}>+1</b> victoria ·{' '}
+            <b style={{ color:'var(--text)' }}>+1</b> MVP/arquero
           </div>
         </div>
-        {/* Carta sobresale del borde inferior */}
-        <div style={{ width:80, flexShrink:0, marginBottom:-1, position:'relative', zIndex:1 }}>
+        <div style={{ width:78, flexShrink:0 }}>
           <PlayerCard player={player} />
         </div>
       </div>
@@ -364,20 +386,31 @@ export default function ShopPage({ ctx }) {
                 transition:'all .15s',
               }}>
                 {isAdmin && isCustom && (
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (confirm(`¿Eliminar "${item.name}" de la tienda?`)) {
-                        await deleteShopItem(item.id);
-                      }
-                    }}
-                    title="Eliminar (admin)"
-                    style={{ position:'absolute', top:6, right:6, width:22, height:22,
-                      background:'rgba(255,82,82,.15)', border:'none', borderRadius:'50%',
-                      color:'var(--red)', cursor:'pointer', fontSize:12, lineHeight:1,
-                      display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    ✕
-                  </button>
+                  <div style={{ position:'absolute', top:6, right:6, display:'flex', gap:4 }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setAdminForm(itemToForm(item)); }}
+                      title="Editar (admin)"
+                      style={{ width:22, height:22,
+                        background:'rgba(0,229,255,.15)', border:'none', borderRadius:'50%',
+                        color:'var(--accent)', cursor:'pointer', fontSize:11, lineHeight:1,
+                        display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      ✏️
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm(`¿Eliminar "${item.name}" de la tienda?`)) {
+                          await deleteShopItem(item.id);
+                        }
+                      }}
+                      title="Eliminar (admin)"
+                      style={{ width:22, height:22,
+                        background:'rgba(255,82,82,.15)', border:'none', borderRadius:'50%',
+                        color:'var(--red)', cursor:'pointer', fontSize:12, lineHeight:1,
+                        display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      ✕
+                    </button>
+                  </div>
                 )}
                 <div style={{ fontSize:38, lineHeight:1, filter: (!owned && !canBuy) ? 'grayscale(1)' : 'none' }}>
                   {item.emoji}
@@ -529,7 +562,8 @@ export default function ShopPage({ ctx }) {
 
         async function save() {
           if (!f.name.trim()) { alert('Falta nombre'); return; }
-          await addShopItem(built);
+          if (f.editId) await updateShopItem(f.editId, built);
+          else          await addShopItem(built);
           setAdminForm(null);
         }
 
@@ -543,7 +577,7 @@ export default function ShopPage({ ctx }) {
                 width:'100%', maxWidth:380, border:'1px solid var(--border)',
                 maxHeight:'90vh', overflowY:'auto' }}>
               <div style={{ fontSize:15, fontWeight:800, marginBottom:12 }}>
-                ➕ Nuevo item — {CATEGORIES.find(c => c.id === f.category)?.label}
+                {f.editId ? '✏️ Editar' : '➕ Nuevo'} item — {CATEGORIES.find(c => c.id === f.category)?.label}
               </div>
 
               {/* Mini preview del efecto */}
@@ -666,7 +700,7 @@ export default function ShopPage({ ctx }) {
                   style={{ flex:2, padding:'10px', borderRadius:10, border:'none',
                     background:'var(--accent)', color:'#000', fontWeight:800,
                     fontSize:13, cursor:'pointer' }}>
-                  Crear item
+                  {f.editId ? 'Guardar cambios' : 'Crear item'}
                 </button>
               </div>
             </div>

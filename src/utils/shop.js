@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 // ── Default items (hardcoded base) ─────────────────────────────
@@ -72,6 +72,10 @@ export function subscribeShopItems(cb) {
 
 export async function addShopItem(item) {
   return addDoc(collection(db, 'shopItems'), { ...item, createdAt: Date.now() });
+}
+
+export async function updateShopItem(id, patch) {
+  return updateDoc(doc(db, 'shopItems', id), patch);
 }
 
 export async function deleteShopItem(id) {
