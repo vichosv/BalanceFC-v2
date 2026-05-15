@@ -1,19 +1,19 @@
 const TABS = [
-  { id:'inicio',    label:'Inicio',    icon:'🏠' },
-  { id:'jugadores', label:'Jugadores', icon:'👥' },
-  { id:'partido',   label:'Equipos',   icon:'⚽' },
-  { id:'historial', label:'Historial', icon:'📊' },
+  { id:'jugadores', label:'Jugadores',    icon:'👥' },
   { id:'ranking',   label:'Ranking',      icon:'🏆' },
-  { id:'tienda',    label:'Personal.',     icon:'🎨' },
+  { id:'historial', label:'Historial',    icon:'📊' },
   { id:'conv',      label:'Convocatoria', icon:'📋' },
+  { id:'partido',   label:'Equipos',      icon:'⚽' },
+  { id:'tienda',    label:'Personal.',    icon:'🎨' },
   { id:'perfil',    label:'Perfil',       icon:'👤' },
 ];
 
 export default function NavBar({ active, onChange }) {
   return (
     <nav className="navbar">
-      {/* Logo — solo visible en desktop (sidebar) */}
-      <div className="nav-logo">
+      {/* Logo — solo visible en desktop (sidebar). Clic → Inicio */}
+      <div className="nav-logo" onClick={() => onChange('inicio')}
+        style={{ cursor:'pointer' }}>
         <span style={{ fontSize:24 }}>⚽</span>
         <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20,
           fontWeight:900, letterSpacing:1, color:'var(--accent)' }}>BalanceFC</span>

@@ -104,21 +104,24 @@ export default function ShopPage({ ctx }) {
 
       {/* ── Saldo + mini carta ── */}
       <div style={{
-        display:'flex', alignItems:'center', justifyContent:'space-between',
+        display:'flex', alignItems:'flex-end', justifyContent:'space-between',
         background:'var(--surface)', border:'1px solid var(--border)',
-        borderRadius:14, padding:'12px 18px', marginBottom:16,
+        borderRadius:14, padding:'16px 18px 0 18px', marginBottom:16,
+        overflow:'visible',
       }}>
-        <div>
+        <div style={{ paddingBottom:16 }}>
           <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
             fontSize:32, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>
             🪙 {coins}
           </div>
-          <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>
+          <div style={{ fontSize:11, color:'var(--muted)', marginTop:4 }}>
             <b style={{ color:'var(--text)' }}>+2</b> por partido
             · <b style={{ color:'var(--text)' }}>+1</b> por gol
+            · <b style={{ color:'var(--text)' }}>+1</b> si gana
           </div>
         </div>
-        <div style={{ width:72, flexShrink:0 }}>
+        {/* Carta sobresale del borde inferior */}
+        <div style={{ width:80, flexShrink:0, marginBottom:-1, position:'relative', zIndex:1 }}>
           <PlayerCard player={player} />
         </div>
       </div>
