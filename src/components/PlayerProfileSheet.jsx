@@ -1,8 +1,10 @@
 import { useMatches } from '../hooks/useMatches';
 import { useSeasons } from '../hooks/useSeasons';
+import { useShopItems } from '../hooks/useShopItems';
 import { overall, SK, tier } from '../utils/stats';
 import { computeLogros } from '../utils/logros';
 import HexRadar from '../components/HexRadar';
+import StatEvolutionChart from '../components/StatEvolutionChart';
 import LogrosGrid from '../components/LogrosGrid';
 import '../components/PlayerCard.css';
 
@@ -25,10 +27,18 @@ function getMatchResult(m, uid) {
 export default function PlayerProfileSheet({ player, onClose }) {
   const { matches } = useMatches();
   const { activeSeason } = useSeasons();
+  const shopItems = useShopItems();
 
   const ov  = overall(player);
   const t   = tier(ov);
   const sid = activeSeason?.id || null;
+
+  // Cosméticos equipados
+  const equipped     = player.equipped || {};
+  const findItem     = id => id ? shopItems.find(i => i.id === id) : null;
+  const titleItem    = findItem(equipped.title);
+  const wallpaperItem = findItem(equipped.wallpaper);
+  const wallpaperBg  = wallpaperItem?.cssBackground || null;
 
   const h = player.history  || {};
   const s = sid ? (player.seasons?.[sid] || {}) : null;
@@ -76,40 +86,72 @@ export default function PlayerProfileSheet({ player, onClose }) {
           ✕
         </button>
 
-        {/* ── Hero ── */}
-        <div style={{ display:'flex', alignItems:'center', gap:16,
-          padding:'16px 20px 14px', borderBottom:'1px solid var(--border)' }}>
-
-          {/* FC card mini */}
-          {player.photo ? (
-            <img src={player.photo} alt=""
-              style={{ width:64, height:64, borderRadius:12, objectFit:'cover',
-                border:'2px solid var(--accent)' }} />
-          ) : (
-            <div className={`fc ${t}`}
-              style={{ width:52, aspectRatio:'.68', borderRadius:8, overflow:'hidden', flexShrink:0 }}>
-              <div className="fc-bg" />
-            </div>
+        {/* ── Hero con wallpaper de fondo ── */}
+        <div style={{
+          position:'relative', overflow:'hidden',
+          borderBottom:'1px solid var(--border)',
+          background: wallpaperBg || 'transparent',
+        }}>
+          {/* Overlay para legibilidad */}
+          {wallpaperBg && (
+            <div style={{ position:'absolute', inset:0,
+              background:'linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.65) 100%)' }} />
           )}
 
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontWeight:900, fontSize:22, lineHeight:1,
-              overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-              {player.emoji || '⚽'} {player.nickname}
-            </div>
-            <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>
-              {POSITIONS[player.position] || 'Sin posición'}
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6 }}>
-              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28,
-                fontWeight:900, color:'var(--accent)', lineHeight:1 }}>{ov}</span>
-              <span style={{ fontSize:11, color:'var(--muted)', fontWeight:700,
-                textTransform:'uppercase', letterSpacing:.5 }}>OVR</span>
-              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px',
-                borderRadius:6, background:'var(--surface2)',
-                color:'var(--muted)', textTransform:'uppercase', letterSpacing:.5 }}>
-                {t}
-              </span>
+          <div style={{ position:'relative', zIndex:1,
+            display:'flex', alignItems:'center', gap:16,
+            padding:'16px 20px 14px' }}>
+
+            {/* Foto / card mini */}
+            {player.photo ? (
+              <img src={player.photo} alt=""
+                style={{ width:64, height:64, borderRadius:12, objectFit:'cover',
+                  border:'2px solid var(--accent)',
+                  boxShadow:'0 6px 18px rgba(0,0,0,.4)' }} />
+            ) : (
+              <div className={`fc ${t}`}
+                style={{ width:52, aspectRatio:'.68', borderRadius:8, overflow:'hidden', flexShrink:0 }}>
+                <div className="fc-bg" />
+              </div>
+            )}
+
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontWeight:900, fontSize:22, lineHeight:1,
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                textShadow: wallpaperBg ? '0 2px 8px rgba(0,0,0,.6)' : 'none' }}>
+                {player.emoji || '⚽'} {player.nickname}
+              </div>
+              {/* Título equipado (estilo Valorant) */}
+              {titleItem && (
+                <div style={{ marginTop:5 }}>
+                  <span style={{
+                    display:'inline-block',
+                    background:'rgba(0,229,255,.18)',
+                    border:'1px solid var(--accent)',
+                    borderRadius:14, padding:'2px 10px',
+                    fontSize:10, fontWeight:700, letterSpacing:1,
+                    color:'var(--accent)', textTransform:'uppercase',
+                  }}>
+                    ⟨ {titleItem.name} ⟩
+                  </span>
+                </div>
+              )}
+              <div style={{ fontSize:13, color: wallpaperBg ? 'rgba(255,255,255,.8)' : 'var(--muted)',
+                marginTop:4 }}>
+                {POSITIONS[player.position] || 'Sin posición'}
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6 }}>
+                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28,
+                  fontWeight:900, color:'var(--accent)', lineHeight:1,
+                  textShadow: wallpaperBg ? '0 2px 8px rgba(0,0,0,.6)' : 'none' }}>{ov}</span>
+                <span style={{ fontSize:11, color: wallpaperBg ? 'rgba(255,255,255,.7)' : 'var(--muted)',
+                  fontWeight:700, textTransform:'uppercase', letterSpacing:.5 }}>OVR</span>
+                <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px',
+                  borderRadius:6, background:'rgba(0,0,0,.55)',
+                  color:'#fff', textTransform:'uppercase', letterSpacing:.5 }}>
+                  {t}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -191,6 +233,17 @@ export default function PlayerProfileSheet({ player, onClose }) {
               );
             })}
           </div>
+
+          {/* Evolución de stats */}
+          {(player.statHistory || []).length >= 2 && (
+            <>
+              <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)',
+                textTransform:'uppercase', letterSpacing:1, margin:'12px 0 6px' }}>
+                Evolución
+              </div>
+              <StatEvolutionChart player={player} />
+            </>
+          )}
 
           {/* Logros */}
           {(() => {

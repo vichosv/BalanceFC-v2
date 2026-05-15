@@ -7,6 +7,7 @@ import { useShopItems } from '../hooks/useShopItems';
 import PlayerCard from '../components/PlayerCard';
 import { SK, overall } from '../utils/stats';
 import HexRadar from '../components/HexRadar';
+import StatEvolutionChart from '../components/StatEvolutionChart';
 import { computeLogros } from '../utils/logros';
 import LogrosGrid from '../components/LogrosGrid';
 
@@ -161,6 +162,15 @@ export default function ProfilePage({ ctx }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ── Evolución de stats ── */}
+      <div className="card" style={{ marginBottom:12 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+          textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>
+          Evolución
+        </div>
+        <StatEvolutionChart player={player} />
       </div>
 
       {/* ── Logros ── */}

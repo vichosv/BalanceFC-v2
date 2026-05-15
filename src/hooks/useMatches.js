@@ -216,18 +216,33 @@ async function applyStatEvolution(matchData) {
 
     // Aplicar con rendimientos decrecientes (subir cuesta más cuanto más alto estás)
     const newStats = {};
-    let hasChange = false;
+    const before   = {};
+    const after    = {};
+    let hasChange  = false;
     ['vel', 'tec', 'def', 'tir', 'sta'].forEach(k => {
-      if (cambios[k] === 0) return;
-      const cur    = p[k] || 50;
+      const cur = p[k] || 50;
+      before[k] = cur;
+      if (cambios[k] === 0) { after[k] = cur; return; }
       const factor = cambios[k] > 0
         ? Math.max(0.05, 1 - Math.pow((cur - 10) / 90, 1.8))
         : 1;
       const next = clampStat(cur + cambios[k] * factor);
+      after[k] = next;
       if (next !== cur) { newStats[k] = next; hasChange = true; }
     });
 
-    if (hasChange) updates.push(updateDoc(doc(db, 'players', entry.uid), newStats));
+    if (hasChange) {
+      // Guardar snapshot en statHistory (máx 50 entradas)
+      const prevHistory = p.statHistory || [];
+      const snapshot = {
+        ts:    Date.now(),
+        date:  matchData.date || new Date().toISOString().slice(0, 10),
+        before, after, delta: { ...cambios },
+      };
+      const statHistory = [snapshot, ...prevHistory].slice(0, 50);
+      updates.push(updateDoc(doc(db, 'players', entry.uid),
+        { ...newStats, statHistory }));
+    }
   });
 
   await Promise.all(updates);

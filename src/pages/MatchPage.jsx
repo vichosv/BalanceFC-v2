@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { overall, smartScore, teamAvg } from '../utils/stats';
 import { generate2Teams, generate3Teams, remixTeams } from '../utils/teams';
+import FormationView from '../components/FormationView';
 
 const FORMATS = ['Libre','4v4','5v5','6v6','7v7','Triangular (6v6v6)'];
 const MODES   = [
@@ -19,6 +20,7 @@ export default function MatchPage({ ctx }) {
   const [mode,     setMode]     = useState('smart');
   const [teams,    setTeams]    = useState(null);
   const [search,   setSearch]   = useState('');
+  const [view,     setView]     = useState('list'); // 'list' | 'pitch'
 
   const isTriangular = format === 'Triangular (6v6v6)';
 
@@ -190,8 +192,28 @@ export default function MatchPage({ ctx }) {
             )}
           </div>
 
+          {/* Toggle Lista / Cancha */}
+          <div style={{ display:'flex', gap:4, marginBottom:10,
+            background:'var(--surface2)', borderRadius:10, padding:4 }}>
+            {[
+              { id:'list',  label:'📋 Lista'   },
+              { id:'pitch', label:'⚽ Cancha'  },
+            ].map(v => (
+              <button key={v.id} onClick={() => setView(v.id)}
+                style={{ flex:1, padding:'7px 4px', borderRadius:8, border:'none',
+                  cursor:'pointer', fontWeight:700, fontSize:12, transition:'all .15s',
+                  background: view === v.id ? 'var(--surface)' : 'transparent',
+                  color:      view === v.id ? 'var(--accent)'  : 'var(--muted)',
+                  boxShadow:  view === v.id ? '0 1px 4px rgba(0,0,0,.3)' : 'none' }}>
+                {v.label}
+              </button>
+            ))}
+          </div>
+
           {/* Team blocks */}
-          {teams.triangular ? (
+          {view === 'pitch' ? (
+            <FormationView teams={teams} triangular={!!teams.triangular} />
+          ) : teams.triangular ? (
             teamKeys.map(k => (
               <TeamField key={k} team={teams[k]} label={TEAM_LABELS[k]}
                 color={TEAM_COLORS[k]} teamKey={k}
