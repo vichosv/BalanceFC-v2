@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, setDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 // ── Default items (hardcoded base) ─────────────────────────────
@@ -52,14 +52,21 @@ let _customItems = [];
 let _subscribed  = false;
 const _listeners = new Set();
 
+// Custom items con el mismo ID que un default sobreescriben al default
+function _merge() {
+  const map = new Map(DEFAULT_SHOP_ITEMS.map(i => [i.id, i]));
+  _customItems.forEach(i => map.set(i.id, i));
+  return [...map.values()];
+}
+
 function _notify() {
-  const all = [...DEFAULT_SHOP_ITEMS, ..._customItems];
+  const all = _merge();
   _listeners.forEach(cb => cb(all));
 }
 
 export function subscribeShopItems(cb) {
   _listeners.add(cb);
-  cb([...DEFAULT_SHOP_ITEMS, ..._customItems]);
+  cb(_merge());
   if (!_subscribed) {
     _subscribed = true;
     onSnapshot(collection(db, 'shopItems'), snap => {
@@ -72,6 +79,11 @@ export function subscribeShopItems(cb) {
 
 export async function addShopItem(item) {
   return addDoc(collection(db, 'shopItems'), { ...item, createdAt: Date.now() });
+}
+
+// Crear/sobreescribir un item con ID específico (para overrides de defaults)
+export async function setShopItem(id, item) {
+  return setDoc(doc(db, 'shopItems', id), { ...item, updatedAt: Date.now() });
 }
 
 export async function updateShopItem(id, patch) {

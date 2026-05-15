@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { doc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
-import { CATEGORIES, addShopItem, updateShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS } from '../utils/shop';
+import { CATEGORIES, addShopItem, setShopItem, deleteShopItem, DEFAULT_SHOP_ITEMS } from '../utils/shop';
 import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
 
-// IDs of default hardcoded items (can't be deleted by admin)
-const DEFAULT_IDS = new Set(DEFAULT_SHOP_ITEMS.map(i => i.id));
+// Un item está "en Firestore" si tiene createdAt o updatedAt (default puro no los tiene)
+const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
 
 // ── Admin helpers ─────────────────────────────────────────────
 function blankItem(category) {
@@ -167,27 +167,32 @@ export default function ShopPage({ ctx }) {
     <div className="page">
       <div className="page-title">🛒 Tienda</div>
 
-      {/* ── Saldo + mini carta ── */}
+      {/* ── Saldo · cómo ganar · carta ── */}
       <div style={{
         display:'flex', alignItems:'center', gap:14,
         background:'var(--surface)', border:'1px solid var(--border)',
-        borderRadius:14, padding:14, marginBottom:16,
+        borderRadius:14, padding:'14px 16px', marginBottom:16,
       }}>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:26 }}>🪙</span>
-            <span style={{ fontFamily:"'Barlow Condensed',sans-serif",
-              fontSize:38, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>
-              {coins}
-            </span>
-          </div>
-          <div style={{ fontSize:10, color:'var(--muted)', marginTop:8, lineHeight:1.6 }}>
-            <b style={{ color:'var(--text)' }}>+2</b> partido ·{' '}
-            <b style={{ color:'var(--text)' }}>+1</b> gol ·{' '}
-            <b style={{ color:'var(--text)' }}>+1</b> victoria ·{' '}
-            <b style={{ color:'var(--text)' }}>+1</b> MVP/arquero
-          </div>
+        {/* Col 1: saldo */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
+          <span style={{ fontSize:30, lineHeight:1 }}>🪙</span>
+          <span style={{ fontFamily:"'Barlow Condensed',sans-serif",
+            fontSize:32, fontWeight:900, color:'var(--accent)', lineHeight:1, marginTop:4 }}>
+            {coins}
+          </span>
         </div>
+
+        {/* Col 2: cómo ganar monedas */}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', gap:4,
+          fontSize:11, lineHeight:1.3, color:'var(--muted)' }}>
+          <div><b style={{ color:'var(--accent)' }}>+2</b> jugar partido</div>
+          <div><b style={{ color:'var(--accent)' }}>+1</b> por cada gol</div>
+          <div><b style={{ color:'var(--accent)' }}>+1</b> si tu equipo gana</div>
+          <div><b style={{ color:'var(--accent)' }}>+1</b> MVP del partido</div>
+          <div><b style={{ color:'var(--accent)' }}>+1</b> arquero del partido</div>
+        </div>
+
+        {/* Col 3: mini carta */}
         <div style={{ width:78, flexShrink:0 }}>
           <PlayerCard player={player} />
         </div>
@@ -372,7 +377,7 @@ export default function ShopPage({ ctx }) {
             const owned    = isOwned(item);
             const active   = isEquipped(item);
             const canBuy   = !owned && coins >= item.price;
-            const isCustom = !DEFAULT_IDS.has(item.id);
+            const inFirestore = isFirestoreItem(item);
 
             return (
               <div key={item.id} style={{
@@ -385,7 +390,7 @@ export default function ShopPage({ ctx }) {
                 opacity: (!owned && !canBuy) ? 0.55 : 1,
                 transition:'all .15s',
               }}>
-                {isAdmin && isCustom && (
+                {isAdmin && (
                   <div style={{ position:'absolute', top:6, right:6, display:'flex', gap:4 }}>
                     <button
                       onClick={(e) => { e.stopPropagation(); setAdminForm(itemToForm(item)); }}
@@ -396,20 +401,24 @@ export default function ShopPage({ ctx }) {
                         display:'flex', alignItems:'center', justifyContent:'center' }}>
                       ✏️
                     </button>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (confirm(`¿Eliminar "${item.name}" de la tienda?`)) {
-                          await deleteShopItem(item.id);
-                        }
-                      }}
-                      title="Eliminar (admin)"
-                      style={{ width:22, height:22,
-                        background:'rgba(255,82,82,.15)', border:'none', borderRadius:'50%',
-                        color:'var(--red)', cursor:'pointer', fontSize:12, lineHeight:1,
-                        display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      ✕
-                    </button>
+                    {inFirestore && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const isOverride = DEFAULT_SHOP_ITEMS.some(d => d.id === item.id);
+                          const msg = isOverride
+                            ? `¿Revertir "${item.name}" al valor por defecto?`
+                            : `¿Eliminar "${item.name}" de la tienda?`;
+                          if (confirm(msg)) await deleteShopItem(item.id);
+                        }}
+                        title={DEFAULT_SHOP_ITEMS.some(d => d.id === item.id) ? 'Revertir a default' : 'Eliminar'}
+                        style={{ width:22, height:22,
+                          background:'rgba(255,82,82,.15)', border:'none', borderRadius:'50%',
+                          color:'var(--red)', cursor:'pointer', fontSize:12, lineHeight:1,
+                          display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        ✕
+                      </button>
+                    )}
                   </div>
                 )}
                 <div style={{ fontSize:38, lineHeight:1, filter: (!owned && !canBuy) ? 'grayscale(1)' : 'none' }}>
@@ -562,8 +571,8 @@ export default function ShopPage({ ctx }) {
 
         async function save() {
           if (!f.name.trim()) { alert('Falta nombre'); return; }
-          if (f.editId) await updateShopItem(f.editId, built);
-          else          await addShopItem(built);
+          if (f.editId) await setShopItem(f.editId, built);  // crea o sobreescribe
+          else          await addShopItem(built);             // auto-id nuevo
           setAdminForm(null);
         }
 
