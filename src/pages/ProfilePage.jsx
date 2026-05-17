@@ -105,9 +105,37 @@ export default function ProfilePage({ ctx }) {
     } : undefined}>
       <div className="page-title">👤 Mi perfil</div>
 
-      {/* ── Carta ── */}
-      <div style={{ maxWidth:190, margin:'0 auto 20px' }}>
-        <PlayerCard player={displayPlayer} />
+      {/* ── Carta + atributos al lado ── */}
+      <div style={{ display:'flex', gap:14, alignItems:'center',
+        flexWrap:'wrap', justifyContent:'center', marginBottom:14 }}>
+        {/* Carta */}
+        <div style={{ width:160, flexShrink:0 }}>
+          <PlayerCard player={displayPlayer} />
+        </div>
+
+        {/* Atributos: radar + valores */}
+        <div style={{ flex:1, minWidth:200 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+            textTransform:'uppercase', letterSpacing:1, marginBottom:2, textAlign:'center' }}>
+            Atributos
+          </div>
+          <div style={{ display:'flex', justifyContent:'center' }}>
+            <HexRadar player={displayPlayer} size={180} />
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, marginTop:4 }}>
+            {SK.map(s => (
+              <div key={s.key} style={{ textAlign:'center', padding:'3px 0' }}>
+                <div style={{ fontSize:15, fontWeight:900, color:s.color, lineHeight:1 }}>
+                  {Math.round(displayPlayer[s.key] || 50)}
+                </div>
+                <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
+                  letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
+                  {s.label.slice(0,3)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ── Saldo tienda ── */}
@@ -117,6 +145,12 @@ export default function ProfilePage({ ctx }) {
           🪙 {player.coins || 0} goles
         </span>
       </div>
+
+      {/* ── Editar perfil (justo debajo del saldo) ── */}
+      {!editing && (
+        <button className="btn btn-gh btn-full" style={{ marginBottom:12 }}
+          onClick={startEdit}>✏️ Editar perfil</button>
+      )}
 
       {/* ── Badge admin ── */}
       {isAdmin && (
@@ -128,34 +162,9 @@ export default function ProfilePage({ ctx }) {
         </div>
       )}
 
-      {/* ── Stats ── */}
+      {/* ── Resumen numérico ── */}
       <div className="card" style={{ marginBottom:12 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-          textTransform:'uppercase', letterSpacing:1, marginBottom:4 }}>Atributos</div>
-
-        {/* Radar hexagonal */}
-        <div style={{ display:'flex', justifyContent:'center', margin:'0 auto 4px' }}>
-          <HexRadar player={displayPlayer} size={200} />
-        </div>
-
-        {/* Valores numéricos */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, marginBottom:8 }}>
-          {SK.map(s => (
-            <div key={s.key} style={{ textAlign:'center', padding:'4px 0' }}>
-              <div style={{ fontSize:15, fontWeight:900, color:s.color, lineHeight:1 }}>
-                {Math.round(displayPlayer[s.key] || 50)}
-              </div>
-              <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
-                letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
-                {s.label.slice(0,3)}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Resumen numérico */}
-        <div style={{ display:'flex', justifyContent:'space-around', marginTop:10,
-          borderTop:'1px solid var(--border)', paddingTop:10 }}>
+        <div style={{ display:'flex', justifyContent:'space-around' }}>
           {[
             { val: overall(player), lbl:'OVR' },
             { val: pj,              lbl:'PJ'  },
@@ -206,10 +215,8 @@ export default function ProfilePage({ ctx }) {
         );
       })()}
 
-      {/* ── Editar ── */}
-      {!editing ? (
-        <button className="btn btn-gh btn-full" onClick={startEdit}>✏️ Editar perfil</button>
-      ) : (
+      {/* ── Formulario de edición ── */}
+      {editing && (
         <div className="card" style={{ marginBottom:12 }}>
           <div style={{ fontWeight:700, fontSize:13, marginBottom:14 }}>Editar perfil</div>
 
