@@ -30,49 +30,23 @@ html { scroll-behavior: smooth; }
 
 body {
   min-height: 100dvh;
-  position: relative;
-  /* Base oscura + spotlight azul desde arriba (estilo Blue Lock) */
-  background:
-    radial-gradient(ellipse 90% 60% at 50% -5%, rgba(0,160,255,.16) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 110%, rgba(0,90,200,.10) 0%, transparent 60%),
-    #05080c;
+  /* Capas (de adelante hacia atrás):
+     1. spotlight azul arriba (Blue Lock)
+     2. glow inferior
+     3. grilla hexagonal neón (SVG tiled)
+     4. base oscura sólida */
+  background-color: #05080c;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(0,170,255,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(0,90,200,.10) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cg fill='none' stroke='%2300e5ff' stroke-width='1.5' stroke-opacity='0.5'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100'/%3E%3Cpath d='M28 0L28 34L0 50M28 34L56 50'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 56px 100px;
+  background-position: center, center, center;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-attachment: fixed, fixed, fixed;
 }
 
-/* Grilla hexagonal neón fija detrás de todo */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background-image: url("data:image/svg+xml,%3Csvg width='56' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100' fill='none' stroke='%2300e5ff' stroke-opacity='0.45' stroke-width='1.5'/%3E%3Cpath d='M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34' fill='none' stroke='%2300e5ff' stroke-opacity='0.45' stroke-width='1.5'/%3E%3C/svg%3E");
-  background-size: 64px 112px;
-  /* Suave desvanecido solo en los bordes extremos */
-  -webkit-mask-image: radial-gradient(ellipse 95% 90% at 50% 30%, #000 0%, #000 70%, transparent 100%);
-          mask-image: radial-gradient(ellipse 95% 90% at 50% 30%, #000 0%, #000 70%, transparent 100%);
-  pointer-events: none;
-}
-
-/* Resplandor sutil que late lento, encima de la grilla */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(circle 60vmax at 50% 0%, rgba(0,200,255,.07) 0%, transparent 60%);
-  pointer-events: none;
-  animation: bg-pulse 7s ease-in-out infinite;
-}
-
-@keyframes bg-pulse {
-  0%, 100% { opacity: .55; }
-  50%      { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body::after { animation: none; }
-}
-
-#root { min-height: 100dvh; position: relative; z-index: 0; }
+#root { min-height: 100dvh; }
 
 /* ── Shell ─────────────────────────────────────────────── */
 .app-shell {
