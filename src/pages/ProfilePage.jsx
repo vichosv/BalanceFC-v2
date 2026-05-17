@@ -179,41 +179,7 @@ export default function ProfilePage({ ctx }) {
         </div>
       </div>
 
-      {/* ── Evolución de stats ── */}
-      <div className="card" style={{ marginBottom:12 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-          textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>
-          Evolución
-        </div>
-        <StatEvolutionChart player={player} />
-      </div>
-
-      {/* ── Logros ── */}
-      {(() => {
-        const mvpCount = matches.filter(m => {
-          if (!m.votes || !Object.keys(m.votes).length) return false;
-          if (m.createdAt && Date.now() - m.createdAt < 86400000) return false;
-          const counts = {};
-          Object.values(m.votes).forEach(v => { if (v.mvp) counts[v.mvp] = (counts[v.mvp]||0)+1; });
-          return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] === player.uid;
-        }).length;
-        const { unlocked, locked } = computeLogros(player, { mvpCount });
-        return (
-          <div className="card" style={{ marginBottom:12 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
-              marginBottom:12 }}>
-              <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-                textTransform:'uppercase', letterSpacing:1 }}>Logros</span>
-              <span style={{ fontSize:11, color:'var(--accent)', fontWeight:700 }}>
-                {unlocked.length}/{unlocked.length + locked.length}
-              </span>
-            </div>
-            <LogrosGrid unlocked={unlocked} locked={locked} />
-          </div>
-        );
-      })()}
-
-      {/* ── Formulario de edición ── */}
+      {/* ── Formulario de edición (justo bajo el botón) ── */}
       {editing && (
         <div className="card" style={{ marginBottom:12 }}>
           <div style={{ fontWeight:700, fontSize:13, marginBottom:14 }}>Editar perfil</div>
@@ -284,6 +250,40 @@ export default function ProfilePage({ ctx }) {
           </div>
         </div>
       )}
+
+      {/* ── Evolución de stats ── */}
+      <div className="card" style={{ marginBottom:12 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+          textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>
+          Evolución
+        </div>
+        <StatEvolutionChart player={player} />
+      </div>
+
+      {/* ── Logros ── */}
+      {(() => {
+        const mvpCount = matches.filter(m => {
+          if (!m.votes || !Object.keys(m.votes).length) return false;
+          if (m.createdAt && Date.now() - m.createdAt < 86400000) return false;
+          const counts = {};
+          Object.values(m.votes).forEach(v => { if (v.mvp) counts[v.mvp] = (counts[v.mvp]||0)+1; });
+          return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] === player.uid;
+        }).length;
+        const { unlocked, locked } = computeLogros(player, { mvpCount });
+        return (
+          <div className="card" style={{ marginBottom:12 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+              marginBottom:12 }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+                textTransform:'uppercase', letterSpacing:1 }}>Logros</span>
+              <span style={{ fontSize:11, color:'var(--accent)', fontWeight:700 }}>
+                {unlocked.length}/{unlocked.length + locked.length}
+              </span>
+            </div>
+            <LogrosGrid unlocked={unlocked} locked={locked} />
+          </div>
+        );
+      })()}
 
       {/* ── Cerrar sesión ── */}
       <button className="btn btn-gh btn-full"
