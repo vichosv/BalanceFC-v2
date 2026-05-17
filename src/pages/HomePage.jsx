@@ -3,6 +3,7 @@ import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useMatches }       from '../hooks/useMatches';
 import { useSeasons }       from '../hooks/useSeasons';
 import { overall, tier }    from '../utils/stats';
+import WeeklyChallenges     from '../components/WeeklyChallenges';
 import '../components/PlayerCard.css';
 
 // ── Ranking score (igual que HistoryPage) ────────────────────
@@ -235,6 +236,9 @@ export default function HomePage({ ctx, onNavigate }) {
           </div>
         )}
       </div>
+
+      {/* ── Retos semanales ── */}
+      <WeeklyChallenges player={player} matches={matches} />
 
       {/* ── Ranking ── */}
       {myRank && (

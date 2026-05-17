@@ -90,9 +90,10 @@ service cloud.firestore {
           'emoji',
           'equipped',
           'inventory',
-          'coins'        // ⚠️ se permite porque hay flujos legítimos
-                          //    (compras, apuestas, mystery box). Reforzable
-                          //    con Cloud Functions más adelante.
+          'coins',          // ⚠️ se permite porque hay flujos legítimos
+                            //    (compras, apuestas, mystery box). Reforzable
+                            //    con Cloud Functions más adelante.
+          'claimedChallenges' // retos semanales reclamados
         ]))
         ||
         // Cross-player: alguien puede dar EXACTAMENTE +1 moneda a otro jugador
