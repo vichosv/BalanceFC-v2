@@ -105,66 +105,54 @@ export default function ProfilePage({ ctx }) {
     } : undefined}>
       <div className="page-title">👤 Mi perfil</div>
 
-      {/* ── Carta + atributos al lado ── */}
-      <div style={{ display:'flex', gap:14, alignItems:'center',
-        flexWrap:'wrap', justifyContent:'center', marginBottom:14 }}>
-        {/* Carta */}
-        <div style={{ width:160, flexShrink:0 }}>
-          <PlayerCard player={displayPlayer} />
-        </div>
-
-        {/* Atributos: radar + valores */}
-        <div style={{ flex:1, minWidth:200 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
-            textTransform:'uppercase', letterSpacing:1, marginBottom:2, textAlign:'center' }}>
-            Atributos
-          </div>
-          <div style={{ display:'flex', justifyContent:'center' }}>
-            <HexRadar player={displayPlayer} size={180} />
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, marginTop:4 }}>
-            {SK.map(s => (
-              <div key={s.key} style={{ textAlign:'center', padding:'3px 0' }}>
-                <div style={{ fontSize:15, fontWeight:900, color:s.color, lineHeight:1 }}>
-                  {Math.round(displayPlayer[s.key] || 50)}
-                </div>
-                <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
-                  letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
-                  {s.label.slice(0,3)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Saldo tienda ── */}
-      <div style={{ textAlign:'center', marginBottom:10 }}>
-        <span style={{ background:'var(--surface)', border:'1px solid var(--border)',
-          borderRadius:8, padding:'4px 14px', fontSize:13, fontWeight:700, color:'var(--accent)' }}>
-          🪙 {player.coins || 0} goles
-        </span>
-      </div>
-
-      {/* ── Editar perfil (justo debajo del saldo) ── */}
-      {!editing && (
-        <button className="btn btn-gh btn-full" style={{ marginBottom:12 }}
-          onClick={startEdit}>✏️ Editar perfil</button>
-      )}
-
-      {/* ── Badge admin ── */}
-      {isAdmin && (
-        <div style={{ textAlign:'center', marginBottom:14 }}>
-          <span style={{ background:'var(--accent)', color:'var(--bg)', borderRadius:6,
-            padding:'3px 12px', fontSize:12, fontWeight:700, letterSpacing:.5 }}>
-            ⚡ Admin
-          </span>
-        </div>
-      )}
-
-      {/* ── Resumen numérico ── */}
+      {/* ── Carta + atributos (bloque gris) ── */}
       <div className="card" style={{ marginBottom:12 }}>
-        <div style={{ display:'flex', justifyContent:'space-around' }}>
+        <div style={{ display:'flex', gap:16, alignItems:'center',
+          flexWrap:'wrap', justifyContent:'center' }}>
+          {/* Carta */}
+          <div style={{ width:155, flexShrink:0 }}>
+            <PlayerCard player={displayPlayer} />
+          </div>
+
+          {/* Atributos: radar + valores */}
+          <div style={{ flex:1, minWidth:190 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+              textTransform:'uppercase', letterSpacing:1, marginBottom:2, textAlign:'center' }}>
+              Atributos
+            </div>
+            <div style={{ display:'flex', justifyContent:'center' }}>
+              <HexRadar player={displayPlayer} size={180} />
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:2, marginTop:4 }}>
+              {SK.map(s => (
+                <div key={s.key} style={{ textAlign:'center', padding:'3px 0' }}>
+                  <div style={{ fontSize:15, fontWeight:900, color:s.color, lineHeight:1 }}>
+                    {Math.round(displayPlayer[s.key] || 50)}
+                  </div>
+                  <div style={{ fontSize:9, color:'var(--muted)', fontWeight:700,
+                    letterSpacing:.5, textTransform:'uppercase', marginTop:1 }}>
+                    {s.label.slice(0,3)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Admin badge */}
+        {isAdmin && (
+          <div style={{ textAlign:'center', marginTop:12 }}>
+            <span style={{ background:'var(--accent)', color:'var(--bg)', borderRadius:6,
+              padding:'3px 12px', fontSize:12, fontWeight:700, letterSpacing:.5 }}>
+              ⚡ Admin
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Resumen + saldo (bloque gris) ── */}
+      <div className="card" style={{ marginBottom:12 }}>
+        <div style={{ display:'flex', justifyContent:'space-around', marginBottom:12 }}>
           {[
             { val: overall(player), lbl:'OVR' },
             { val: pj,              lbl:'PJ'  },
@@ -178,6 +166,16 @@ export default function ProfilePage({ ctx }) {
               <div style={{ fontSize:9, color:'var(--muted)', letterSpacing:.8, fontWeight:700 }}>{lbl}</div>
             </div>
           ))}
+        </div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+          borderTop:'1px solid var(--border)', paddingTop:12 }}>
+          <span style={{ fontSize:13, fontWeight:700, color:'var(--accent)' }}>
+            🪙 {player.coins || 0} goles
+          </span>
+          {!editing && (
+            <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 16px' }}
+              onClick={startEdit}>✏️ Editar perfil</button>
+          )}
         </div>
       </div>
 
