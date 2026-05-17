@@ -11,6 +11,9 @@ export const WEEKLY_CHALLENGES = [
   { id:'bigwin_1',  icon:'💥', title:'Goleada',         desc:'Gana por 3+ de diferencia',         metric:'bigwins', goal:1, reward:7  },
 ];
 
+// Cuántos retos activos por semana (el resto rota la próxima)
+export const CHALLENGES_PER_WEEK = 3;
+
 // Clave de la semana actual (lunes en formato YYYY-MM-DD)
 export function weekKey(d = new Date()) {
   const date = new Date(d);
@@ -18,6 +21,26 @@ export function weekKey(d = new Date()) {
   date.setDate(date.getDate() - dow);
   date.setHours(0, 0, 0, 0);
   return date.toISOString().slice(0, 10);
+}
+
+// Número de semanas desde epoch (determinístico, igual para todos)
+function weekIndex(d = new Date()) {
+  const date = new Date(d);
+  const dow  = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - dow);
+  date.setHours(0, 0, 0, 0);
+  return Math.floor(date.getTime() / (7 * 86400000));
+}
+
+// Subconjunto rotativo de retos para la semana actual
+export function activeChallenges(d = new Date()) {
+  const n      = WEEKLY_CHALLENGES.length;
+  const offset = weekIndex(d) % n;
+  const out    = [];
+  for (let i = 0; i < CHALLENGES_PER_WEEK; i++) {
+    out.push(WEEKLY_CHALLENGES[(offset + i) % n]);
+  }
+  return out;
 }
 
 // Timestamp del inicio de la semana actual
@@ -90,7 +113,7 @@ export function getChallengeState(player, matches) {
   const claimed = player?.claimedChallenges || {};
   const prog = computeWeeklyProgress(player?.uid, matches);
 
-  return WEEKLY_CHALLENGES.map(ch => {
+  return activeChallenges().map(ch => {
     const current   = Math.min(prog[ch.metric] || 0, ch.goal);
     const done      = (prog[ch.metric] || 0) >= ch.goal;
     const claimedKey = `${wk}_${ch.id}`;
