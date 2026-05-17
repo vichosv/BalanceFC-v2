@@ -12,7 +12,7 @@ export const WEEKLY_CHALLENGES = [
 ];
 
 // Cuántos retos activos por semana (el resto rota la próxima)
-export const CHALLENGES_PER_WEEK = 3;
+export const CHALLENGES_PER_WEEK = 1;
 
 // Clave de la semana actual (lunes en formato YYYY-MM-DD)
 export function weekKey(d = new Date()) {

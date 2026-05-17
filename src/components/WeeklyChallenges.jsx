@@ -36,7 +36,7 @@ export default function WeeklyChallenges({ player, matches }) {
         marginBottom:12 }}>
         <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
           textTransform:'uppercase', letterSpacing:1 }}>
-          🎯 Retos de la semana
+          🎯 {challenges.length === 1 ? 'Reto de la semana' : 'Retos de la semana'}
         </span>
         <span style={{ fontSize:11, fontWeight:700,
           color: claimable > 0 ? 'var(--accent)' : 'var(--muted)' }}>
