@@ -297,6 +297,24 @@ export default function ShopPage({ ctx }) {
         </div>
       </div>
 
+      {/* ── Cómo ganar goles ── */}
+      <div style={{
+        display:'flex', alignItems:'center', gap:8,
+        background:'rgba(0,229,255,.06)', border:'1px solid rgba(0,229,255,.18)',
+        borderRadius:10, padding:'8px 12px', marginBottom:16,
+        fontSize:11, color:'var(--muted)', lineHeight:1.4 }}>
+        <span style={{ fontSize:14, flexShrink:0 }}>💡</span>
+        <span>
+          Ganás 🪙 jugando:
+          <b style={{ color:'var(--accent)' }}> +2</b> partido ·
+          <b style={{ color:'var(--accent)' }}> +1</b> gol ·
+          <b style={{ color:'var(--accent)' }}> +1</b> victoria ·
+          <b style={{ color:'var(--accent)' }}> +1</b> MVP ·
+          <b style={{ color:'var(--accent)' }}> +1</b> arquero ·
+          y completando el reto semanal
+        </span>
+      </div>
+
       {/* ── Tabs estilo Valorant (indicador inferior) ── */}
       <div style={{ display:'flex', gap:2, marginBottom:6, overflowX:'auto',
         borderBottom:'1px solid var(--border)' }}>
@@ -567,31 +585,17 @@ export default function ShopPage({ ctx }) {
                   color: ac, opacity:.9 }}>
                   {(CATEGORIES.find(c => c.id === item.category)?.label || '').split(' ')[1] || item.category}
                 </div>
-                {active && (
-                  <div style={{ position:'absolute', top:9, right:10, zIndex:2,
-                    fontSize:9, fontWeight:800, letterSpacing:.5, textTransform:'uppercase',
-                    background: ac, color:'#000', borderRadius:4, padding:'2px 6px' }}>
-                    Equipado
-                  </div>
-                )}
-                {owned && !active && (
-                  <div style={{ position:'absolute', top:9, right:10, zIndex:2,
-                    fontSize:9, fontWeight:800, letterSpacing:.5, textTransform:'uppercase',
-                    color:'var(--green)' }}>
-                    ✓ Tuyo
-                  </div>
-                )}
-
-                {/* Botones admin */}
+                {/* Botones admin (horizontal, arriba derecha) */}
                 {isAdmin && (
-                  <div style={{ position:'absolute', top:24, right:8, display:'flex',
-                    flexDirection:'column', gap:4, zIndex:3 }}>
+                  <div style={{ position:'absolute', top:9, right:8, display:'flex',
+                    gap:5, zIndex:3 }}>
                     <button
                       onClick={(e) => { e.stopPropagation(); setAdminForm(itemToForm(item)); }}
                       title="Editar (admin)"
-                      style={{ width:22, height:22,
-                        background:'rgba(0,229,255,.18)', border:'none', borderRadius:'50%',
-                        color:'var(--accent)', cursor:'pointer', fontSize:11, lineHeight:1,
+                      style={{ width:24, height:24,
+                        background:'rgba(0,0,0,.55)', border:'1px solid rgba(0,229,255,.4)',
+                        borderRadius:6, color:'var(--accent)', cursor:'pointer',
+                        fontSize:11, lineHeight:1,
                         display:'flex', alignItems:'center', justifyContent:'center' }}>
                       ✏️
                     </button>
@@ -606,9 +610,10 @@ export default function ShopPage({ ctx }) {
                           if (confirm(msg)) await deleteShopItem(item.id);
                         }}
                         title={DEFAULT_SHOP_ITEMS.some(d => d.id === item.id) ? 'Revertir a default' : 'Eliminar'}
-                        style={{ width:22, height:22,
-                          background:'rgba(255,82,82,.18)', border:'none', borderRadius:'50%',
-                          color:'var(--red)', cursor:'pointer', fontSize:12, lineHeight:1,
+                        style={{ width:24, height:24,
+                          background:'rgba(0,0,0,.55)', border:'1px solid rgba(255,82,82,.4)',
+                          borderRadius:6, color:'var(--red)', cursor:'pointer',
+                          fontSize:12, lineHeight:1,
                           display:'flex', alignItems:'center', justifyContent:'center' }}>
                         ✕
                       </button>
