@@ -37,13 +37,18 @@ body {
      4. base oscura sólida */
   background-color: #05080c;
   background-image:
-    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(0,170,255,.18) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(0,90,200,.10) 0%, transparent 60%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cg fill='none' stroke='%2300e5ff' stroke-width='1.6' stroke-opacity='0.8'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100'/%3E%3Cpath d='M28 0L28 34L0 50M28 34L56 50'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 100% 100%, 100% 100%, 56px 100px;
-  background-position: center, center, center;
-  background-repeat: no-repeat, no-repeat, repeat;
-  background-attachment: fixed, fixed, fixed;
+    /* 1. spotlight azul arriba */
+    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(0,170,255,.16) 0%, transparent 55%),
+    /* 2. viñeteado: oscurece y difumina la grilla hacia los bordes (profundidad) */
+    radial-gradient(ellipse 75% 65% at 50% 32%, transparent 0%, transparent 30%, rgba(5,8,12,.55) 65%, rgba(5,8,12,.92) 100%),
+    /* 3. glow inferior */
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(0,90,200,.08) 0%, transparent 60%),
+    /* 4. grilla hexagonal apagada */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cg fill='none' stroke='%23165a7a' stroke-width='1.3' stroke-opacity='0.55'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100'/%3E%3Cpath d='M28 0L28 34L0 50M28 34L56 50'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 56px 100px;
+  background-position: center, center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-attachment: fixed, fixed, fixed, fixed;
 }
 
 #root { min-height: 100dvh; }
