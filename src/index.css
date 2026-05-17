@@ -157,6 +157,39 @@ input, select {
 }
 input:focus, select:focus { border-color: var(--accent); }
 
+/* ── Animaciones reutilizables ─────────────────────────── */
+@keyframes fade-up {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes logo-glow {
+  0%, 100% { filter: drop-shadow(0 0 18px rgba(0,200,255,.35)); }
+  50%      { filter: drop-shadow(0 0 38px rgba(0,210,255,.7)); }
+}
+@keyframes scale-in {
+  0%   { opacity: 0; transform: scale(.94); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.anim-fade-up  { animation: fade-up .55s cubic-bezier(.22,1,.36,1) both; }
+.anim-fade-in  { animation: fade-in .6s ease both; }
+.anim-scale-in { animation: scale-in .5s cubic-bezier(.22,1,.36,1) both; }
+.anim-logo     { animation: logo-glow 3.5s ease-in-out infinite; }
+/* delays escalonados para entradas en cascada */
+.d1 { animation-delay: .08s; }
+.d2 { animation-delay: .16s; }
+.d3 { animation-delay: .24s; }
+.d4 { animation-delay: .32s; }
+.d5 { animation-delay: .40s; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up, .anim-fade-in, .anim-scale-in, .anim-logo {
+    animation: none !important;
+  }
+}
+
 /* ── Grid ──────────────────────────────────────────────── */
 .grid-2         { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .players-grid   { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }

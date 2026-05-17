@@ -51,18 +51,18 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--bg)',
-      background:'radial-gradient(ellipse at 50% -10%, rgba(0,229,255,.12) 0%, transparent 60%), var(--bg)' }}>
+    <div style={{ minHeight:'100dvh' }}>
 
       {/* ── Hero ── */}
-      <div style={{ textAlign:'center', padding:'64px 24px 40px' }}>
-        <div style={{ fontSize:72, marginBottom:16, filter:'drop-shadow(0 0 32px rgba(0,229,255,.4))' }}>
+      <div className="anim-fade-up" style={{ textAlign:'center', padding:'64px 24px 36px' }}>
+        <div className="anim-logo" style={{ fontSize:76, marginBottom:14 }}>
           ⚽
         </div>
         <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:'clamp(48px,10vw,88px)',
           fontWeight:900, letterSpacing:2, margin:0, lineHeight:1,
           background:'linear-gradient(135deg, #fff 0%, var(--accent) 60%)',
-          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+          filter:'drop-shadow(0 2px 20px rgba(0,200,255,.25))' }}>
           BalanceFC
         </h1>
         <p style={{ color:'var(--muted)', fontSize:'clamp(14px,3vw,18px)',
@@ -72,13 +72,14 @@ export default function LoginPage() {
       </div>
 
       {/* ── Tier strip ── */}
-      <div style={{ display:'flex', justifyContent:'center', gap:6, flexWrap:'wrap',
-        padding:'0 24px 48px', maxWidth:600, margin:'0 auto' }}>
-        {TIERS.map(t => (
-          <div key={t.cls} className={`fc ${t.cls}`}
-            style={{ width:52, aspectRatio:'.68', borderRadius:8, overflow:'hidden',
+      <div className="anim-fade-up d1" style={{ display:'flex', justifyContent:'center', gap:6,
+        flexWrap:'wrap', padding:'0 24px 44px', maxWidth:600, margin:'0 auto' }}>
+        {TIERS.map((t, i) => (
+          <div key={t.cls} className={`fc ${t.cls} anim-scale-in`}
+            style={{ width:50, aspectRatio:'.68', borderRadius:8, overflow:'hidden',
               display:'flex', alignItems:'flex-end', justifyContent:'center',
-              paddingBottom:4, position:'relative' }}>
+              paddingBottom:4, position:'relative',
+              animationDelay:`${0.25 + i * 0.05}s` }}>
             <div className="fc-bg" />
             <div className="fc-shine" />
             <span style={{ position:'relative', zIndex:2,
@@ -91,12 +92,16 @@ export default function LoginPage() {
       </div>
 
       {/* ── Features ── */}
-      <div style={{ maxWidth:840, margin:'0 auto', padding:'0 20px 48px',
+      <div style={{ maxWidth:840, margin:'0 auto', padding:'0 20px 44px',
         display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
-        {FEATURES.map(f => (
-          <div key={f.title} style={{ background:f.bg, border:`1px solid ${f.border}`,
-            borderRadius:16, padding:'20px 18px' }}>
-            <div style={{ fontSize:32, marginBottom:10 }}>{f.emoji}</div>
+        {FEATURES.map((f, i) => (
+          <div key={f.title} className={`anim-fade-up d${i + 1}`}
+            style={{ background:f.bg, border:`1px solid ${f.border}`,
+              borderRadius:16, padding:'20px 18px',
+              backdropFilter:'blur(10px)', WebkitBackdropFilter:'blur(10px)',
+              boxShadow:`0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)` }}>
+            <div style={{ fontSize:32, marginBottom:10,
+              filter:`drop-shadow(0 0 12px ${f.border})` }}>{f.emoji}</div>
             <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:18,
               fontWeight:800, color:f.color, letterSpacing:.5, marginBottom:6 }}>
               {f.title}
@@ -107,16 +112,18 @@ export default function LoginPage() {
       </div>
 
       {/* ── CTA ── */}
-      <div style={{ textAlign:'center', padding:'0 24px 80px' }}>
+      <div className="anim-fade-up d5" style={{ textAlign:'center', padding:'0 24px 80px' }}>
         <button onClick={login}
           style={{ display:'inline-flex', alignItems:'center', justifyContent:'center',
             gap:12, padding:'16px 36px', borderRadius:14,
-            border:'1px solid var(--border2)', background:'var(--surface)',
+            border:'1px solid rgba(0,212,255,.4)',
+            background:'rgba(14,19,24,.7)',
+            backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
             color:'var(--text)', fontSize:16, fontWeight:700, cursor:'pointer',
-            transition:'border-color .15s, background .15s, transform .15s',
-            boxShadow:'0 4px 24px rgba(0,0,0,.4)' }}
-          onMouseOver={e => { e.currentTarget.style.borderColor='var(--accent)'; e.currentTarget.style.transform='translateY(-2px)'; }}
-          onMouseOut={e  => { e.currentTarget.style.borderColor='var(--border2)'; e.currentTarget.style.transform='none'; }}>
+            transition:'border-color .15s, transform .15s, box-shadow .15s',
+            boxShadow:'0 6px 28px rgba(0,150,255,.18)' }}
+          onMouseOver={e => { e.currentTarget.style.borderColor='var(--accent)'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 10px 36px rgba(0,180,255,.35)'; }}
+          onMouseOut={e  => { e.currentTarget.style.borderColor='rgba(0,212,255,.4)'; e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='0 6px 28px rgba(0,150,255,.18)'; }}>
           <svg width="22" height="22" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>

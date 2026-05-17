@@ -55,12 +55,14 @@ export default function OnboardingPage({ user, onComplete }) {
 
   return (
     <div className="onboarding-wrap">
-      <div className="onboarding-card">
+      <div className="onboarding-card anim-scale-in">
 
         {/* Header */}
-        <div style={{ textAlign:'center', marginBottom:32 }}>
-          <div style={{ fontSize:48, marginBottom:8 }}>⚽</div>
-          <div style={{ fontFamily:'Barlow Condensed', fontSize:32, fontWeight:900, letterSpacing:1 }}>
+        <div className="anim-fade-up" style={{ textAlign:'center', marginBottom:32 }}>
+          <div className="anim-logo" style={{ fontSize:52, marginBottom:8 }}>⚽</div>
+          <div style={{ fontFamily:'Barlow Condensed', fontSize:32, fontWeight:900, letterSpacing:1,
+            background:'linear-gradient(135deg, #fff 0%, var(--accent) 65%)',
+            WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
             BalanceFC
           </div>
           <div style={{ color:'var(--muted)', fontSize:13, marginTop:4 }}>
@@ -81,7 +83,7 @@ export default function OnboardingPage({ user, onComplete }) {
 
         {/* Step 1 — Nickname */}
         {step === 1 && (
-          <div>
+          <div key="s1" className="anim-fade-up">
             <div className="ob-label">¿Cómo te llaman en la cancha?</div>
             <input
               autoFocus
@@ -106,7 +108,7 @@ export default function OnboardingPage({ user, onComplete }) {
 
         {/* Step 2 — Position */}
         {step === 2 && (
-          <div>
+          <div key="s2" className="anim-fade-up">
             <div className="ob-label">¿Cuál es tu posición preferida?</div>
             <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
               {POSITIONS.map(p => (
