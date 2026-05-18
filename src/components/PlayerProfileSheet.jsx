@@ -107,7 +107,15 @@ export default function PlayerProfileSheet({ player, onClose }) {
         }}>
           <div style={{ position:'relative', zIndex:1, width:'100%',
             display:'flex', alignItems:'center', gap:18,
-            padding:'20px 22px' }}>
+            margin:'14px', padding:'14px 16px',
+            borderRadius:16,
+            ...(wallpaperBg ? {
+              background:'rgba(5,8,12,.5)',
+              backdropFilter:'blur(6px)',
+              WebkitBackdropFilter:'blur(6px)',
+              border:'1px solid rgba(255,255,255,.08)',
+            } : {}),
+          }}>
             {/* Carta entera, solo imagen (sin info) — muestra marco */}
             <div style={{ width:96, flexShrink:0,
               filter:'drop-shadow(0 4px 12px rgba(0,0,0,.5))' }}>
