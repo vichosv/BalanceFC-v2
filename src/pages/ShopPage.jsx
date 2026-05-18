@@ -863,10 +863,18 @@ export default function ShopPage({ ctx }) {
           display:'block', marginBottom:4, marginTop:8 };
 
         async function save() {
-          if (!f.name.trim()) { alert('Falta nombre'); return; }
-          if (f.editId) await setShopItem(f.editId, built);  // crea o sobreescribe
-          else          await addShopItem(built);             // auto-id nuevo
-          setAdminForm(null);
+          if (!f.name.trim()) { toast.error('Falta el nombre'); return; }
+          try {
+            if (f.editId) await setShopItem(f.editId, built);  // crea o sobreescribe
+            else          await addShopItem(built);             // auto-id nuevo
+            toast.success(`${f.editId ? 'Guardado' : 'Creado'}: ${f.name}`, { icon:'✅' });
+            setAdminForm(null);
+          } catch (e) {
+            const tooBig = JSON.stringify(built).length > 1000000;
+            toast.error(tooBig
+              ? 'Imagen muy pesada para guardar — usá una más chica'
+              : 'No se pudo guardar: ' + (e.message || 'error'));
+          }
         }
 
         return (
@@ -972,10 +980,16 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const maxPx = f.category === 'wallpaper'  ? 1200
+                        // Límite Firestore: 1 MB por doc. Comprimir agresivo.
+                        const maxPx = f.category === 'wallpaper'  ? 900
                                     : f.category === 'background' ? 500
                                     : 160; // sticker
-                        const dataUrl = await compressImage(file, maxPx, 0.9);
+                        const q = f.category === 'sticker' ? 0.85 : 0.7;
+                        const dataUrl = await compressImage(file, maxPx, q);
+                        if (dataUrl.length > 900000) {
+                          toast.error('La imagen es muy pesada, probá una más liviana');
+                          return;
+                        }
                         setAdminForm({ ...f, imageUrl: dataUrl });
                       }}
                       style={{ marginTop:4, fontSize:11, color:'var(--muted)' }}
