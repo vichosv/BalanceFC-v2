@@ -110,10 +110,10 @@ export default function PlayerProfileSheet({ player, onClose }) {
             margin:'14px', padding:'14px 16px',
             borderRadius:16,
             ...(wallpaperBg ? {
-              background:'rgba(5,8,12,.5)',
-              backdropFilter:'blur(6px)',
-              WebkitBackdropFilter:'blur(6px)',
-              border:'1px solid rgba(255,255,255,.08)',
+              background:'rgba(5,8,12,.28)',
+              backdropFilter:'blur(3px)',
+              WebkitBackdropFilter:'blur(3px)',
+              border:'1px solid rgba(255,255,255,.06)',
             } : {}),
           }}>
             {/* Carta entera, solo imagen (sin info) — muestra marco */}
