@@ -623,22 +623,30 @@ export default function ShopPage({ ctx }) {
                 )}
 
                 {/* Arte del item */}
-                <div style={{ height:74, display:'flex', alignItems:'center',
-                  justifyContent:'center', position:'relative',
-                  filter: locked ? 'grayscale(1) brightness(.6)' : 'none' }}>
-                  <div style={{ position:'absolute', width:56, height:56, borderRadius:'50%',
-                    background:`radial-gradient(circle, ${ac}33 0%, transparent 70%)`,
-                    filter:'blur(6px)' }} />
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name}
-                      style={{ maxWidth:'66%', maxHeight:'70%', objectFit:'contain',
-                        position:'relative', zIndex:1,
-                        filter:`drop-shadow(0 3px 10px ${ac}55)` }} />
-                  ) : (
-                    <span style={{ fontSize:32, lineHeight:1, position:'relative', zIndex:1,
-                      filter:`drop-shadow(0 3px 10px ${ac}66)` }}>{item.emoji}</span>
-                  )}
-                </div>
+                {(item.category === 'wallpaper' || item.category === 'background') && item.cssBackground ? (
+                  // Wallpaper / fondo: mostrar la imagen/gradiente cubriendo el arte
+                  <div style={{ height:88, position:'relative',
+                    background: item.cssBackground,
+                    backgroundSize: 'cover', backgroundPosition: 'center',
+                    filter: locked ? 'grayscale(1) brightness(.6)' : 'none' }} />
+                ) : (
+                  <div style={{ height:74, display:'flex', alignItems:'center',
+                    justifyContent:'center', position:'relative',
+                    filter: locked ? 'grayscale(1) brightness(.6)' : 'none' }}>
+                    <div style={{ position:'absolute', width:56, height:56, borderRadius:'50%',
+                      background:`radial-gradient(circle, ${ac}33 0%, transparent 70%)`,
+                      filter:'blur(6px)' }} />
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name}
+                        style={{ maxWidth:'66%', maxHeight:'70%', objectFit:'contain',
+                          position:'relative', zIndex:1,
+                          filter:`drop-shadow(0 3px 10px ${ac}55)` }} />
+                    ) : (
+                      <span style={{ fontSize:32, lineHeight:1, position:'relative', zIndex:1,
+                        filter:`drop-shadow(0 3px 10px ${ac}66)` }}>{item.emoji}</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Footer: nombre + precio */}
                 <div style={{ padding:'7px 8px 9px',
