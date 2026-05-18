@@ -83,7 +83,7 @@ export default function PlayerProfileSheet({ player, onClose }) {
         maxHeight:'90vh', overflowY:'auto',
         backgroundColor:'var(--bg)',
         background: sheetBg,
-        backgroundSize: wallpaperBg ? '100% 100%, cover' : 'auto',
+        backgroundSize: wallpaperBg ? '100% 100%, 100% auto' : 'auto',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'local',
