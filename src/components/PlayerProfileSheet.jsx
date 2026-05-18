@@ -86,39 +86,33 @@ export default function PlayerProfileSheet({ player, onClose }) {
           ✕
         </button>
 
-        {/* ── Banner (wallpaper) — solo arriba ── */}
+        {/* ── Banner (wallpaper) — banda nítida arriba ── */}
         {wallpaperBg && (
           <div style={{
-            height: 108,
+            height: 110,
             background: wallpaperBg,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            position: 'relative',
-          }}>
-            {/* Fundido inferior hacia el fondo del sheet */}
-            <div style={{ position:'absolute', inset:0,
-              background:'linear-gradient(180deg, transparent 50%, var(--bg) 100%)' }} />
-          </div>
+            borderBottom: '2px solid var(--accent)',
+          }} />
         )}
 
-        {/* ── Hero info (fondo oscuro normal) ── */}
+        {/* ── Hero info (fondo oscuro normal, separado del banner) ── */}
         <div style={{
           display:'flex', alignItems:'center', gap:16,
-          padding:'14px 20px',
-          marginTop: wallpaperBg ? -36 : 0,
-          position:'relative', zIndex:1,
+          padding:'16px 20px',
           borderBottom:'1px solid var(--border)',
         }}>
-          {/* Foto / card mini (solapa el banner) */}
+          {/* Foto / card mini */}
           {player.photo ? (
             <img src={player.photo} alt=""
-              style={{ width:68, height:68, borderRadius:14, objectFit:'cover',
-                border:'2.5px solid var(--accent)',
-                boxShadow:'0 6px 20px rgba(0,0,0,.6)', flexShrink:0 }} />
+              style={{ width:64, height:64, borderRadius:12, objectFit:'cover',
+                border:'2px solid var(--accent)',
+                boxShadow:'0 6px 18px rgba(0,0,0,.4)', flexShrink:0 }} />
           ) : (
             <div className={`fc ${t}`}
-              style={{ width:54, aspectRatio:'.68', borderRadius:8, overflow:'hidden',
-                flexShrink:0, boxShadow:'0 6px 20px rgba(0,0,0,.5)' }}>
+              style={{ width:52, aspectRatio:'.68', borderRadius:8, overflow:'hidden',
+                flexShrink:0 }}>
               <div className="fc-bg" />
             </div>
           )}

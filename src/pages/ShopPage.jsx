@@ -934,6 +934,15 @@ export default function ShopPage({ ctx }) {
                     Imagen (PNG, JPG)
                     {f.category === 'sticker' && ' — usa PNG con transparencia'}
                   </label>
+                  {f.category === 'wallpaper' && (
+                    <div style={{ fontSize:10, color:'var(--accent)',
+                      background:'rgba(0,229,255,.06)', border:'1px solid rgba(0,229,255,.18)',
+                      borderRadius:8, padding:'7px 10px', marginBottom:6, lineHeight:1.5 }}>
+                      📐 Tamaño óptimo: <b>1200×400 px</b> (relación 3:1, horizontal).
+                      Se muestra como banda superior en el perfil — usá una imagen
+                      apaisada para que no se recorte feo.
+                    </div>
+                  )}
                   {f.imageUrl ? (
                     <div style={{ display:'flex', alignItems:'center', gap:10, marginTop:4 }}>
                       <div style={{
@@ -963,7 +972,8 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const maxPx = (f.category === 'background' || f.category === 'wallpaper') ? 500
+                        const maxPx = f.category === 'wallpaper'  ? 1200
+                                    : f.category === 'background' ? 500
                                     : 160; // sticker
                         const dataUrl = await compressImage(file, maxPx, 0.9);
                         setAdminForm({ ...f, imageUrl: dataUrl });
