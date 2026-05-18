@@ -106,7 +106,7 @@ export default function ProfilePage({ ctx }) {
   return (
     <div className="page" style={pageBg ? {
       background: pageBg,
-      backgroundSize: '100% 100%, cover',
+      backgroundSize: '100% 100%, 100% auto',
       backgroundPosition: 'top center',
       backgroundRepeat: 'no-repeat',
     } : undefined}>
