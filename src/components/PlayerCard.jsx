@@ -167,7 +167,7 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
               <div className="fc-sticker">
                 {stickerItem.imageUrl
                   ? <img src={stickerItem.imageUrl} alt=""
-                      style={{ width:18, height:18, objectFit:'contain',
+                      style={{ width:30, height:30, objectFit:'contain',
                         filter:'drop-shadow(0 1px 3px rgba(0,0,0,.55))' }} />
                   : stickerItem.emoji}
               </div>
@@ -202,6 +202,24 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
           )}
         </div>
       </div>
+      )}
+
+      {/* En modo imageOnly: igual mostrar posición + sticker arriba-derecha */}
+      {imageOnly && (
+        <div style={{ position:'absolute', top:8, right:8, zIndex:3,
+          display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+          <div style={{ fontSize:20, lineHeight:1,
+            filter:'drop-shadow(0 1px 3px rgba(0,0,0,.6))' }}>{pos.emoji}</div>
+          {stickerItem && (
+            <div style={{ fontSize:24, lineHeight:1,
+              filter:'drop-shadow(0 1px 3px rgba(0,0,0,.55))' }}>
+              {stickerItem.imageUrl
+                ? <img src={stickerItem.imageUrl} alt=""
+                    style={{ width:30, height:30, objectFit:'contain' }} />
+                : stickerItem.emoji}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

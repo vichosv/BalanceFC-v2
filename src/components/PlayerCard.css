@@ -25,10 +25,10 @@
 }
 .fc-top   { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
 .fc-ov    { font-size: 34px; font-weight: 900; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
-.fc-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.fc-right { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .fc-pos   { font-size: 12px; font-weight: 700; letter-spacing: .5px; opacity: .88; }
 .fc-spi     { font-size: 20px; }
-.fc-sticker { font-size: 14px; line-height: 1; margin-top: 2px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.55)); }
+.fc-sticker { font-size: 24px; line-height: 1; margin-top: 2px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.55)); }
 .fc-av    {
   width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
