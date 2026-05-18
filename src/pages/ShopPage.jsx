@@ -7,7 +7,6 @@ import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
 import { useToast } from '../components/ToastProvider';
-import BannerCropper from '../components/BannerCropper';
 
 // Un item está "en Firestore" si tiene createdAt o updatedAt (default puro no los tiene)
 const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
@@ -34,38 +33,6 @@ function compressImage(file, maxPx = 400, quality = 0.85) {
   });
 }
 
-// Recorta (cover, centrado) a un tamaño exacto — para banners de wallpaper
-function cropImage(file, targetW, targetH, quality = 0.85) {
-  return new Promise(resolve => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const targetRatio = targetW / targetH;
-      const srcRatio    = img.width / img.height;
-      let sx, sy, sw, sh;
-      if (srcRatio > targetRatio) {
-        // más ancha: recortar los lados
-        sh = img.height;
-        sw = sh * targetRatio;
-        sx = (img.width - sw) / 2;
-        sy = 0;
-      } else {
-        // más alta: recortar arriba/abajo
-        sw = img.width;
-        sh = sw / targetRatio;
-        sx = 0;
-        sy = (img.height - sh) / 2;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = targetW; canvas.height = targetH;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.src = url;
-  });
-}
 
 // ── Admin helpers ─────────────────────────────────────────────
 function blankItem(category) {
@@ -195,8 +162,6 @@ export default function ShopPage({ ctx }) {
   // mystery box
   const [revealItem,  setRevealItem]  = useState(null);
   const [openingBox,  setOpeningBox]  = useState(false);
-  // banner cropper (wallpapers)
-  const [cropFile,    setCropFile]    = useState(null);
 
   if (!player) return <div className="page" style={{ color:'var(--muted)' }}>Cargando...</div>;
 
@@ -974,8 +939,8 @@ export default function ShopPage({ ctx }) {
                     <div style={{ fontSize:10, color:'var(--accent)',
                       background:'rgba(0,229,255,.06)', border:'1px solid rgba(0,229,255,.18)',
                       borderRadius:8, padding:'7px 10px', marginBottom:6, lineHeight:1.5 }}>
-                      📐 Banner <b>1200×480 px</b> (5:2). Al subir vas a poder
-                      elegir qué sector de la imagen se usa.
+                      📐 Se muestra la <b>imagen completa</b> como banner en el
+                      perfil. Recomendado: imagen apaisada (horizontal).
                     </div>
                   )}
                   {f.imageUrl ? (
@@ -1007,12 +972,9 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        if (f.category === 'wallpaper') {
-                          // Abre el cropper para elegir el sector del banner
-                          setCropFile(file);
-                          return;
-                        }
-                        const maxPx = f.category === 'background' ? 500 : 160;
+                        const maxPx = f.category === 'wallpaper'  ? 1200
+                                    : f.category === 'background' ? 500
+                                    : 160; // sticker
                         const dataUrl = await compressImage(file, maxPx, 0.9);
                         setAdminForm({ ...f, imageUrl: dataUrl });
                       }}
@@ -1090,19 +1052,6 @@ export default function ShopPage({ ctx }) {
         );
       })()}
 
-      {/* ── Cropper de banner (wallpapers) ── */}
-      {cropFile && (
-        <BannerCropper
-          file={cropFile}
-          outW={1200}
-          outH={480}
-          onCancel={() => setCropFile(null)}
-          onDone={(dataUrl) => {
-            setAdminForm(prev => prev ? { ...prev, imageUrl: dataUrl } : prev);
-            setCropFile(null);
-          }}
-        />
-      )}
     </div>
   );
 }

@@ -95,22 +95,21 @@ export default function ProfilePage({ ctx }) {
   const findItem     = id => id ? shopItems.find(i => i.id === id) : null;
   const wallpaperItem = findItem(equipped.wallpaper);
   const wallpaperBg  = wallpaperItem?.cssBackground || null;
+  const wpImg        = wallpaperItem?.imageUrl || null;
+
+  // Fondo de la página: imagen completa arriba, se funde a oscuro
+  const pageBg = !wallpaperBg ? undefined
+    : wpImg
+      ? `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.28) 11%, rgba(5,8,12,.9) 28%, var(--bg) 44%), url(${wpImg})`
+      : `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.5) 16%, var(--bg) 40%), ${wallpaperBg}`;
 
   return (
-    <div className="page">
-      {/* ── Banner wallpaper (imagen entera, 5:2) ── */}
-      {wallpaperBg && (
-        <div style={{
-          background: wallpaperBg,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          aspectRatio: '5 / 2',
-          borderRadius: 14,
-          border: '1px solid var(--border)',
-          marginBottom: 14,
-        }} />
-      )}
-
+    <div className="page" style={pageBg ? {
+      background: pageBg,
+      backgroundSize: '100% 100%, 100% auto',
+      backgroundPosition: 'top center',
+      backgroundRepeat: 'no-repeat',
+    } : undefined}>
       <div className="page-title">👤 Mi perfil</div>
 
       {/* ── Carta + atributos (bloque gris) ── */}
