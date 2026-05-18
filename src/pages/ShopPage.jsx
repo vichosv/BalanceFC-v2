@@ -327,19 +327,19 @@ export default function ShopPage({ ctx }) {
 
       {/* ── Tabs estilo Valorant (indicador inferior) ── */}
       <div className="no-scrollbar" style={{ display:'flex', gap:2, marginBottom:6,
-        overflowX:'auto', WebkitOverflowScrolling:'touch', scrollSnapType:'x proximity',
+        overflowX:'auto', overflowY:'hidden', touchAction:'pan-x',
         borderBottom:'1px solid var(--border)' }}>
         {ALL_TABS.map(c => {
           const on = cat === c.id;
           return (
             <button key={c.id} onClick={() => setCat(c.id)}
-              style={{ flex:'0 0 auto', padding:'10px 14px 9px', border:'none',
+              style={{ flex:'0 0 auto', padding:'10px 14px 11px', border:'none',
                 background:'transparent', cursor:'pointer', position:'relative',
                 fontWeight:800, fontSize:11, letterSpacing:.5, whiteSpace:'nowrap',
                 textTransform:'uppercase', transition:'color .15s',
                 color: on ? 'var(--text)' : 'var(--muted)' }}>
               {c.label}
-              <div style={{ position:'absolute', left:8, right:8, bottom:-1, height:2,
+              <div style={{ position:'absolute', left:8, right:8, bottom:0, height:2,
                 borderRadius:2, transition:'all .2s',
                 background: on ? 'var(--accent)' : 'transparent',
                 boxShadow: on ? '0 0 10px rgba(0,229,255,.7)' : 'none' }} />

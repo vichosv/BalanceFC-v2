@@ -77,6 +77,18 @@ export default function PlayerProfileSheet({ player, onClose }) {
       <div onClick={onClose}
         style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.65)', zIndex:999 }} />
 
+      {/* Botón cerrar — fijo en la esquina, siempre visible */}
+      <button onClick={onClose} aria-label="Cerrar"
+        style={{ position:'fixed', top:14, right:14, zIndex:1002,
+          width:38, height:38, borderRadius:'50%',
+          background:'rgba(0,0,0,.75)', border:'1.5px solid var(--accent)',
+          color:'#fff', fontSize:18, fontWeight:800, cursor:'pointer',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          backdropFilter:'blur(4px)',
+          boxShadow:'0 2px 12px rgba(0,0,0,.5)' }}>
+        ✕
+      </button>
+
       {/* Sheet */}
       <div className="no-scrollbar" style={{ position:'fixed', bottom:0, left:'50%',
         transform:'translateX(-50%)',
@@ -91,26 +103,12 @@ export default function PlayerProfileSheet({ player, onClose }) {
         borderRadius:'20px 20px 0 0',
         paddingBottom:40 }}>
 
-        {/* Barra superior fija: handle + cerrar (siempre accesible) */}
-        <div style={{ position:'sticky', top:0, zIndex:20,
-          display:'flex', alignItems:'center',
-          padding:'10px 12px 8px' }}>
-          <div onClick={onClose}
-            style={{ flex:1, display:'flex', justifyContent:'center',
-              cursor:'pointer' }}>
-            <div style={{ width:40, height:4, borderRadius:2,
-              background:'rgba(255,255,255,.6)' }} />
-          </div>
-          <button onClick={onClose}
-            aria-label="Cerrar"
-            style={{ position:'absolute', top:8, right:12,
-              width:34, height:34, borderRadius:'50%',
-              background:'rgba(0,0,0,.6)', border:'1px solid rgba(255,255,255,.2)',
-              color:'#fff', fontSize:16, fontWeight:700, cursor:'pointer',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              backdropFilter:'blur(4px)' }}>
-            ✕
-          </button>
+        {/* Handle (tocar cierra) */}
+        <div style={{ display:'flex', justifyContent:'center',
+          padding:'10px 0 6px', cursor:'pointer' }}
+          onClick={onClose}>
+          <div style={{ width:40, height:4, borderRadius:2,
+            background:'rgba(255,255,255,.6)' }} />
         </div>
 
         {/* ── Hero: info sobre la imagen del sheet ── */}
