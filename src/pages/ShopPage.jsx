@@ -980,13 +980,17 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        // Límite Firestore: 1 MB por doc. Comprimir agresivo.
-                        const maxPx = f.category === 'wallpaper'  ? 900
-                                    : f.category === 'background' ? 500
-                                    : 160; // sticker
-                        const q = f.category === 'sticker' ? 0.85 : 0.7;
-                        const dataUrl = await compressImage(file, maxPx, q);
-                        if (dataUrl.length > 900000) {
+                        // Límite Firestore: 1 MB por doc.
+                        const maxPx = f.category === 'wallpaper'  ? 1100
+                                    : f.category === 'background' ? 600
+                                    : 200; // sticker
+                        const q = f.category === 'sticker' ? 0.9 : 0.82;
+                        let dataUrl = await compressImage(file, maxPx, q);
+                        // Si quedó muy pesada, reintenta con menos calidad
+                        if (dataUrl.length > 950000) {
+                          dataUrl = await compressImage(file, maxPx, 0.65);
+                        }
+                        if (dataUrl.length > 950000) {
                           toast.error('La imagen es muy pesada, probá una más liviana');
                           return;
                         }
