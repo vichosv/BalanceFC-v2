@@ -97,12 +97,20 @@ export default function ProfilePage({ ctx }) {
   const wallpaperBg  = wallpaperItem?.cssBackground || null;
 
   return (
-    <div className="page" style={wallpaperBg ? {
-      background: wallpaperBg,
-      backgroundAttachment: 'fixed',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    } : undefined}>
+    <div className="page">
+      {/* ── Banner wallpaper (imagen entera, 5:2) ── */}
+      {wallpaperBg && (
+        <div style={{
+          background: wallpaperBg,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          aspectRatio: '5 / 2',
+          borderRadius: 14,
+          border: '1px solid var(--border)',
+          marginBottom: 14,
+        }} />
+      )}
+
       <div className="page-title">👤 Mi perfil</div>
 
       {/* ── Carta + atributos (bloque gris) ── */}
