@@ -41,11 +41,11 @@ export default function PlayerProfileSheet({ player, onClose }) {
   const wallpaperBg  = wallpaperItem?.cssBackground || null;
   const wpImg        = wallpaperItem?.imageUrl || null;
 
-  // Fondo del sheet: imagen visible arriba, se funde a oscuro hacia abajo
+  // Fondo del sheet: imagen visible hasta ~mitad, se funde a oscuro abajo
   const sheetBg = !wallpaperBg ? 'var(--bg)'
     : wpImg
-      ? `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.30) 14%, rgba(5,8,12,.88) 36%, var(--bg) 54%), url(${wpImg})`
-      : `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.45) 18%, var(--bg) 46%), ${wallpaperBg}`;
+      ? `linear-gradient(180deg, rgba(5,8,12,.05) 0%, rgba(5,8,12,.22) 32%, rgba(5,8,12,.74) 52%, var(--bg) 68%), url(${wpImg})`
+      : `linear-gradient(180deg, rgba(5,8,12,.1) 0%, rgba(5,8,12,.35) 38%, var(--bg) 62%), ${wallpaperBg}`;
 
   const h = player.history  || {};
   const s = sid ? (player.seasons?.[sid] || {}) : null;
@@ -83,7 +83,7 @@ export default function PlayerProfileSheet({ player, onClose }) {
         maxHeight:'90vh', overflowY:'auto',
         backgroundColor:'var(--bg)',
         background: sheetBg,
-        backgroundSize: wallpaperBg ? '100% 100%, 100% auto' : 'auto',
+        backgroundSize: wallpaperBg ? '100% 100%, cover' : 'auto',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'local',

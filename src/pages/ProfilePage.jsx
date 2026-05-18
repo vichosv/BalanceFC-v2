@@ -97,16 +97,16 @@ export default function ProfilePage({ ctx }) {
   const wallpaperBg  = wallpaperItem?.cssBackground || null;
   const wpImg        = wallpaperItem?.imageUrl || null;
 
-  // Fondo de la página: imagen completa arriba, se funde a oscuro
+  // Fondo de la página: imagen visible hasta ~mitad, se funde a oscuro
   const pageBg = !wallpaperBg ? undefined
     : wpImg
-      ? `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.28) 11%, rgba(5,8,12,.9) 28%, var(--bg) 44%), url(${wpImg})`
-      : `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.5) 16%, var(--bg) 40%), ${wallpaperBg}`;
+      ? `linear-gradient(180deg, rgba(5,8,12,.05) 0%, rgba(5,8,12,.22) 32%, rgba(5,8,12,.74) 52%, var(--bg) 68%), url(${wpImg})`
+      : `linear-gradient(180deg, rgba(5,8,12,.1) 0%, rgba(5,8,12,.35) 38%, var(--bg) 62%), ${wallpaperBg}`;
 
   return (
     <div className="page" style={pageBg ? {
       background: pageBg,
-      backgroundSize: '100% 100%, 100% auto',
+      backgroundSize: '100% 100%, cover',
       backgroundPosition: 'top center',
       backgroundRepeat: 'no-repeat',
     } : undefined}>
