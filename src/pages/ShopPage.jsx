@@ -12,7 +12,8 @@ import { useToast } from '../components/ToastProvider';
 const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
 
 // Comprime una imagen a data URL (similar al photo de profile)
-function compressImage(file, maxPx = 400, quality = 0.85) {
+// keepPng: solo stickers necesitan transparencia. Wallpaper/fondo → siempre JPEG
+function compressImage(file, maxPx = 400, quality = 0.85, keepPng = false) {
   return new Promise(resolve => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -25,8 +26,8 @@ function compressImage(file, maxPx = 400, quality = 0.85) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
-      // PNG conserva transparencia (importante para stickers); JPEG es más liviano para fondos
-      const isPng = file.type === 'image/png' || file.name?.endsWith('.png');
+      const isPng = keepPng &&
+        (file.type === 'image/png' || file.name?.endsWith('.png'));
       resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
     };
     img.src = url;
@@ -981,14 +982,18 @@ export default function ShopPage({ ctx }) {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         // Límite Firestore: 1 MB por doc.
+                        const isSticker = f.category === 'sticker';
                         const maxPx = f.category === 'wallpaper'  ? 1100
                                     : f.category === 'background' ? 600
                                     : 200; // sticker
-                        const q = f.category === 'sticker' ? 0.9 : 0.82;
-                        let dataUrl = await compressImage(file, maxPx, q);
+                        const q = isSticker ? 0.9 : 0.82;
+                        let dataUrl = await compressImage(file, maxPx, q, isSticker);
                         // Si quedó muy pesada, reintenta con menos calidad
                         if (dataUrl.length > 950000) {
-                          dataUrl = await compressImage(file, maxPx, 0.65);
+                          dataUrl = await compressImage(file, maxPx, 0.6, isSticker);
+                        }
+                        if (dataUrl.length > 950000) {
+                          dataUrl = await compressImage(file, Math.round(maxPx * 0.7), 0.6, isSticker);
                         }
                         if (dataUrl.length > 950000) {
                           toast.error('La imagen es muy pesada, probá una más liviana');
