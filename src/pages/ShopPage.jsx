@@ -7,6 +7,7 @@ import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
 import { useToast } from '../components/ToastProvider';
+import BannerCropper from '../components/BannerCropper';
 
 // Un item está "en Firestore" si tiene createdAt o updatedAt (default puro no los tiene)
 const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
@@ -194,6 +195,8 @@ export default function ShopPage({ ctx }) {
   // mystery box
   const [revealItem,  setRevealItem]  = useState(null);
   const [openingBox,  setOpeningBox]  = useState(false);
+  // banner cropper (wallpapers)
+  const [cropFile,    setCropFile]    = useState(null);
 
   if (!player) return <div className="page" style={{ color:'var(--muted)' }}>Cargando...</div>;
 
@@ -1005,14 +1008,13 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        let dataUrl;
                         if (f.category === 'wallpaper') {
-                          // Crop a banner 3:1 (1200×400)
-                          dataUrl = await cropImage(file, 1200, 400, 0.9);
-                        } else {
-                          const maxPx = f.category === 'background' ? 500 : 160;
-                          dataUrl = await compressImage(file, maxPx, 0.9);
+                          // Abre el cropper para elegir el sector del banner
+                          setCropFile(file);
+                          return;
                         }
+                        const maxPx = f.category === 'background' ? 500 : 160;
+                        const dataUrl = await compressImage(file, maxPx, 0.9);
                         setAdminForm({ ...f, imageUrl: dataUrl });
                       }}
                       style={{ marginTop:4, fontSize:11, color:'var(--muted)' }}
@@ -1088,6 +1090,20 @@ export default function ShopPage({ ctx }) {
           </div>
         );
       })()}
+
+      {/* ── Cropper de banner (wallpapers) ── */}
+      {cropFile && (
+        <BannerCropper
+          file={cropFile}
+          outW={1200}
+          outH={400}
+          onCancel={() => setCropFile(null)}
+          onDone={(dataUrl) => {
+            setAdminForm(prev => prev ? { ...prev, imageUrl: dataUrl } : prev);
+            setCropFile(null);
+          }}
+        />
+      )}
     </div>
   );
 }

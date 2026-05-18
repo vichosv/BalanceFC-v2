@@ -89,8 +89,7 @@ export default function PlayerProfileSheet({ player, onClose }) {
         {/* ── Hero: info SOBRE el banner (imagen visible arriba) ── */}
         <div style={{
           position:'relative',
-          display:'flex', alignItems:'flex-end',
-          height: wallpaperBg ? 160 : 'auto',
+          display:'flex', alignItems:'stretch',
           borderBottom: wallpaperBg ? '3px solid rgba(0,0,0,.65)' : '1px solid var(--border)',
           ...(wallpaperBg ? {
             background: wallpaperBg,
