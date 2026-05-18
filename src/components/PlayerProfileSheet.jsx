@@ -179,8 +179,14 @@ export default function PlayerProfileSheet({ player, onClose }) {
           </div>
         </div>
 
-        {/* ── Stats globales ── */}
-        <div style={{ padding:'14px 20px 0' }}>
+        {/* ── Stats globales (fondo para legibilidad sobre el wallpaper) ── */}
+        <div style={{ padding:'16px 20px 0',
+          ...(wallpaperBg ? {
+            background:'var(--bg)',
+            borderRadius:'18px 18px 0 0',
+            marginTop:8,
+            boxShadow:'0 -8px 24px rgba(0,0,0,.5)',
+          } : {}) }}>
           <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)',
             textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>
             Estadísticas globales
