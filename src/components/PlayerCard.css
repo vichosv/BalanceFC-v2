@@ -118,18 +118,18 @@
   0%, 100% { box-shadow: 0 0 0 2px #00e5ff, 0 0 10px rgba(0,229,255,.4),  0 0 20px rgba(0,229,255,.15); }
   50%      { box-shadow: 0 0 0 2px #00e5ff, 0 0 26px rgba(0,229,255,.95), 0 0 52px rgba(0,229,255,.5); }
 }
-.ff-pulse { animation: pulse-glow 1.6s ease-in-out infinite; }
+.ff-pulse { animation: pulse-glow 5s ease-in-out infinite; }
 
 /* Pulso rojo */
 @keyframes pulse-red {
   0%, 100% { box-shadow: 0 0 0 2px #ff3344, 0 0 10px rgba(255,51,68,.4),  0 0 20px rgba(255,51,68,.15); }
   50%      { box-shadow: 0 0 0 2px #ff3344, 0 0 26px rgba(255,51,68,.95), 0 0 52px rgba(255,51,68,.5); }
 }
-.ff-pulsered { animation: pulse-red 1.6s ease-in-out infinite; }
+.ff-pulsered { animation: pulse-red 5s ease-in-out infinite; }
 
 /* Pulso verde */
 @keyframes pulse-green {
   0%, 100% { box-shadow: 0 0 0 2px #00e676, 0 0 10px rgba(0,230,118,.4),  0 0 20px rgba(0,230,118,.15); }
   50%      { box-shadow: 0 0 0 2px #00e676, 0 0 26px rgba(0,230,118,.95), 0 0 52px rgba(0,230,118,.5); }
 }
-.ff-pulsegreen { animation: pulse-green 1.6s ease-in-out infinite; }
+.ff-pulsegreen { animation: pulse-green 5s ease-in-out infinite; }
