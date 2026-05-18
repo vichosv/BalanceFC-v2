@@ -561,13 +561,11 @@ export default function ShopPage({ ctx }) {
             return (
               <div
                 key={item.id}
-                onClick={() => owned
-                  ? setPreview({ item, mode:'equip' })
-                  : canBuy && setPreview({ item, mode:'buy' })}
+                onClick={() => setPreview({ item, mode: owned ? 'equip' : 'buy' })}
                 style={{
+                  cursor:'pointer',
                   position:'relative',
                   borderRadius:14, overflow:'hidden',
-                  cursor: (owned || canBuy) ? 'pointer' : 'default',
                   border: `1px solid ${active ? ac : 'var(--border)'}`,
                   background: `linear-gradient(180deg,
                     ${active ? 'rgba(0,229,255,.06)' : 'rgba(20,27,34,.55)'} 0%,
@@ -576,7 +574,7 @@ export default function ShopPage({ ctx }) {
                   boxShadow: active ? `0 0 22px ${ac}44` : '0 6px 18px rgba(0,0,0,.35)',
                   transition:'transform .15s, box-shadow .15s, border-color .15s',
                 }}
-                onMouseOver={e => { if (owned || canBuy) { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow=`0 10px 26px ${ac}33`; } }}
+                onMouseOver={e => { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow=`0 10px 26px ${ac}33`; }}
                 onMouseOut={e  => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow = active ? `0 0 22px ${ac}44` : '0 6px 18px rgba(0,0,0,.35)'; }}
               >
                 {/* Franja de acento superior */}
@@ -718,11 +716,20 @@ export default function ShopPage({ ctx }) {
                   Cancelar
                 </button>
                 {mode === 'buy' ? (
-                  <button onClick={() => buyItem(item)}
-                    style={{ flex:2, padding:'10px 0', borderRadius:10, border:'none',
-                      background:'var(--accent)', color:'#000', fontWeight:800, fontSize:13, cursor:'pointer' }}>
-                    Comprar 🪙 {item.price}
-                  </button>
+                  coins >= item.price ? (
+                    <button onClick={() => buyItem(item)}
+                      style={{ flex:2, padding:'10px 0', borderRadius:10, border:'none',
+                        background:'var(--accent)', color:'#000', fontWeight:800, fontSize:13, cursor:'pointer' }}>
+                      Comprar 🪙 {item.price}
+                    </button>
+                  ) : (
+                    <button disabled
+                      style={{ flex:2, padding:'10px 0', borderRadius:10, border:'none',
+                        background:'var(--surface2)', color:'var(--muted)', fontWeight:800,
+                        fontSize:13, cursor:'default' }}>
+                      Te faltan 🪙 {item.price - coins}
+                    </button>
+                  )
                 ) : (
                   <button onClick={() => equipItem(item)}
                     style={{ flex:2, padding:'10px 0', borderRadius:10, border:'none',
