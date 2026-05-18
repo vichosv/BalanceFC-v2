@@ -6,6 +6,7 @@ import { computeLogros } from '../utils/logros';
 import HexRadar from '../components/HexRadar';
 import StatEvolutionChart from '../components/StatEvolutionChart';
 import LogrosGrid from '../components/LogrosGrid';
+import PlayerCard from '../components/PlayerCard';
 import '../components/PlayerCard.css';
 
 const POSITIONS = {
@@ -107,19 +108,11 @@ export default function PlayerProfileSheet({ player, onClose }) {
           <div style={{ position:'relative', zIndex:1, width:'100%',
             display:'flex', alignItems:'center', gap:18,
             padding:'20px 22px' }}>
-            {/* Foto / card mini */}
-            {player.photo ? (
-              <img src={player.photo} alt=""
-                style={{ width:78, height:78, borderRadius:14, objectFit:'cover',
-                  border:'2.5px solid var(--accent)',
-                  boxShadow:'0 2px 8px rgba(0,0,0,.45)', flexShrink:0 }} />
-            ) : (
-              <div className={`fc ${t}`}
-                style={{ width:62, aspectRatio:'.68', borderRadius:9, overflow:'hidden',
-                  flexShrink:0, boxShadow:'0 2px 8px rgba(0,0,0,.45)' }}>
-                <div className="fc-bg" />
-              </div>
-            )}
+            {/* Carta real (muestra marco, acento, sticker, etc.) */}
+            <div style={{ width:96, flexShrink:0,
+              filter:'drop-shadow(0 4px 12px rgba(0,0,0,.5))' }}>
+              <PlayerCard player={player} />
+            </div>
 
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontWeight:900, fontSize:25, lineHeight:1.1,
