@@ -90,16 +90,12 @@ export default function PlayerProfileSheet({ player, onClose }) {
         borderRadius:'20px 20px 0 0',
         paddingBottom:40 }}>
 
-        {/* Handle + cerrar */}
-        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 2px' }}>
-          <div style={{ width:36, height:4, borderRadius:2, background:'var(--border2)' }} />
+        {/* Handle (tocar fuera del panel cierra) */}
+        <div onClick={onClose}
+          style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px',
+            cursor:'pointer' }}>
+          <div style={{ width:40, height:4, borderRadius:2, background:'rgba(255,255,255,.5)' }} />
         </div>
-        <button onClick={onClose}
-          style={{ position:'absolute', top:12, right:16, background:'var(--surface2)',
-            border:'none', borderRadius:8, color:'var(--muted)', cursor:'pointer',
-            fontWeight:700, fontSize:16, padding:'4px 10px' }}>
-          ✕
-        </button>
 
         {/* ── Hero: info sobre la imagen del sheet ── */}
         <div style={{
@@ -116,11 +112,11 @@ export default function PlayerProfileSheet({ player, onClose }) {
               <img src={player.photo} alt=""
                 style={{ width:78, height:78, borderRadius:14, objectFit:'cover',
                   border:'2.5px solid var(--accent)',
-                  boxShadow:'0 6px 20px rgba(0,0,0,.55)', flexShrink:0 }} />
+                  boxShadow:'0 2px 8px rgba(0,0,0,.45)', flexShrink:0 }} />
             ) : (
               <div className={`fc ${t}`}
                 style={{ width:62, aspectRatio:'.68', borderRadius:9, overflow:'hidden',
-                  flexShrink:0, boxShadow:'0 6px 20px rgba(0,0,0,.55)' }}>
+                  flexShrink:0, boxShadow:'0 2px 8px rgba(0,0,0,.45)' }}>
                 <div className="fc-bg" />
               </div>
             )}
@@ -128,7 +124,7 @@ export default function PlayerProfileSheet({ player, onClose }) {
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontWeight:900, fontSize:25, lineHeight:1.1,
                 overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                textShadow: wallpaperBg ? '0 2px 8px rgba(0,0,0,.85)' : 'none' }}>
+                textShadow: wallpaperBg ? '0 1px 3px rgba(0,0,0,.95)' : 'none' }}>
                 {player.emoji || '⚽'} {player.nickname}
               </div>
               {titleItem && (
@@ -147,13 +143,13 @@ export default function PlayerProfileSheet({ player, onClose }) {
               )}
               <div style={{ fontSize:14, marginTop:5,
                 color: wallpaperBg ? 'rgba(255,255,255,.85)' : 'var(--muted)',
-                textShadow: wallpaperBg ? '0 1px 6px rgba(0,0,0,.8)' : 'none' }}>
+                textShadow: wallpaperBg ? '0 1px 3px rgba(0,0,0,.95)' : 'none' }}>
                 {POSITIONS[player.position] || 'Sin posición'}
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:7 }}>
                 <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:32,
                   fontWeight:900, color:'var(--accent)', lineHeight:1,
-                  textShadow: wallpaperBg ? '0 2px 8px rgba(0,0,0,.85)' : 'none' }}>{ov}</span>
+                  textShadow: wallpaperBg ? '0 1px 3px rgba(0,0,0,.95)' : 'none' }}>{ov}</span>
                 <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase',
                   letterSpacing:.5,
                   color: wallpaperBg ? 'rgba(255,255,255,.75)' : 'var(--muted)' }}>OVR</span>
