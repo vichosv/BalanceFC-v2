@@ -65,13 +65,17 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
   const titleItem      = find(equipped.title);
 
   const accentColor    = accentItem?.color || null;
-  // Hardcoded items use CSS classes; custom items use inline CSS
-  const patternClass   = patternItem?.id?.startsWith('pattern_') && !patternItem?.cssBackground
-    ? `fp-${patternItem.id.replace('pattern_', '')}` : '';
-  const frameClass     = frameItem?.id?.startsWith('frame_') && !frameItem?.cssBoxShadow
+  // Defaults (id frame_/pattern_) SIEMPRE usan su clase CSS animada,
+  // aunque un override de admin haya guardado cssBoxShadow/cssBackground.
+  // Solo los custom (id no-default) usan CSS inline.
+  const isDefaultFrame   = frameItem?.id?.startsWith('frame_');
+  const isDefaultPattern = patternItem?.id?.startsWith('pattern_');
+  const frameClass     = isDefaultFrame
     ? `ff-${frameItem.id.replace('frame_', '')}` : '';
-  const patternStyle   = patternItem?.cssBackground ? { background: patternItem.cssBackground } : null;
-  const frameStyle     = frameItem?.cssBoxShadow    ? { boxShadow:  frameItem.cssBoxShadow   } : null;
+  const patternClass   = isDefaultPattern
+    ? `fp-${patternItem.id.replace('pattern_', '')}` : '';
+  const patternStyle   = (!isDefaultPattern && patternItem?.cssBackground) ? { background: patternItem.cssBackground } : null;
+  const frameStyle     = (!isDefaultFrame   && frameItem?.cssBoxShadow)    ? { boxShadow:  frameItem.cssBoxShadow   } : null;
   const backgroundStyle= backgroundItem?.cssBackground ? { background: backgroundItem.cssBackground } : null;
 
   const statsHTML = SK.map(s => (
