@@ -11,6 +11,7 @@ import StatEvolutionChart from '../components/StatEvolutionChart';
 import { computeLogros } from '../utils/logros';
 import LogrosGrid from '../components/LogrosGrid';
 import { useToast } from '../components/ToastProvider';
+import { shareNodeAsImage } from '../utils/shareImage';
 
 const POSITIONS = [
   { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -48,7 +49,24 @@ export default function ProfilePage({ ctx }) {
   const [editing,  setEditing]  = useState(false);
   const [form,     setForm]     = useState(null);
   const [saving,   setSaving]   = useState(false);
+  const [sharing,  setSharing]  = useState(false);
   const fileRef = useRef();
+  const cardRef = useRef();
+
+  async function shareCard() {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      await shareNodeAsImage(cardRef.current, {
+        filename: `${player.nickname || 'carta'}-balancefc.png`,
+        text: `${player.nickname} · OVR ${overall(player)} — BalanceFC ⚽`,
+      });
+    } catch (e) {
+      toast.error('No se pudo compartir la imagen');
+    } finally {
+      setSharing(false);
+    }
+  }
 
   function startEdit() {
     setForm({ nickname: player.nickname, position: player.position, photo: player.photo || null });
@@ -117,7 +135,7 @@ export default function ProfilePage({ ctx }) {
         <div style={{ display:'flex', gap:16, alignItems:'center',
           flexWrap:'wrap', justifyContent:'center' }}>
           {/* Carta */}
-          <div style={{ width:155, flexShrink:0 }}>
+          <div ref={cardRef} style={{ width:155, flexShrink:0 }}>
             <PlayerCard player={displayPlayer} />
           </div>
 
@@ -179,10 +197,16 @@ export default function ProfilePage({ ctx }) {
           <span style={{ fontSize:13, fontWeight:700, color:'var(--accent)' }}>
             🪙 {player.coins || 0} goles
           </span>
-          {!editing && (
-            <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 16px' }}
-              onClick={startEdit}>✏️ Editar perfil</button>
-          )}
+          <div style={{ display:'flex', gap:8 }}>
+            <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 14px' }}
+              disabled={sharing} onClick={shareCard}>
+              {sharing ? '...' : '📲 Compartir'}
+            </button>
+            {!editing && (
+              <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 14px' }}
+                onClick={startEdit}>✏️ Editar</button>
+            )}
+          </div>
         </div>
       </div>
 
