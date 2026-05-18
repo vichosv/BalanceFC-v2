@@ -129,7 +129,7 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
           <div className="fc-photo" style={{
             backgroundImage: `url(${player.photo})`,
             // Si hay fondo custom equipado, atenuar la foto para que se vea
-            ...(backgroundStyle ? { opacity: .42 } : {}),
+            ...(backgroundStyle ? { opacity: .65 } : {}),
           }} />
           <div className="fc-photo-overlay" />
         </>
