@@ -171,9 +171,17 @@ export default function ShopPage({ ctx }) {
   const equipped  = player.equipped  || {};
 
   // ── Shop helpers ──────────────────────────────────────────
-  const shopItems  = allItems.filter(i => i.category === cat);
   const isOwned    = item => item.price === 0 || inventory.has(item.id);
   const isEquipped = item => equipped[item.category] === item.id;
+  // Orden: comprados/obtenidos primero, luego por precio ascendente
+  const shopItems  = allItems
+    .filter(i => i.category === cat)
+    .sort((a, b) => {
+      const oa = isOwned(a) ? 0 : 1;
+      const ob = isOwned(b) ? 0 : 1;
+      if (oa !== ob) return oa - ob;
+      return (a.price || 0) - (b.price || 0);
+    });
 
   async function buyItem(item) {
     if (coins < item.price) return;
