@@ -77,8 +77,10 @@ export default function PlayerProfileSheet({ player, onClose }) {
         style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.65)', zIndex:999 }} />
 
       {/* Sheet */}
-      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:1000,
-        maxHeight:'88vh', overflowY:'auto',
+      <div style={{ position:'fixed', bottom:0, left:'50%',
+        transform:'translateX(-50%)',
+        width:'100%', maxWidth:480, zIndex:1000,
+        maxHeight:'90vh', overflowY:'auto',
         backgroundColor:'var(--bg)',
         background: sheetBg,
         backgroundSize: wallpaperBg ? '100% 100%, 100% auto' : 'auto',
@@ -103,8 +105,7 @@ export default function PlayerProfileSheet({ player, onClose }) {
         <div style={{
           position:'relative',
           display:'flex', alignItems:'flex-end',
-          minHeight: wallpaperBg ? '38vw' : 'auto',
-          maxHeight: wallpaperBg ? 280 : 'none',
+          minHeight: wallpaperBg ? 168 : 'auto',
           borderBottom:'1px solid var(--border)',
         }}>
           <div style={{ position:'relative', zIndex:1, width:'100%',
