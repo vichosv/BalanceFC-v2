@@ -112,3 +112,10 @@
   100% { box-shadow: 0 0 0 2px #ff0080, 0 0 22px rgba(255,0,128,.7), 0 0 48px rgba(255,0,128,.3); }
 }
 .ff-rainbow { animation: rainbow-glow 3s linear infinite; }
+
+/* Marco pulsante (late suave) */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 2px #00e5ff, 0 0 10px rgba(0,229,255,.4),  0 0 20px rgba(0,229,255,.15); }
+  50%      { box-shadow: 0 0 0 2px #00e5ff, 0 0 26px rgba(0,229,255,.95), 0 0 52px rgba(0,229,255,.5); }
+}
+.ff-pulse { animation: pulse-glow 1.6s ease-in-out infinite; }
