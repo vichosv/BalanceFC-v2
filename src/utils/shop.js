@@ -20,7 +20,9 @@ export const DEFAULT_SHOP_ITEMS = [
   { id:'frame_ice',      category:'frame', name:'Hielo',     emoji:'❄️', price:8,  desc:'Frío como el acero' },
   { id:'frame_gold',     category:'frame', name:'Dorado',    emoji:'✨', price:10, desc:'Solo para los mejores' },
   { id:'frame_rainbow',  category:'frame', name:'Rainbow',   emoji:'🌈', price:10, desc:'No hay uno igual' },
-  { id:'frame_pulse',    category:'frame', name:'Pulso',     emoji:'💓', price:9,  desc:'Late con energía' },
+  { id:'frame_pulse',     category:'frame', name:'Pulso',       emoji:'💓', price:9, desc:'Late con energía' },
+  { id:'frame_pulsered',  category:'frame', name:'Pulso Rojo',  emoji:'❤️', price:9, desc:'Late en rojo' },
+  { id:'frame_pulsegreen',category:'frame', name:'Pulso Verde', emoji:'💚', price:9, desc:'Late en verde' },
 
   // ── Stickers ───────────────────────────────────────────────
   { id:'sticker_fire',   category:'sticker', name:'Fuego',    emoji:'🔥', price:0,  desc:'Clásico ardiente' },
