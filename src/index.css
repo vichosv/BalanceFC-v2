@@ -247,6 +247,15 @@ input:focus, select:focus { border-color: var(--accent); }
   }
 }
 
+/* ── Scroll horizontal sin barra visible ───────────────── */
+.no-scrollbar {
+  -ms-overflow-style: none;       /* IE/Edge */
+  scrollbar-width: none;          /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar { /* Chrome/Safari */
+  display: none;
+}
+
 /* ── Grid ──────────────────────────────────────────────── */
 .grid-2         { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .players-grid   { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }

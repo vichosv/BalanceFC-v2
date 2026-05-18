@@ -316,7 +316,8 @@ export default function ShopPage({ ctx }) {
       </div>
 
       {/* ── Tabs estilo Valorant (indicador inferior) ── */}
-      <div style={{ display:'flex', gap:2, marginBottom:6, overflowX:'auto',
+      <div className="no-scrollbar" style={{ display:'flex', gap:2, marginBottom:6,
+        overflowX:'auto', WebkitOverflowScrolling:'touch', scrollSnapType:'x proximity',
         borderBottom:'1px solid var(--border)' }}>
         {ALL_TABS.map(c => {
           const on = cat === c.id;
