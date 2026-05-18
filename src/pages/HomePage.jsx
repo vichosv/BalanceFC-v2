@@ -92,25 +92,29 @@ export default function HomePage({ ctx, onNavigate }) {
     <div className="page">
 
       {/* ── Hero ── */}
-      <div style={{ textAlign:'center', padding:'24px 0 24px',
-        background:'radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.1) 0%, transparent 70%)',
-        borderRadius:20, marginBottom:16 }}>
-        <div style={{ fontSize:52, marginBottom:6,
-          filter:'drop-shadow(0 0 20px rgba(0,229,255,.4))' }}>⚽</div>
+      <div className="anim-fade-up" style={{ textAlign:'center', padding:'24px 0 24px',
+        marginBottom:16 }}>
+        <div className="anim-logo" style={{ fontSize:54, marginBottom:6 }}>⚽</div>
         <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
-          fontSize:38, fontWeight:900, letterSpacing:2, lineHeight:1,
+          fontSize:40, fontWeight:900, letterSpacing:2, lineHeight:1,
           background:'linear-gradient(135deg,#fff 0%,var(--accent) 70%)',
-          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+          WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+          filter:'drop-shadow(0 2px 18px rgba(0,200,255,.25))' }}>
           BalanceFC
         </div>
-        <div style={{ color:'var(--muted)', fontSize:12, marginTop:5 }}>
+        <div style={{ color:'var(--muted)', fontSize:12, marginTop:5,
+          letterSpacing:.5 }}>
           Fút de barrio · Stats y equipos justos
         </div>
 
         {player && (
-          <div style={{ display:'inline-flex', alignItems:'center', gap:12,
-            marginTop:16, background:'var(--surface)', border:'1px solid var(--border)',
-            borderRadius:14, padding:'10px 18px' }}>
+          <div className="anim-scale-in d1" style={{ display:'inline-flex',
+            alignItems:'center', gap:12, marginTop:16,
+            background:'rgba(14,19,24,.7)', backdropFilter:'blur(10px)',
+            WebkitBackdropFilter:'blur(10px)',
+            border:'1px solid rgba(0,212,255,.3)',
+            borderRadius:14, padding:'10px 18px',
+            boxShadow:'0 6px 22px rgba(0,150,255,.15)' }}>
             {player.photo
               ? <img src={player.photo} alt="" style={{ width:40, height:40,
                   borderRadius:'50%', objectFit:'cover', border:'2px solid var(--accent)' }} />
@@ -160,9 +164,12 @@ export default function HomePage({ ctx, onNavigate }) {
           { val: players.length, lbl: 'Jugadores' },
           { val: matches.length, lbl: 'Partidos'  },
           { val: myGoals,        lbl: sid ? 'Goles temp.' : 'Goles' },
-        ].map(({ val, lbl }) => (
-          <div key={lbl} style={{ background:'var(--surface)', border:'1px solid var(--border)',
-            borderRadius:12, padding:'12px 8px', textAlign:'center' }}>
+        ].map(({ val, lbl }, i) => (
+          <div key={lbl} className={`anim-fade-up d${i + 1}`}
+            style={{ background:'rgba(14,19,24,.7)',
+              backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)',
+              border:'1px solid rgba(0,212,255,.14)',
+              borderRadius:12, padding:'12px 8px', textAlign:'center' }}>
             <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
               fontSize:26, fontWeight:900, color:'var(--accent)', lineHeight:1 }}>{val}</div>
             <div style={{ fontSize:10, color:'var(--muted)', fontWeight:700,
@@ -173,8 +180,12 @@ export default function HomePage({ ctx, onNavigate }) {
 
       {/* ── Próximo partido + countdown ── */}
       <div onClick={() => onNavigate?.('conv')}
+        className="anim-fade-up d2"
         style={{ marginBottom:16, borderRadius:14, overflow:'hidden', cursor:'pointer',
-          border:'1px solid rgba(255,215,64,.25)', background:'rgba(255,215,64,.05)' }}>
+          border:'1px solid rgba(255,215,64,.3)',
+          background:'rgba(255,215,64,.05)',
+          backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)',
+          boxShadow:'0 6px 22px rgba(255,180,0,.1)' }}>
 
         {nextConv ? (
           <>
@@ -243,8 +254,11 @@ export default function HomePage({ ctx, onNavigate }) {
       {/* ── Ranking ── */}
       {myRank && (
         <div onClick={() => onNavigate?.('ranking')}
+          className="anim-fade-up d3"
           style={{ marginBottom:16, borderRadius:14, overflow:'hidden', cursor:'pointer',
-            border:'1px solid var(--border)', background:'var(--surface)' }}>
+            border:'1px solid rgba(0,212,255,.14)',
+            background:'rgba(14,19,24,.7)',
+            backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)' }}>
           <div style={{ padding:'10px 16px', borderBottom:'1px solid var(--border)',
             display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
@@ -263,8 +277,11 @@ export default function HomePage({ ctx, onNavigate }) {
       {/* ── Último partido ── */}
       {lastMatch && (
         <div onClick={() => onNavigate?.('historial')}
+          className="anim-fade-up d4"
           style={{ padding:'12px 16px', borderRadius:14, cursor:'pointer',
-            background:'var(--surface)', border:'1px solid var(--border)',
+            background:'rgba(14,19,24,.7)',
+            backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)',
+            border:'1px solid rgba(0,212,255,.14)',
             display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div>
             <div style={{ fontSize:11, color:'var(--muted)', fontWeight:700,
