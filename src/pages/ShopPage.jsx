@@ -394,13 +394,12 @@ export default function ShopPage({ ctx }) {
         <div>
           {/* Sin partido */}
           {!conv ? (
-            <div className="card" style={{ textAlign:'center', color:'var(--muted)', padding:'28px 16px' }}>
-              <div style={{ fontSize:32, marginBottom:8 }}>📭</div>
-              <div style={{ fontWeight:700 }}>No hay partido próximo</div>
-              <div style={{ fontSize:12, marginTop:4 }}>
-                Las apuestas se abren cuando hay convocatoria
-              </div>
-            </div>
+            <EmptyState
+              icon="🎰"
+              title="Sin partido próximo"
+              subtitle="Las apuestas se abren cuando hay una convocatoria activa."
+              compact
+            />
           ) : (
             <>
               {/* Info partido */}

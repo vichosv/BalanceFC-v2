@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useConvocatorias, createConvocatoria, joinConvocatoria, leaveConvocatoria, deleteConvocatoria } from '../hooks/useConvocatorias';
 import { usePlayer } from '../hooks/usePlayer';
+import EmptyState from '../components/EmptyState';
 
 const FORMATS   = ['Libre','4v4','5v5','6v6','7v7','Triangular (6v6v6)'];
 const POS_EMOJI = { GK:'🧤', DEF:'🛡️', MID:'⚙️', WNG:'⚡', FWD:'🎯' };
@@ -121,10 +122,11 @@ export default function ConvPage({ ctx }) {
 
       {/* ── Empty ── */}
       {convocatorias.length === 0 && !showForm && (
-        <div style={{ textAlign:'center', padding:'48px 0', color:'var(--muted)' }}>
-          <div style={{ fontSize:40, marginBottom:8 }}>📭</div>
-          <div>No hay partidos convocados</div>
-        </div>
+        <EmptyState
+          icon="📋"
+          title="Sin convocatorias"
+          subtitle="No hay ningún partido convocado. Cuando se cree uno, vas a poder anotarte acá."
+        />
       )}
 
       {/* ── List ── */}

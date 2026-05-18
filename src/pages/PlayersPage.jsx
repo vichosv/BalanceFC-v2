@@ -6,6 +6,7 @@ import PlayerProfileSheet from '../components/PlayerProfileSheet';
 import '../components/PlayerCard.css';
 import { overall, SK } from '../utils/stats';
 import { seedDummyPlayers } from '../utils/seedPlayers';
+import EmptyState from '../components/EmptyState';
 import { MANUAL_LOGROS, TIER_COLOR } from '../utils/logros';
 
 const POSITIONS = {
@@ -93,10 +94,11 @@ export default function PlayersPage({ ctx }) {
             onChange={e => setSearch(e.target.value)} style={{ marginBottom:10 }} />
 
           {sorted.length === 0 && (
-            <div style={{ textAlign:'center', padding:'48px 0', color:'var(--muted)' }}>
-              <div style={{ fontSize:40, marginBottom:8 }}>📋</div>
-              <div>No hay jugadores aún</div>
-            </div>
+            <EmptyState
+              icon="👥"
+              title="Sin jugadores"
+              subtitle="Todavía no hay nadie registrado. Los jugadores aparecen acá cuando crean su perfil."
+            />
           )}
 
           <div className="players-grid">

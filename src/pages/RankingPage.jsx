@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSeasons } from '../hooks/useSeasons';
 import { useMatches } from '../hooks/useMatches';
 import { overall }    from '../utils/stats';
+import EmptyState from '../components/EmptyState';
 
 // ── Puntos ────────────────────────────────────────────────────
 function calcPts(stats) {
@@ -228,9 +229,12 @@ export default function RankingPage({ ctx }) {
 
       {/* ── Bloques de ranking ── */}
       {ranked.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'32px 0', color:'var(--muted)' }}>
-          Sin datos para este período
-        </div>
+        <EmptyState
+          icon="🏆"
+          title="Sin datos"
+          subtitle="No hay estadísticas para este período todavía. Jugá un partido para aparecer en el ranking."
+          compact
+        />
       ) : (
         blocks.map((block, bi) => {
           const { label, color } = blockLabel(bi);

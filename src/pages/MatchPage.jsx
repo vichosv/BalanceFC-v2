@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { overall, smartScore, teamAvg } from '../utils/stats';
 import { generate2Teams, generate3Teams, remixTeams } from '../utils/teams';
 import FormationView from '../components/FormationView';
+import EmptyState from '../components/EmptyState';
 
 const FORMATS = ['Libre','4v4','5v5','6v6','7v7','Triangular (6v6v6)'];
 const MODES   = [
@@ -140,9 +141,12 @@ export default function MatchPage({ ctx }) {
       </div>
 
       {players.length === 0 && (
-        <div style={{ textAlign:'center', padding:'24px 0', color:'var(--muted)', fontSize:13 }}>
-          No hay jugadores registrados
-        </div>
+        <EmptyState
+          icon="👥"
+          title="Sin jugadores"
+          subtitle="Necesitás jugadores registrados para armar equipos."
+          compact
+        />
       )}
 
       <button className="btn btn-ac btn-full" onClick={genTeams}>⚡ Generar equipos</button>

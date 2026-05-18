@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMatches, logMatch, deleteMatch, updateMatch, setMatchVideo, castVote } from '../hooks/useMatches';
 import { useSeasons, createSeason, closeSeason, deleteSeason } from '../hooks/useSeasons';
 import { overall } from '../utils/stats';
+import EmptyState from '../components/EmptyState';
 
 const FORMATS    = ['Libre','4v4','5v5','6v6','7v7','Triangular (6v6v6)'];
 const TEAM_COLOR = { A:'var(--green)', B:'var(--blue)', C:'var(--orange)' };
@@ -404,10 +405,11 @@ export default function HistoryPage({ ctx }) {
 
           {/* ── Lista de partidos ── */}
           {matches.length === 0 && !showForm && (
-            <div style={{ textAlign:'center', padding:'48px 0', color:'var(--muted)' }}>
-              <div style={{ fontSize:40, marginBottom:8 }}>📭</div>
-              <div>No hay partidos registrados</div>
-            </div>
+            <EmptyState
+              icon="📊"
+              title="Sin partidos aún"
+              subtitle="Cuando se registre el primer partido vas a ver acá el historial, goles y resultados."
+            />
           )}
 
           {matches.map(m => (
