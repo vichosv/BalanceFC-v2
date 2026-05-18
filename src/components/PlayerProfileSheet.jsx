@@ -91,11 +91,26 @@ export default function PlayerProfileSheet({ player, onClose }) {
         borderRadius:'20px 20px 0 0',
         paddingBottom:40 }}>
 
-        {/* Handle (tocar fuera del panel cierra) */}
-        <div onClick={onClose}
-          style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px',
-            cursor:'pointer' }}>
-          <div style={{ width:40, height:4, borderRadius:2, background:'rgba(255,255,255,.5)' }} />
+        {/* Barra superior fija: handle + cerrar (siempre accesible) */}
+        <div style={{ position:'sticky', top:0, zIndex:20,
+          display:'flex', alignItems:'center',
+          padding:'10px 12px 8px' }}>
+          <div onClick={onClose}
+            style={{ flex:1, display:'flex', justifyContent:'center',
+              cursor:'pointer' }}>
+            <div style={{ width:40, height:4, borderRadius:2,
+              background:'rgba(255,255,255,.6)' }} />
+          </div>
+          <button onClick={onClose}
+            aria-label="Cerrar"
+            style={{ position:'absolute', top:8, right:12,
+              width:34, height:34, borderRadius:'50%',
+              background:'rgba(0,0,0,.6)', border:'1px solid rgba(255,255,255,.2)',
+              color:'#fff', fontSize:16, fontWeight:700, cursor:'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              backdropFilter:'blur(4px)' }}>
+            ✕
+          </button>
         </div>
 
         {/* ── Hero: info sobre la imagen del sheet ── */}
