@@ -39,6 +39,13 @@ export default function PlayerProfileSheet({ player, onClose }) {
   const titleItem    = findItem(equipped.title);
   const wallpaperItem = findItem(equipped.wallpaper);
   const wallpaperBg  = wallpaperItem?.cssBackground || null;
+  const wpImg        = wallpaperItem?.imageUrl || null;
+
+  // Fondo del sheet: imagen visible arriba, se funde a oscuro hacia abajo
+  const sheetBg = !wallpaperBg ? 'var(--bg)'
+    : wpImg
+      ? `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.30) 14%, rgba(5,8,12,.88) 36%, var(--bg) 54%), url(${wpImg})`
+      : `linear-gradient(180deg, rgba(5,8,12,0) 0%, rgba(5,8,12,.45) 18%, var(--bg) 46%), ${wallpaperBg}`;
 
   const h = player.history  || {};
   const s = sid ? (player.seasons?.[sid] || {}) : null;
@@ -72,7 +79,13 @@ export default function PlayerProfileSheet({ player, onClose }) {
       {/* Sheet */}
       <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:1000,
         maxHeight:'88vh', overflowY:'auto',
-        background:'var(--bg)', borderRadius:'20px 20px 0 0',
+        backgroundColor:'var(--bg)',
+        background: sheetBg,
+        backgroundSize: wallpaperBg ? '100% 100%, 100% auto' : 'auto',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'local',
+        borderRadius:'20px 20px 0 0',
         paddingBottom:40 }}>
 
         {/* Handle + cerrar */}
@@ -86,24 +99,14 @@ export default function PlayerProfileSheet({ player, onClose }) {
           ✕
         </button>
 
-        {/* ── Hero: info SOBRE el banner (imagen entera, ratio 5:2) ── */}
+        {/* ── Hero: info sobre la imagen del sheet ── */}
         <div style={{
           position:'relative',
           display:'flex', alignItems:'flex-end',
-          borderBottom: wallpaperBg ? '3px solid rgba(0,0,0,.65)' : '1px solid var(--border)',
-          ...(wallpaperBg ? {
-            background: wallpaperBg,
-            backgroundSize: 'cover',          // imagen ya es 5:2 → se ve entera
-            backgroundPosition: 'center',
-            aspectRatio: '5 / 2',
-          } : {}),
+          minHeight: wallpaperBg ? '38vw' : 'auto',
+          maxHeight: wallpaperBg ? 280 : 'none',
+          borderBottom:'1px solid var(--border)',
         }}>
-          {/* Degradado solo abajo: imagen visible arriba, texto legible abajo */}
-          {wallpaperBg && (
-            <div style={{ position:'absolute', inset:0,
-              background:'linear-gradient(180deg, transparent 35%, rgba(0,0,0,.4) 65%, rgba(0,0,0,.85) 100%)' }} />
-          )}
-
           <div style={{ position:'relative', zIndex:1, width:'100%',
             display:'flex', alignItems:'center', gap:18,
             padding:'20px 22px' }}>
