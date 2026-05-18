@@ -77,7 +77,7 @@ export default function PlayerProfileSheet({ player, onClose }) {
         style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.65)', zIndex:999 }} />
 
       {/* Sheet */}
-      <div style={{ position:'fixed', bottom:0, left:'50%',
+      <div className="no-scrollbar" style={{ position:'fixed', bottom:0, left:'50%',
         transform:'translateX(-50%)',
         width:'100%', maxWidth:480, zIndex:1000,
         maxHeight:'90vh', overflowY:'auto',
@@ -258,20 +258,28 @@ export default function PlayerProfileSheet({ player, onClose }) {
             </>
           )}
 
-          {/* Logros */}
+          {/* Logros — solo los obtenidos */}
           {(() => {
             const { unlocked, locked } = computeLogros(player, { mvpCount });
-            if (!unlocked.length && !locked.length) return null;
+            const total = unlocked.length + locked.length;
+            if (!total) return null;
             return (
               <>
                 <div style={{ fontSize:10, fontWeight:700, color:'var(--muted)',
                   textTransform:'uppercase', letterSpacing:1, margin:'16px 0 10px' }}>
                   Logros
                   <span style={{ marginLeft:8, color:'var(--accent)' }}>
-                    {unlocked.length}/{unlocked.length + locked.length}
+                    {unlocked.length}/{total}
                   </span>
                 </div>
-                <LogrosGrid unlocked={unlocked} locked={locked} />
+                {unlocked.length === 0 ? (
+                  <div style={{ fontSize:12, color:'var(--muted)',
+                    padding:'12px 0' }}>
+                    Todavía no desbloqueó ningún logro
+                  </div>
+                ) : (
+                  <LogrosGrid unlocked={unlocked} locked={[]} />
+                )}
               </>
             );
           })()}
