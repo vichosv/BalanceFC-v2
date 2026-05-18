@@ -152,6 +152,18 @@ export default function RankingPage({ ctx }) {
   // ── Química ──
   const chemistry = computeChemistry(matches).slice(0, 6);
 
+  // ── Tabla de goleadores / asistidores (según período) ──
+  const scorers = [...players]
+    .map(p => ({ p, n: getStats(p).goals || 0 }))
+    .filter(x => x.n > 0)
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 8);
+  const assisters = [...players]
+    .map(p => ({ p, n: getStats(p).assists || 0 }))
+    .filter(x => x.n > 0)
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 8);
+
   // ── Bloques de 4 ──
   const blocks = [];
   for (let i = 0; i < ranked.length; i += 4) blocks.push(ranked.slice(i, i+4));
@@ -226,6 +238,50 @@ export default function RankingPage({ ctx }) {
           </button>
         ))}
       </div>
+
+      {/* ── Tabla de goleadores / asistidores ── */}
+      {(scorers.length > 0 || assisters.length > 0) && (
+        <div className="card" style={{ marginBottom:14 }}>
+          {[
+            { title:'⚽ Goleadores',  list:scorers,   color:'var(--green)' },
+            { title:'🅰️ Asistidores', list:assisters, color:'var(--blue)' },
+          ].map(({ title, list, color }) => (
+            <div key={title} style={{ marginBottom: title.includes('Gol') ? 16 : 0 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+                textTransform:'uppercase', letterSpacing:1, marginBottom:8 }}>
+                {title}
+              </div>
+              {list.length === 0 ? (
+                <div style={{ fontSize:12, color:'var(--muted)', padding:'4px 0' }}>
+                  Sin datos
+                </div>
+              ) : list.map(({ p, n }, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
+                return (
+                  <div key={p.uid} style={{ display:'flex', alignItems:'center',
+                    gap:10, padding:'6px 0',
+                    borderBottom: i < list.length-1 ? '1px solid var(--border)' : 'none' }}>
+                    <div style={{ width:24, textAlign:'center',
+                      fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700,
+                      fontSize: i < 3 ? 16 : 13,
+                      color: i < 3 ? 'var(--yellow)' : 'var(--muted)' }}>
+                      {medal}
+                    </div>
+                    <div style={{ flex:1, fontSize:14, fontWeight:600,
+                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {p.nickname}
+                    </div>
+                    <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
+                      fontSize:18, fontWeight:900, color }}>
+                      {n}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Bloques de ranking ── */}
       {ranked.length === 0 ? (
