@@ -204,21 +204,16 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
       </div>
       )}
 
-      {/* En modo imageOnly: igual mostrar posición + sticker arriba-derecha */}
-      {imageOnly && (
-        <div style={{ position:'absolute', top:8, right:8, zIndex:3,
-          display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-          <div style={{ fontSize:20, lineHeight:1,
-            filter:'drop-shadow(0 1px 3px rgba(0,0,0,.6))' }}>{pos.emoji}</div>
-          {stickerItem && (
-            <div style={{ fontSize:24, lineHeight:1,
-              filter:'drop-shadow(0 1px 3px rgba(0,0,0,.55))' }}>
-              {stickerItem.imageUrl
-                ? <img src={stickerItem.imageUrl} alt=""
-                    style={{ width:30, height:30, objectFit:'contain' }} />
-                : stickerItem.emoji}
-            </div>
-          )}
+      {/* En modo imageOnly: solo el sticker, abajo-centro */}
+      {imageOnly && stickerItem && (
+        <div style={{ position:'absolute', bottom:10, left:'50%',
+          transform:'translateX(-50%)', zIndex:3,
+          fontSize:28, lineHeight:1,
+          filter:'drop-shadow(0 2px 5px rgba(0,0,0,.6))' }}>
+          {stickerItem.imageUrl
+            ? <img src={stickerItem.imageUrl} alt=""
+                style={{ width:34, height:34, objectFit:'contain' }} />
+            : stickerItem.emoji}
         </div>
       )}
     </div>
