@@ -704,9 +704,22 @@ export default function ShopPage({ ctx }) {
                 display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
               <div style={{ fontSize:13, fontWeight:700, color:'var(--muted)',
                 textTransform:'uppercase', letterSpacing:1 }}>Vista previa</div>
-              <div style={{ width:170 }}>
-                <PlayerCard player={simPlayer} />
-              </div>
+              {item.category === 'wallpaper' ? (
+                // El wallpaper es el fondo del perfil: mostrar la carta sobre él
+                <div style={{ width:'100%', borderRadius:14, overflow:'hidden',
+                  border:'1px solid var(--border)',
+                  background: item.cssBackground,
+                  backgroundSize:'cover', backgroundPosition:'center',
+                  padding:'22px 0', display:'flex', justifyContent:'center' }}>
+                  <div style={{ width:150 }}>
+                    <PlayerCard player={player} />
+                  </div>
+                </div>
+              ) : (
+                <div style={{ width:170 }}>
+                  <PlayerCard player={simPlayer} />
+                </div>
+              )}
               <div style={{ textAlign:'center' }}>
                 <div style={{ fontSize:16, fontWeight:800 }}>{item.emoji} {item.name}</div>
                 <div style={{ fontSize:12, color:'var(--muted)', marginTop:4 }}>{item.desc}</div>
