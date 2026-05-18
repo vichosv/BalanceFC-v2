@@ -182,9 +182,9 @@ export default function PlayerProfileSheet({ player, onClose }) {
         {/* ── Stats globales (fondo para legibilidad sobre el wallpaper) ── */}
         <div style={{ padding:'16px 20px 0',
           ...(wallpaperBg ? {
-            background:'rgba(5,8,12,.34)',
-            backdropFilter:'blur(4px)',
-            WebkitBackdropFilter:'blur(4px)',
+            background:'rgba(5,8,12,.25)',
+            backdropFilter:'blur(3px)',
+            WebkitBackdropFilter:'blur(3px)',
             borderRadius:'18px 18px 0 0',
             borderTop:'1px solid rgba(255,255,255,.08)',
             marginTop:8,
