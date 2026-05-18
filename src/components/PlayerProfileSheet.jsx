@@ -86,69 +86,81 @@ export default function PlayerProfileSheet({ player, onClose }) {
           ✕
         </button>
 
-        {/* ── Banner (wallpaper) — banda nítida arriba ── */}
-        {wallpaperBg && (
-          <div style={{
-            height: 110,
+        {/* ── Hero: info SOBRE el banner (imagen visible arriba) ── */}
+        <div style={{
+          position:'relative',
+          display:'flex', alignItems:'flex-end',
+          minHeight: wallpaperBg ? 170 : 'auto',
+          borderBottom: wallpaperBg ? '2px solid var(--accent)' : '1px solid var(--border)',
+          ...(wallpaperBg ? {
             background: wallpaperBg,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            borderBottom: '2px solid var(--accent)',
-          }} />
-        )}
-
-        {/* ── Hero info (fondo oscuro normal, separado del banner) ── */}
-        <div style={{
-          display:'flex', alignItems:'center', gap:16,
-          padding:'16px 20px',
-          borderBottom:'1px solid var(--border)',
+          } : {}),
         }}>
-          {/* Foto / card mini */}
-          {player.photo ? (
-            <img src={player.photo} alt=""
-              style={{ width:64, height:64, borderRadius:12, objectFit:'cover',
-                border:'2px solid var(--accent)',
-                boxShadow:'0 6px 18px rgba(0,0,0,.4)', flexShrink:0 }} />
-          ) : (
-            <div className={`fc ${t}`}
-              style={{ width:52, aspectRatio:'.68', borderRadius:8, overflow:'hidden',
-                flexShrink:0 }}>
-              <div className="fc-bg" />
-            </div>
+          {/* Degradado solo abajo: imagen visible arriba, texto legible abajo */}
+          {wallpaperBg && (
+            <div style={{ position:'absolute', inset:0,
+              background:'linear-gradient(180deg, transparent 25%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.82) 100%)' }} />
           )}
 
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontWeight:900, fontSize:22, lineHeight:1.1,
-              overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-              {player.emoji || '⚽'} {player.nickname}
-            </div>
-            {titleItem && (
-              <div style={{ marginTop:5 }}>
-                <span style={{
-                  display:'inline-block',
-                  background:'rgba(0,229,255,.18)',
-                  border:'1px solid var(--accent)',
-                  borderRadius:14, padding:'2px 10px',
-                  fontSize:10, fontWeight:700, letterSpacing:1,
-                  color:'var(--accent)', textTransform:'uppercase',
-                }}>
-                  ⟨ {titleItem.name} ⟩
-                </span>
+          <div style={{ position:'relative', zIndex:1, width:'100%',
+            display:'flex', alignItems:'center', gap:16,
+            padding:'16px 20px' }}>
+            {/* Foto / card mini */}
+            {player.photo ? (
+              <img src={player.photo} alt=""
+                style={{ width:64, height:64, borderRadius:12, objectFit:'cover',
+                  border:'2px solid var(--accent)',
+                  boxShadow:'0 6px 18px rgba(0,0,0,.5)', flexShrink:0 }} />
+            ) : (
+              <div className={`fc ${t}`}
+                style={{ width:52, aspectRatio:'.68', borderRadius:8, overflow:'hidden',
+                  flexShrink:0, boxShadow:'0 6px 18px rgba(0,0,0,.5)' }}>
+                <div className="fc-bg" />
               </div>
             )}
-            <div style={{ fontSize:13, color:'var(--muted)', marginTop:4 }}>
-              {POSITIONS[player.position] || 'Sin posición'}
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6 }}>
-              <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28,
-                fontWeight:900, color:'var(--accent)', lineHeight:1 }}>{ov}</span>
-              <span style={{ fontSize:11, color:'var(--muted)',
-                fontWeight:700, textTransform:'uppercase', letterSpacing:.5 }}>OVR</span>
-              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px',
-                borderRadius:6, background:'var(--surface2)',
-                color:'var(--muted)', textTransform:'uppercase', letterSpacing:.5 }}>
-                {t}
-              </span>
+
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontWeight:900, fontSize:22, lineHeight:1.1,
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                textShadow: wallpaperBg ? '0 2px 8px rgba(0,0,0,.85)' : 'none' }}>
+                {player.emoji || '⚽'} {player.nickname}
+              </div>
+              {titleItem && (
+                <div style={{ marginTop:5 }}>
+                  <span style={{
+                    display:'inline-block',
+                    background:'rgba(0,229,255,.22)',
+                    border:'1px solid var(--accent)',
+                    borderRadius:14, padding:'2px 10px',
+                    fontSize:10, fontWeight:700, letterSpacing:1,
+                    color:'var(--accent)', textTransform:'uppercase',
+                  }}>
+                    ⟨ {titleItem.name} ⟩
+                  </span>
+                </div>
+              )}
+              <div style={{ fontSize:13, marginTop:4,
+                color: wallpaperBg ? 'rgba(255,255,255,.85)' : 'var(--muted)',
+                textShadow: wallpaperBg ? '0 1px 6px rgba(0,0,0,.8)' : 'none' }}>
+                {POSITIONS[player.position] || 'Sin posición'}
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6 }}>
+                <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:28,
+                  fontWeight:900, color:'var(--accent)', lineHeight:1,
+                  textShadow: wallpaperBg ? '0 2px 8px rgba(0,0,0,.85)' : 'none' }}>{ov}</span>
+                <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase',
+                  letterSpacing:.5,
+                  color: wallpaperBg ? 'rgba(255,255,255,.75)' : 'var(--muted)' }}>OVR</span>
+                <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px',
+                  borderRadius:6,
+                  background: wallpaperBg ? 'rgba(0,0,0,.55)' : 'var(--surface2)',
+                  color: wallpaperBg ? '#fff' : 'var(--muted)',
+                  textTransform:'uppercase', letterSpacing:.5 }}>
+                  {t}
+                </span>
+              </div>
             </div>
           </div>
         </div>
