@@ -546,7 +546,8 @@ export default function ShopPage({ ctx }) {
             </button>
           )}
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div style={{ display:'grid',
+            gridTemplateColumns:'repeat(auto-fill, minmax(104px, 1fr))', gap:8 }}>
           {shopItems.map(item => {
             const owned    = isOwned(item);
             const active   = isEquipped(item);
@@ -581,23 +582,23 @@ export default function ShopPage({ ctx }) {
                 {/* Franja de acento superior */}
                 <div style={{ height:3, background:`linear-gradient(90deg, transparent, ${ac}, transparent)` }} />
 
-                {/* Tag categoría + estado */}
-                <div style={{ position:'absolute', top:10, left:10, zIndex:2,
-                  fontSize:9, fontWeight:800, letterSpacing:1, textTransform:'uppercase',
+                {/* Tag categoría */}
+                <div style={{ position:'absolute', top:7, left:8, zIndex:2,
+                  fontSize:8, fontWeight:800, letterSpacing:.5, textTransform:'uppercase',
                   color: ac, opacity:.9 }}>
                   {(CATEGORIES.find(c => c.id === item.category)?.label || '').split(' ')[1] || item.category}
                 </div>
                 {/* Botones admin (horizontal, arriba derecha) */}
                 {isAdmin && (
-                  <div style={{ position:'absolute', top:9, right:8, display:'flex',
-                    gap:5, zIndex:3 }}>
+                  <div style={{ position:'absolute', top:6, right:6, display:'flex',
+                    gap:4, zIndex:3 }}>
                     <button
                       onClick={(e) => { e.stopPropagation(); setAdminForm(itemToForm(item)); }}
                       title="Editar (admin)"
-                      style={{ width:24, height:24,
-                        background:'rgba(0,0,0,.55)', border:'1px solid rgba(0,229,255,.4)',
-                        borderRadius:6, color:'var(--accent)', cursor:'pointer',
-                        fontSize:11, lineHeight:1,
+                      style={{ width:19, height:19,
+                        background:'rgba(0,0,0,.6)', border:'1px solid rgba(0,229,255,.4)',
+                        borderRadius:5, color:'var(--accent)', cursor:'pointer',
+                        fontSize:9, lineHeight:1,
                         display:'flex', alignItems:'center', justifyContent:'center' }}>
                       ✏️
                     </button>
@@ -612,10 +613,10 @@ export default function ShopPage({ ctx }) {
                           if (confirm(msg)) await deleteShopItem(item.id);
                         }}
                         title={DEFAULT_SHOP_ITEMS.some(d => d.id === item.id) ? 'Revertir a default' : 'Eliminar'}
-                        style={{ width:24, height:24,
-                          background:'rgba(0,0,0,.55)', border:'1px solid rgba(255,82,82,.4)',
-                          borderRadius:6, color:'var(--red)', cursor:'pointer',
-                          fontSize:12, lineHeight:1,
+                        style={{ width:19, height:19,
+                          background:'rgba(0,0,0,.6)', border:'1px solid rgba(255,82,82,.4)',
+                          borderRadius:5, color:'var(--red)', cursor:'pointer',
+                          fontSize:10, lineHeight:1,
                           display:'flex', alignItems:'center', justifyContent:'center' }}>
                         ✕
                       </button>
@@ -624,59 +625,53 @@ export default function ShopPage({ ctx }) {
                 )}
 
                 {/* Arte del item */}
-                <div style={{ height:120, display:'flex', alignItems:'center',
+                <div style={{ height:74, display:'flex', alignItems:'center',
                   justifyContent:'center', position:'relative',
                   filter: locked ? 'grayscale(1) brightness(.6)' : 'none' }}>
-                  {/* Glow detrás */}
-                  <div style={{ position:'absolute', width:90, height:90, borderRadius:'50%',
+                  <div style={{ position:'absolute', width:56, height:56, borderRadius:'50%',
                     background:`radial-gradient(circle, ${ac}33 0%, transparent 70%)`,
-                    filter:'blur(8px)' }} />
+                    filter:'blur(6px)' }} />
                   {item.imageUrl ? (
                     <img src={item.imageUrl} alt={item.name}
-                      style={{ maxWidth:'70%', maxHeight:'80%', objectFit:'contain',
+                      style={{ maxWidth:'66%', maxHeight:'70%', objectFit:'contain',
                         position:'relative', zIndex:1,
-                        filter:`drop-shadow(0 4px 14px ${ac}55)` }} />
+                        filter:`drop-shadow(0 3px 10px ${ac}55)` }} />
                   ) : (
-                    <span style={{ fontSize:54, lineHeight:1, position:'relative', zIndex:1,
-                      filter:`drop-shadow(0 4px 14px ${ac}66)` }}>{item.emoji}</span>
+                    <span style={{ fontSize:32, lineHeight:1, position:'relative', zIndex:1,
+                      filter:`drop-shadow(0 3px 10px ${ac}66)` }}>{item.emoji}</span>
                   )}
                 </div>
 
                 {/* Footer: nombre + precio */}
-                <div style={{ padding:'10px 12px 12px',
+                <div style={{ padding:'7px 8px 9px',
                   borderTop:'1px solid var(--border)',
                   background:'rgba(5,8,12,.5)' }}>
                   <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
-                    fontSize:16, fontWeight:800, letterSpacing:.5,
+                    fontSize:13, fontWeight:800, letterSpacing:.3,
                     textTransform:'uppercase', lineHeight:1.1,
                     color: active ? ac : 'var(--text)',
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                     {item.name}
                   </div>
-                  <div style={{ fontSize:10, color:'var(--muted)', marginTop:2,
-                    whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                    {item.desc}
-                  </div>
-
                   <div style={{ display:'flex', alignItems:'center',
-                    justifyContent:'space-between', marginTop:8 }}>
+                    justifyContent:'space-between', marginTop:5 }}>
                     {owned ? (
-                      <span style={{ fontSize:12, fontWeight:800,
+                      <span style={{ fontSize:10, fontWeight:800,
                         color: active ? ac : 'var(--green)' }}>
-                        {active ? '✓ EQUIPADO' : 'EQUIPAR'}
+                        {active ? '✓ EQUIP.' : 'EQUIPAR'}
                       </span>
                     ) : (
-                      <span style={{ display:'flex', alignItems:'center', gap:4,
+                      <span style={{ display:'flex', alignItems:'center', gap:3,
                         fontFamily:"'Barlow Condensed',sans-serif",
-                        fontSize:18, fontWeight:900,
+                        fontSize:15, fontWeight:900,
                         color: canBuy ? 'var(--accent)' : 'var(--muted)' }}>
                         🪙 {item.price}
                       </span>
                     )}
                     {!owned && !canBuy && (
-                      <span style={{ fontSize:9, color:'var(--red)',
-                        fontWeight:700, textTransform:'uppercase' }}>
-                        Faltan {item.price - coins}
+                      <span style={{ fontSize:8, color:'var(--red)',
+                        fontWeight:700 }}>
+                        -{item.price - coins}
                       </span>
                     )}
                   </div>

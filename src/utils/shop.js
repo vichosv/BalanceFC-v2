@@ -63,7 +63,7 @@ export const CATEGORIES = [
   { id:'accent',     label:'🎨 Acento',    desc:'Color del OVR y detalles de la carta' },
   { id:'frame',      label:'🖼️ Marco',     desc:'Efecto de borde y glow' },
   { id:'sticker',    label:'🏷️ Sticker',   desc:'Emoji bajo el símbolo de posición' },
-  { id:'background', label:'🌌 Fondo',     desc:'Fondo de la carta (sobreescribe el tier)' },
+  { id:'background', label:'🌌 Fondo de carta', desc:'Fondo de la carta (sobreescribe el tier)' },
   { id:'title',      label:'📛 Título',    desc:'Aparece en tu carta donde va la posición' },
   { id:'wallpaper',  label:'🌅 Wallpaper', desc:'Fondo de tu página de perfil' },
 ];
