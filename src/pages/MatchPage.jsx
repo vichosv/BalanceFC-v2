@@ -25,7 +25,13 @@ export default function MatchPage({ ctx }) {
 
   const isTriangular = format === 'Triangular (6v6v6)';
 
-  const filtered = players.filter(p =>
+  // Solo jugadores disponibles (excluye lesionados / no disponibles)
+  const available = players.filter(p =>
+    !p.status || p.status === 'available'
+  );
+  const unavailableCount = players.length - available.length;
+
+  const filtered = available.filter(p =>
     (p.nickname || '').toLowerCase().includes(search.toLowerCase())
   );
 
@@ -39,7 +45,7 @@ export default function MatchPage({ ctx }) {
   }
 
   function selectAll(val) {
-    setSelected(val ? new Set(players.map(p => p.uid)) : new Set());
+    setSelected(val ? new Set(available.map(p => p.uid)) : new Set());
     setTeams(null);
   }
 
@@ -139,6 +145,14 @@ export default function MatchPage({ ctx }) {
           </div>
         ))}
       </div>
+
+      {unavailableCount > 0 && (
+        <div style={{ fontSize:11, color:'var(--muted)', textAlign:'center',
+          margin:'4px 0 8px' }}>
+          🤕 {unavailableCount} jugador{unavailableCount > 1 ? 'es' : ''} no
+          disponible{unavailableCount > 1 ? 's' : ''} (lesión / baja)
+        </div>
+      )}
 
       {players.length === 0 && (
         <EmptyState

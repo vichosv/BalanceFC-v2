@@ -11,7 +11,6 @@ import StatEvolutionChart from '../components/StatEvolutionChart';
 import { computeLogros } from '../utils/logros';
 import LogrosGrid from '../components/LogrosGrid';
 import { useToast } from '../components/ToastProvider';
-import { shareNodeAsImage } from '../utils/shareImage';
 
 const POSITIONS = [
   { id:'GK',  name:'Arquero',    emoji:'🧤' },
@@ -49,24 +48,7 @@ export default function ProfilePage({ ctx }) {
   const [editing,  setEditing]  = useState(false);
   const [form,     setForm]     = useState(null);
   const [saving,   setSaving]   = useState(false);
-  const [sharing,  setSharing]  = useState(false);
   const fileRef = useRef();
-  const cardRef = useRef();
-
-  async function shareCard() {
-    if (sharing) return;
-    setSharing(true);
-    try {
-      await shareNodeAsImage(cardRef.current, {
-        filename: `${player.nickname || 'carta'}-balancefc.png`,
-        text: `${player.nickname} · OVR ${overall(player)} — BalanceFC ⚽`,
-      });
-    } catch (e) {
-      toast.error('No se pudo compartir la imagen');
-    } finally {
-      setSharing(false);
-    }
-  }
 
   function startEdit() {
     setForm({ nickname: player.nickname, position: player.position, photo: player.photo || null });
@@ -78,6 +60,18 @@ export default function ProfilePage({ ctx }) {
     if (!file) return;
     const compressed = await compressImage(file);
     setForm(f => ({ ...f, photo: compressed }));
+  }
+
+  async function setStatus(status) {
+    try {
+      await updateDoc(doc(db, 'players', user.uid), { status });
+      const lbl = status === 'injured' ? 'Lesionado'
+                : status === 'away'     ? 'No disponible'
+                : 'Disponible';
+      toast.success(`Estado: ${lbl}`, { icon: status === 'available' ? '🟢' : status === 'injured' ? '🤕' : '🚫' });
+    } catch (e) {
+      toast.error('No se pudo cambiar el estado');
+    }
   }
 
   async function saveProfile() {
@@ -135,7 +129,7 @@ export default function ProfilePage({ ctx }) {
         <div style={{ display:'flex', gap:16, alignItems:'center',
           flexWrap:'wrap', justifyContent:'center' }}>
           {/* Carta */}
-          <div ref={cardRef} style={{ width:155, flexShrink:0 }}>
+          <div style={{ width:155, flexShrink:0 }}>
             <PlayerCard player={displayPlayer} />
           </div>
 
@@ -197,17 +191,45 @@ export default function ProfilePage({ ctx }) {
           <span style={{ fontSize:13, fontWeight:700, color:'var(--accent)' }}>
             🪙 {player.coins || 0} goles
           </span>
-          <div style={{ display:'flex', gap:8 }}>
-            <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 14px' }}
-              disabled={sharing} onClick={shareCard}>
-              {sharing ? '...' : '📲 Compartir'}
-            </button>
-            {!editing && (
-              <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 14px' }}
-                onClick={startEdit}>✏️ Editar</button>
-            )}
-          </div>
+          {!editing && (
+            <button className="btn btn-gh" style={{ fontSize:12, padding:'7px 16px' }}
+              onClick={startEdit}>✏️ Editar perfil</button>
+          )}
         </div>
+      </div>
+
+      {/* ── Disponibilidad ── */}
+      <div className="card" style={{ marginBottom:12 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:'var(--muted)',
+          textTransform:'uppercase', letterSpacing:1, marginBottom:10 }}>
+          Disponibilidad
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          {[
+            { id:'available', icon:'🟢', label:'Disponible',    col:'var(--green)' },
+            { id:'injured',   icon:'🤕', label:'Lesionado',     col:'var(--orange)' },
+            { id:'away',      icon:'🚫', label:'No disponible', col:'var(--red)' },
+          ].map(s => {
+            const cur = (player.status || 'available') === s.id;
+            return (
+              <button key={s.id} onClick={() => setStatus(s.id)}
+                style={{ flex:1, padding:'10px 6px', borderRadius:10, cursor:'pointer',
+                  border:`1.5px solid ${cur ? s.col : 'var(--border2)'}`,
+                  background: cur ? 'rgba(255,255,255,.04)' : 'var(--surface2)',
+                  color: cur ? s.col : 'var(--muted)',
+                  fontWeight:700, fontSize:12, transition:'all .15s',
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                <span style={{ fontSize:18 }}>{s.icon}</span>
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+        {(player.status === 'injured' || player.status === 'away') && (
+          <div style={{ fontSize:11, color:'var(--muted)', marginTop:10, textAlign:'center' }}>
+            No aparecés para armar equipos hasta que vuelvas a <b style={{ color:'var(--green)' }}>Disponible</b>
+          </div>
+        )}
       </div>
 
       {/* ── Formulario de edición (justo bajo el botón) ── */}

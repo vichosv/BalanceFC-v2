@@ -81,6 +81,12 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
     </div>
   ));
 
+  const status  = player.status || 'available';
+  const out     = status === 'injured' || status === 'away';
+  const outInfo = status === 'injured'
+    ? { icon:'🤕', label:'LESIONADO',     col:'#ff9100' }
+    : { icon:'🚫', label:'NO DISPONIBLE', col:'#ff5252' };
+
   const wins    = player.history?.wins    ?? 0;
   const matches = player.history?.matches ?? 0;
   const goals   = player.history?.goals   ?? 0;
@@ -96,9 +102,28 @@ export default function PlayerCard({ player, onClick, badges = [], imageOnly = f
         cursor: onClick ? 'pointer' : 'default',
         ...(accentColor ? { '--card-accent': accentColor } : {}),
         ...(frameStyle || {}),
+        ...(out ? { filter:'grayscale(.85) brightness(.7)' } : {}),
       }}
     >
       <div className="fc-bg" style={backgroundStyle || undefined} />
+
+      {/* Overlay no disponible / lesionado */}
+      {out && (
+        <div style={{ position:'absolute', inset:0, zIndex:5,
+          display:'flex', flexDirection:'column', alignItems:'center',
+          justifyContent:'center', gap:6, pointerEvents:'none',
+          background:'rgba(0,0,0,.45)' }}>
+          <div style={{ fontSize:'2.4em', lineHeight:1,
+            filter:'drop-shadow(0 2px 6px rgba(0,0,0,.7))' }}>
+            {outInfo.icon}
+          </div>
+          <div style={{ fontSize:'.7em', fontWeight:900, letterSpacing:1,
+            color:'#fff', background:outInfo.col, padding:'2px 8px',
+            borderRadius:4, fontFamily:"'Barlow Condensed',sans-serif" }}>
+            {outInfo.label}
+          </div>
+        </div>
+      )}
       {player.photo && (
         <>
           <div className="fc-photo" style={{ backgroundImage: `url(${player.photo})` }} />
