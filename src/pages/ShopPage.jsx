@@ -33,6 +33,39 @@ function compressImage(file, maxPx = 400, quality = 0.85) {
   });
 }
 
+// Recorta (cover, centrado) a un tamaño exacto — para banners de wallpaper
+function cropImage(file, targetW, targetH, quality = 0.85) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const targetRatio = targetW / targetH;
+      const srcRatio    = img.width / img.height;
+      let sx, sy, sw, sh;
+      if (srcRatio > targetRatio) {
+        // más ancha: recortar los lados
+        sh = img.height;
+        sw = sh * targetRatio;
+        sx = (img.width - sw) / 2;
+        sy = 0;
+      } else {
+        // más alta: recortar arriba/abajo
+        sw = img.width;
+        sh = sw / targetRatio;
+        sx = 0;
+        sy = (img.height - sh) / 2;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW; canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = url;
+  });
+}
+
 // ── Admin helpers ─────────────────────────────────────────────
 function blankItem(category) {
   const base = { category, name:'', emoji:'⭐', price:5, desc:'' };
@@ -972,10 +1005,14 @@ export default function ShopPage({ ctx }) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        const maxPx = f.category === 'wallpaper'  ? 1200
-                                    : f.category === 'background' ? 500
-                                    : 160; // sticker
-                        const dataUrl = await compressImage(file, maxPx, 0.9);
+                        let dataUrl;
+                        if (f.category === 'wallpaper') {
+                          // Crop a banner 3:1 (1200×400)
+                          dataUrl = await cropImage(file, 1200, 400, 0.9);
+                        } else {
+                          const maxPx = f.category === 'background' ? 500 : 160;
+                          dataUrl = await compressImage(file, maxPx, 0.9);
+                        }
                         setAdminForm({ ...f, imageUrl: dataUrl });
                       }}
                       style={{ marginTop:4, fontSize:11, color:'var(--muted)' }}

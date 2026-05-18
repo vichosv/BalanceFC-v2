@@ -90,8 +90,8 @@ export default function PlayerProfileSheet({ player, onClose }) {
         <div style={{
           position:'relative',
           display:'flex', alignItems:'flex-end',
-          minHeight: wallpaperBg ? 170 : 'auto',
-          borderBottom: wallpaperBg ? '2px solid var(--accent)' : '1px solid var(--border)',
+          height: wallpaperBg ? 160 : 'auto',
+          borderBottom: wallpaperBg ? '3px solid rgba(0,0,0,.65)' : '1px solid var(--border)',
           ...(wallpaperBg ? {
             background: wallpaperBg,
             backgroundSize: 'cover',
