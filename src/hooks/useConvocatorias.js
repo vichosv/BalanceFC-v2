@@ -53,6 +53,10 @@ export async function joinConvocatoria(convId, confirmados, player) {
         timestamp: Date.now(),
       }],
     });
+    // Al sumarse a un partido, vuelve a estar disponible
+    if (player.status && player.status !== 'available') {
+      await updateDoc(doc(db, 'players', player.uid), { status: 'available' });
+    }
   } catch(e) {
     console.error('joinConvocatoria:', e);
     alert('Error al unirse: ' + e.message);
