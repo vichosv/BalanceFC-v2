@@ -108,10 +108,10 @@ export default function PlayerProfileSheet({ player, onClose }) {
           <div style={{ position:'relative', zIndex:1, width:'100%',
             display:'flex', alignItems:'center', gap:18,
             padding:'20px 22px' }}>
-            {/* Carta real (muestra marco, acento, sticker, etc.) */}
+            {/* Carta entera, solo imagen (sin info) — muestra marco */}
             <div style={{ width:96, flexShrink:0,
               filter:'drop-shadow(0 4px 12px rgba(0,0,0,.5))' }}>
-              <PlayerCard player={player} />
+              <PlayerCard player={player} imageOnly />
             </div>
 
             <div style={{ flex:1, minWidth:0 }}>

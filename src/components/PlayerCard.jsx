@@ -48,7 +48,7 @@ function Radar({ p, size = 120 }) {
   );
 }
 
-export default function PlayerCard({ player, onClick, badges = [] }) {
+export default function PlayerCard({ player, onClick, badges = [], imageOnly = false }) {
   const items = useShopItems();
   const ov  = overall(player);
   const t   = tier(ov);
@@ -117,6 +117,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
         </div>
       )}
 
+      {!imageOnly && (
       <div className="fc-in">
         <div className="fc-top">
           <div>
@@ -168,6 +169,7 @@ export default function PlayerCard({ player, onClick, badges = [] }) {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }
