@@ -974,9 +974,8 @@ export default function ShopPage({ ctx }) {
                     <div style={{ fontSize:10, color:'var(--accent)',
                       background:'rgba(0,229,255,.06)', border:'1px solid rgba(0,229,255,.18)',
                       borderRadius:8, padding:'7px 10px', marginBottom:6, lineHeight:1.5 }}>
-                      📐 Tamaño óptimo: <b>1200×400 px</b> (relación 3:1, horizontal).
-                      Se muestra como banda superior en el perfil — usá una imagen
-                      apaisada para que no se recorte feo.
+                      📐 Banner <b>1200×480 px</b> (5:2). Al subir vas a poder
+                      elegir qué sector de la imagen se usa.
                     </div>
                   )}
                   {f.imageUrl ? (
@@ -1096,7 +1095,7 @@ export default function ShopPage({ ctx }) {
         <BannerCropper
           file={cropFile}
           outW={1200}
-          outH={400}
+          outH={480}
           onCancel={() => setCropFile(null)}
           onDone={(dataUrl) => {
             setAdminForm(prev => prev ? { ...prev, imageUrl: dataUrl } : prev);

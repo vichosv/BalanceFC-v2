@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 
 // Cropper de banner: el usuario elige qué sector de la imagen se usa.
 // Salida: dataURL JPEG de outW×outH (3:1 por defecto).
-export default function BannerCropper({ file, outW = 1200, outH = 400, onDone, onCancel }) {
+export default function BannerCropper({ file, outW = 1200, outH = 480, onDone, onCancel }) {
   const [src, setSrc]       = useState(null);
   const [nat, setNat]       = useState(null);   // { w, h } naturales
   const [box, setBox]       = useState(null);   // ventana de recorte en px de display
@@ -101,7 +101,7 @@ export default function BannerCropper({ file, outW = 1200, outH = 400, onDone, o
           Elegí el sector del banner
         </div>
         <div style={{ fontSize:11, color:'var(--muted)', marginBottom:12 }}>
-          Arrastrá el recuadro para elegir qué parte de la imagen se usa (3:1).
+          Arrastrá el recuadro para elegir qué parte de la imagen se usa (5:2).
         </div>
 
         <div ref={wrapRef} style={{ position:'relative', width:'100%',
