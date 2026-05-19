@@ -136,7 +136,16 @@ export default function MatchPage({ ctx }) {
           <div key={p.uid}
             className={`sel-chip ${selected.has(p.uid) ? 'sel-chip--on' : ''}`}
             onClick={() => togglePlayer(p.uid)}>
-            <span style={{ fontSize:18 }}>{p.emoji || '⚽'}</span>
+            <div style={{
+              width:38, height:38, borderRadius:'50%',
+              background: p.photo
+                ? `url(${p.photo}) center/cover`
+                : 'linear-gradient(145deg,#07183a,#0d2560)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:16, border:'2px solid var(--border2)', flexShrink:0,
+            }}>
+              {!p.photo && (p.emoji || '⚽')}
+            </div>
             <span style={{ fontSize:11, fontWeight:700, overflow:'hidden',
               textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>
               {p.nickname}
