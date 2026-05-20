@@ -48,10 +48,10 @@ function applyTeamStats(team, wins, playerStats, sid, mult, updates) {
       [`seasons.${sid}.goals`]:   increment(goals),
       [`seasons.${sid}.assists`]: increment(assists),
     } : {};
-    // 🪙 Monedas: +2 por partido + 1 por gol + 1 si gana (solo al agregar)
-    const coinUpdate = mult > 0
-      ? { coins: increment(2 + (ps.goals || 0) + (wins ? 1 : 0)) }
-      : {};
+    // 🪙 Monedas: +2 por partido + 1 por gol + 1 si gana.
+    // Al borrar el partido (mult < 0) se restan las mismas monedas.
+    const earned = 2 + (ps.goals || 0) + (wins ? 1 : 0);
+    const coinUpdate = { coins: increment(mult > 0 ? earned : -earned) };
     updates.push(updateDoc(doc(db, 'players', p.uid), { ...global, ...seasonal, ...coinUpdate }));
   });
 }
