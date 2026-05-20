@@ -7,6 +7,7 @@ import { useShopItems } from '../hooks/useShopItems';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 import { useBets, placeBet } from '../hooks/useBets';
 import { useToast } from '../components/ToastProvider';
+import EmptyState from '../components/EmptyState';
 
 // Un item está "en Firestore" si tiene createdAt o updatedAt (default puro no los tiene)
 const isFirestoreItem = item => !!(item.createdAt || item.updatedAt);
