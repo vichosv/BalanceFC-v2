@@ -39,7 +39,7 @@ async function compressImage(file, maxPx = 500) {
 }
 
 export default function ProfilePage({ ctx }) {
-  const { user, isAdmin, logout } = ctx;
+  const { user, isAdmin, isAdminReal, viewAsPlayer, setViewAsPlayer, logout } = ctx;
   const { player, loading } = usePlayer(user?.uid);
   const { matches } = useMatches();
   const shopItems = useShopItems();
@@ -337,6 +337,17 @@ export default function ProfilePage({ ctx }) {
           </div>
         );
       })()}
+
+      {/* ── Toggle admin: ver como jugador ── */}
+      {isAdminReal && (
+        <button className="btn btn-gh btn-full"
+          style={{ marginBottom:8,
+            color: viewAsPlayer ? 'var(--accent)' : 'var(--text)',
+            borderColor: viewAsPlayer ? 'var(--accent)' : 'var(--border2)' }}
+          onClick={() => setViewAsPlayer(v => !v)}>
+          {viewAsPlayer ? '⚡ Volver a modo admin' : '👁️ Ver como jugador'}
+        </button>
+      )}
 
       {/* ── Cerrar sesión ── */}
       <button className="btn btn-gh btn-full"
