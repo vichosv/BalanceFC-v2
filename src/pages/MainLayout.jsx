@@ -4,6 +4,7 @@ import { usePlayers } from '../hooks/usePlayer';
 import { useMatches } from '../hooks/useMatches';
 import { useGameNotifications } from '../hooks/useGameNotifications';
 import { ToastProvider } from '../components/ToastProvider';
+import ErrorBoundary from '../components/ErrorBoundary';
 import NavBar        from '../components/NavBar';
 import HomePage      from './HomePage';
 import PlayersPage   from './PlayersPage';
@@ -51,14 +52,16 @@ function Shell() {
       )}
 
       <div className="page-content">
-        {tab === 'inicio'    && <HomePage    ctx={ctx} onNavigate={setTab} />}
-        {tab === 'jugadores' && <PlayersPage ctx={ctx} />}
-        {tab === 'partido'   && <MatchPage   ctx={ctx} />}
-        {tab === 'historial' && <HistoryPage ctx={ctx} />}
-        {tab === 'ranking'   && <RankingPage ctx={ctx} />}
-        {tab === 'tienda'    && <ShopPage     ctx={ctx} />}
-        {tab === 'conv'      && <ConvPage    ctx={ctx} />}
-        {tab === 'perfil'    && <ProfilePage ctx={ctx} />}
+        <ErrorBoundary key={tab}>
+          {tab === 'inicio'    && <HomePage    ctx={ctx} onNavigate={setTab} />}
+          {tab === 'jugadores' && <PlayersPage ctx={ctx} />}
+          {tab === 'partido'   && <MatchPage   ctx={ctx} />}
+          {tab === 'historial' && <HistoryPage ctx={ctx} />}
+          {tab === 'ranking'   && <RankingPage ctx={ctx} />}
+          {tab === 'tienda'    && <ShopPage     ctx={ctx} />}
+          {tab === 'conv'      && <ConvPage    ctx={ctx} />}
+          {tab === 'perfil'    && <ProfilePage ctx={ctx} />}
+        </ErrorBoundary>
       </div>
       <NavBar active={tab} onChange={setTab} />
     </div>
