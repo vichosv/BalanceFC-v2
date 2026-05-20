@@ -59,7 +59,8 @@ export default function OnboardingPage({ user, onComplete }) {
 
         {/* Header */}
         <div className="anim-fade-up" style={{ textAlign:'center', marginBottom:32 }}>
-          <div className="anim-logo" style={{ fontSize:52, marginBottom:8 }}>⚽</div>
+          <img src="/favicon.svg" alt="" className="anim-logo"
+            style={{ width:58, height:58, marginBottom:8 }} />
           <div style={{ fontFamily:'Barlow Condensed', fontSize:32, fontWeight:900, letterSpacing:1,
             background:'linear-gradient(135deg, #fff 0%, var(--accent) 65%)',
             WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>

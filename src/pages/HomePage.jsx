@@ -94,7 +94,8 @@ export default function HomePage({ ctx, onNavigate }) {
       {/* ── Hero ── */}
       <div className="anim-fade-up" style={{ textAlign:'center', padding:'24px 0 24px',
         marginBottom:16 }}>
-        <div className="anim-logo" style={{ fontSize:54, marginBottom:6 }}>⚽</div>
+        <img src="/favicon.svg" alt="" className="anim-logo"
+          style={{ width:60, height:60, marginBottom:6 }} />
         <div style={{ fontFamily:"'Barlow Condensed',sans-serif",
           fontSize:40, fontWeight:900, letterSpacing:2, lineHeight:1,
           background:'linear-gradient(135deg,#fff 0%,var(--accent) 70%)',

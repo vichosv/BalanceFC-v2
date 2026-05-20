@@ -55,9 +55,8 @@ export default function LoginPage() {
 
       {/* ── Hero ── */}
       <div className="anim-fade-up" style={{ textAlign:'center', padding:'64px 24px 36px' }}>
-        <div className="anim-logo" style={{ fontSize:76, marginBottom:14 }}>
-          ⚽
-        </div>
+        <img src="/favicon.svg" alt="BalanceFC" className="anim-logo"
+          style={{ width:84, height:84, marginBottom:14 }} />
         <h1 style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:'clamp(48px,10vw,88px)',
           fontWeight:900, letterSpacing:2, margin:0, lineHeight:1,
           background:'linear-gradient(135deg, #fff 0%, var(--accent) 60%)',

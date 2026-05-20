@@ -25,7 +25,7 @@ export default function NavBar({ active, onChange }) {
         {/* Logo — solo desktop (sidebar). Clic → Inicio */}
         <div className="nav-logo" onClick={() => go('inicio')}
           style={{ cursor:'pointer' }}>
-          <span style={{ fontSize:24 }}>⚽</span>
+          <img src="/favicon.svg" alt="" width="26" height="26" />
           <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:20,
             fontWeight:900, letterSpacing:1, color:'var(--accent)' }}>BalanceFC</span>
         </div>
@@ -33,7 +33,7 @@ export default function NavBar({ active, onChange }) {
         {/* Barra compacta — solo móvil */}
         <div className="nav-trigger">
           <button className="nav-trigger-home" onClick={() => go('inicio')}>
-            <span style={{ fontSize:20 }}>⚽</span>
+            <img src="/favicon.svg" alt="" width="22" height="22" />
             <span style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:16,
               fontWeight:900, letterSpacing:.5, color:'var(--accent)' }}>BalanceFC</span>
           </button>
