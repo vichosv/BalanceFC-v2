@@ -135,22 +135,36 @@ export default function MatchPage({ ctx }) {
         {filtered.map(p => (
           <div key={p.uid}
             className={`sel-chip ${selected.has(p.uid) ? 'sel-chip--on' : ''}`}
-            onClick={() => togglePlayer(p.uid)}>
-            <div style={{
-              width:38, height:38, borderRadius:'50%',
+            onClick={() => togglePlayer(p.uid)}
+            style={{
+              position:'relative', aspectRatio:'1', padding:0, overflow:'hidden',
+              display:'block',
               background: p.photo
                 ? `url(${p.photo}) center/cover`
                 : 'linear-gradient(145deg,#07183a,#0d2560)',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              fontSize:16, border:'2px solid var(--border2)', flexShrink:0,
             }}>
-              {!p.photo && (p.emoji || '⚽')}
+            {!p.photo && (
+              <div style={{ position:'absolute', inset:0, display:'flex',
+                alignItems:'center', justifyContent:'center', fontSize:30 }}>
+                {p.emoji || '⚽'}
+              </div>
+            )}
+            {/* Nombre + OVR sobre la imagen */}
+            <div style={{ position:'absolute', left:0, right:0, bottom:0,
+              padding:'14px 6px 5px',
+              background:'linear-gradient(to top, rgba(0,0,0,.9), transparent)',
+              display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:4 }}>
+              <span style={{ fontSize:11, fontWeight:800, color:'#fff', lineHeight:1.1,
+                textShadow:'0 1px 3px #000', overflow:'hidden',
+                textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {p.nickname}
+              </span>
+              <span style={{ fontFamily:'Barlow Condensed', fontSize:14, fontWeight:900,
+                color:'var(--accent)', lineHeight:1, textShadow:'0 1px 3px #000',
+                flexShrink:0 }}>
+                {overall(p)}
+              </span>
             </div>
-            <span style={{ fontSize:11, fontWeight:700, overflow:'hidden',
-              textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>
-              {p.nickname}
-            </span>
-            <span style={{ fontSize:10, color:'var(--muted)' }}>{overall(p)}</span>
           </div>
         ))}
       </div>
