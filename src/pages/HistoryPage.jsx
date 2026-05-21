@@ -3,6 +3,7 @@ import { useMatches, logMatch, deleteMatch, updateMatch, setMatchVideo, castVote
 import { useSeasons, createSeason, closeSeason, deleteSeason } from '../hooks/useSeasons';
 import { overall } from '../utils/stats';
 import EmptyState from '../components/EmptyState';
+import MatchMoments from '../components/MatchMoments';
 
 const FORMATS    = ['Libre','4v4','5v5','6v6','7v7','Triangular (6v6v6)'];
 const TEAM_COLOR = { A:'var(--green)', B:'var(--blue)', C:'var(--orange)' };
@@ -869,6 +870,9 @@ function MatchCard({ m, players, isAdmin, onEdit, onDelete, userId }) {
           )}
         </div>
       )}
+
+      {/* ── Momentos (requiere video) ── */}
+      <MatchMoments match={m} userId={userId} isAdmin={isAdmin} />
     </div>
   );
 }

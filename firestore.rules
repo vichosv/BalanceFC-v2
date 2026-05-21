@@ -158,6 +158,16 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ──────────────── MOMENTS ────────────────
+    // Comentarios/momentos de un partido (gol/atajada/errado/blooper)
+    match /moments/{momentId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.uid == uid();
+      allow update: if isAuth() && resource.data.uid == uid();
+      // Borra el dueño o un admin
+      allow delete: if isAuth() && (resource.data.uid == uid() || isAdmin());
+    }
+
     // Bloqueo por defecto
     match /{document=**} {
       allow read, write: if false;
