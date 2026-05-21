@@ -1,8 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Anillo pentagonal -->
-  <polygon points="50,4 95,36.5 77.8,89.5 22.2,89.5 5,36.5"
-    fill="none" stroke="#15336b" stroke-width="9" stroke-linejoin="round" />
-  <!-- Estrella de 5 puntas -->
-  <polygon points="50,22 57.35,41.89 78.53,42.73 61.89,55.86 67.63,76.27 50,64.5 32.37,76.27 38.11,55.86 21.47,42.73 42.65,41.89"
-    fill="#15336b" stroke="#15336b" stroke-width="2" stroke-linejoin="round" />
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 200 201" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(0.975,0,0,0.962435,3.912664,5.702747)">
+        <path d="M98.551,20.548L178.724,79.889L148.101,175.905L49.002,175.905L18.378,79.889L98.551,20.548Z" style="fill:rgb(13,52,119);"/>
+    </g>
+    <g transform="matrix(1.05102,0,0,1,-21.562622,-9.55449)">
+        <path d="M115.411,36.881C125.779,70.094 155.517,92.581 189.07,92.581C161.925,113.108 150.566,149.493 160.935,182.707C133.789,162.18 97.032,162.18 69.887,182.707C80.256,149.493 68.897,113.108 41.752,92.581C75.305,92.581 105.042,70.094 115.411,36.881Z" style="fill:white;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-0.658585,-7.903014)">
+        <path d="M100.395,73.761L140.231,102.431L125.015,148.819L75.775,148.819L60.559,102.431L100.395,73.761Z" style="fill:rgb(13,52,119);"/>
+    </g>
 </svg>
