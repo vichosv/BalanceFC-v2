@@ -6,26 +6,7 @@ ranking, convocatorias, tienda cosmética y apuestas internas con monedas
 
 ## Stack en una imagen
 
-```
-┌─────────────────────┐   git push   ┌──────────────┐   build/serve   ┌──────────────┐
-│ Tu PC               │ ──────────►  │   GitHub     │  ─────────────► │   Vercel     │
-│  (código en /src)   │              │ vichosv/...  │   (auto-deploy) │  balancefc.* │
-└─────────────────────┘              └──────────────┘                 └──────┬───────┘
-                                                                             │ HTTPS
-                                                                             ▼
-                                                              ┌──────────────────────────┐
-                                                              │  Usuario (PWA / Web)     │
-                                                              │  React + Vite + SW       │
-                                                              └────────┬─────────────────┘
-                                                                       │  SDK Firebase
-                                                                       ▼
-                                                              ┌──────────────────────────┐
-                                                              │  Firebase (tu proyecto)  │
-                                                              │  • Auth (Google)         │
-                                                              │  • Firestore (datos)     │
-                                                              │  • Hosting de íconos     │
-                                                              └──────────────────────────┘
-```
+![Stack BalanceFC](docs/stack-diagram.png)
 
 ---
 

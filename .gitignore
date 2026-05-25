@@ -25,3 +25,4 @@ dist-ssr
 
 # Script auxiliar para generar el PDF
 _build_pdf.py
+_build_diagram.py
