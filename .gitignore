@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Script auxiliar para generar el PDF
+_build_pdf.py

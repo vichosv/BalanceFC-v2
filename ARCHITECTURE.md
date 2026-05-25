@@ -120,16 +120,87 @@ Trade-offs conocidos:
 
 ---
 
-## 6. Cómo cambiar algo (resumen)
+## 6. Archivos necesarios
 
-| Querés cambiar... | Tocás... | Cómo se publica |
-|-------------------|----------|-----------------|
-| UI, texto, layout | `src/pages/*` o `src/components/*` | git push → Vercel deploya |
-| Lógica de datos | `src/hooks/*` o `src/utils/*` | git push → Vercel |
-| Reglas de seguridad | `firestore.rules` | Manual: Firebase Console → Rules → Publish |
-| Defaults de la tienda | `src/utils/shop.js` (`DEFAULT_SHOP_ITEMS`) | git push |
-| Items custom de tienda | Desde la UI (admin → +Agregar/✏️ editar) | Se guarda en Firestore en vivo |
+Estos son los archivos que **no pueden faltar** para que la app corra y se deploye:
+
+**Raíz del proyecto**
+- `package.json` — declara las dependencias (React, Vite, Firebase, etc.) y los scripts (`dev`, `build`).
+- `package-lock.json` — snapshot exacto de versiones (lo lee Vercel).
+- `vite.config.js` — config de Vite + plugin PWA (genera el service worker y el manifest).
+- `index.html` — punto de entrada HTML (incluye favicon, meta tags PWA y carga `main.jsx`).
+- `firestore.rules` — reglas de seguridad de la DB (versionadas en git; se publican manualmente en Firebase Console).
+- `.gitignore` — qué no se sube (node_modules, .env, dist).
+
+**`public/`** (assets estáticos)
+- `favicon.svg` — logo (tab del navegador, ícono PWA, hero, navbar).
+
+**`src/`** (código fuente)
+- `main.jsx` — entrada React, monta `<App />` + registra el SW.
+- `App.jsx` — decide qué pantalla mostrar (login / onboarding / app).
+- `index.css` — estilos globales (fondo hexagonal, animaciones, glass, etc.).
+- `firebase/config.js` — config de Firebase leído desde variables de entorno.
+- `pages/` — una página por pestaña (HomePage, MatchPage, etc.).
+- `components/` — reusables (PlayerCard, NavBar, EmptyState, ErrorBoundary, Toast, etc.).
+- `hooks/` — capa de datos (useAuth, useMatches, useShopItems, useBets, useMoments, etc.).
+- `utils/` — lógica pura (stats, logros, shop, teams, challenges).
+
+**Variables de entorno** (en Vercel y en `.env` local — no se suben a git)
+```
+VITE_FB_API_KEY=...
+VITE_FB_AUTH_DOMAIN=...
+VITE_FB_PROJECT_ID=...
+VITE_FB_STORAGE_BUCKET=...
+VITE_FB_MESSAGING_SENDER_ID=...
+VITE_FB_APP_ID=...
+```
+
+**Generados automáticamente** (no se editan a mano):
+- `dist/` — build de producción (lo genera `npm run build`, lo sirve Vercel).
+- `node_modules/` — dependencias instaladas (gitignored).
+
+---
+
+## 7. Nuestro flujo de trabajo
+
+**Para hacer cualquier cambio en la app:**
+
+```
+1.  Editar archivos en src/ (o firestore.rules, vite.config.js, etc.)
+       │
+2.  git add . && git commit -m "qué cambió"
+       │
+3.  git push origin main
+       │
+4.  Vercel detecta el push automáticamente:
+       │   - corre npm install + npm run build
+       │   - publica dist/ a la URL pública
+       │   - tarda ~30-60s
+       │
+5.  Usuarios abren la app → la PWA detecta versión nueva → auto-update
+       │
+6.  Si tocaste firestore.rules → ENTRAR a Firebase Console:
+       Firestore Database → Rules → pegar el archivo → Publish
+```
+
+**Atajos según qué cambiás:**
+
+| Querés cambiar… | Tocás… | Cómo se publica |
+|-----------------|--------|-----------------|
+| UI, texto, layout | `src/pages/*` o `src/components/*` | git push → Vercel |
+| Lógica / hooks | `src/hooks/*` o `src/utils/*` | git push → Vercel |
+| Estilos globales | `src/index.css` | git push → Vercel |
+| Reglas de seguridad | `firestore.rules` | **Manual**: Firebase Console → Rules → Publish |
+| Defaults de la tienda | `src/utils/shop.js` (`DEFAULT_SHOP_ITEMS`) | git push → Vercel |
+| Items custom de tienda | Desde la UI (admin → +Agregar / ✏️ editar) | Se guarda en Firestore en vivo, sin deploy |
+| Logo / favicon | `public/favicon.svg` | git push → Vercel |
 | Variables de Firebase | `.env` local y vars en Vercel | Re-deploy |
+
+**Reglas de oro:**
+- Si tocás `firestore.rules`, después tenés que **publicarlas a mano** en Firebase. Vercel no las toca.
+- Los datos en Firestore (jugadores, partidos, items custom) **no se pierden** con un deploy — viven en Firebase, no en el código.
+- El **commit a `main`** dispara el deploy. No hay paso de revisión ni branch staging configurado: lo que pushes va a producción.
+- Si algo rompe la app, el **ErrorBoundary** muestra el mensaje del error en lugar de pantalla en blanco.
 
 ---
 
