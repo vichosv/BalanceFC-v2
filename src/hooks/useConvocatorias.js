@@ -41,8 +41,16 @@ export async function createConvocatoria(data) {
   });
 }
 
-export async function joinConvocatoria(convId, confirmados, player) {
+export async function joinConvocatoria(convId, confirmados, player, conv) {
   try {
+    // Si pasamos el doc completo, verificar que la inscripción esté abierta
+    if (conv) {
+      const { isInscriptionOpen } = await import('../utils/inscription');
+      if (!isInscriptionOpen(conv)) {
+        alert('La inscripción todavía no está abierta');
+        return;
+      }
+    }
     const already = (confirmados || []).some(p => p.uid === player.uid);
     if (already) return;
     await updateDoc(doc(db, 'convocatorias', convId), {

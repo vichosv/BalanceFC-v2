@@ -4,6 +4,7 @@ import { useMatches }       from '../hooks/useMatches';
 import { useSeasons }       from '../hooks/useSeasons';
 import { overall, tier }    from '../utils/stats';
 import WeeklyChallenges     from '../components/WeeklyChallenges';
+import { isInscriptionOpen, fmtInscriptionOpen } from '../utils/inscription';
 import '../components/PlayerCard.css';
 
 // ── Ranking score (igual que HistoryPage) ────────────────────
@@ -218,8 +219,15 @@ export default function HomePage({ ctx, onNavigate }) {
               </div>
             </div>
 
-            {/* Countdown */}
+            {/* Countdown + estado de inscripción */}
             <div style={{ padding:'12px 16px', textAlign:'center' }}>
+              {!isInscriptionOpen(nextConv) && (
+                <div style={{ padding:'8px 12px', borderRadius:8, marginBottom:8,
+                  background:'rgba(255,193,7,.08)', border:'1px solid rgba(255,193,7,.3)',
+                  fontSize:12, fontWeight:700, color:'#ffc107', textTransform:'capitalize' }}>
+                  ⏰ Inscripción abre el {fmtInscriptionOpen(nextConv)}
+                </div>
+              )}
               {countdown?.passed ? (
                 <div style={{ color:'var(--green)', fontWeight:700, fontSize:14 }}>¡El partido es ahora!</div>
               ) : countdown ? (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useConvocatorias, createConvocatoria, joinConvocatoria, leaveConvocatoria, deleteConvocatoria } from '../hooks/useConvocatorias';
 import { usePlayer } from '../hooks/usePlayer';
 import EmptyState from '../components/EmptyState';
+import { isInscriptionOpen, fmtInscriptionOpen } from '../utils/inscription';
 
 const FORMATS   = ['Libre','4v4','5v5','6v6','7v7','Triangular (6v6v6)'];
 const POS_EMOJI = { GK:'🧤', DEF:'🛡️', MID:'⚙️', WNG:'⚡', FWD:'🎯' };
@@ -135,6 +136,8 @@ export default function ConvPage({ ctx }) {
         const isIn   = conv.confirmados?.some(p => p.uid === user?.uid);
         const isOpen = expanded === conv.id;
         const total  = conv.confirmados?.length || 0;
+        const inscOpen = isInscriptionOpen(conv);
+        const inscOpenLabel = fmtInscriptionOpen(conv);
 
         return (
           <div key={conv.id} className="card conv-card">
@@ -205,9 +208,21 @@ export default function ConvPage({ ctx }) {
                 {/* Action button */}
                 {player && (
                   <div style={{ marginTop:12 }}>
-                    {!isIn ? (
+                    {!inscOpen && !isIn ? (
+                      <div style={{ padding:'12px 14px', borderRadius:10,
+                        background:'rgba(255,193,7,.08)', border:'1px solid rgba(255,193,7,.3)',
+                        textAlign:'center' }}>
+                        <div style={{ fontSize:13, fontWeight:700, color:'#ffc107',
+                          textTransform:'capitalize' }}>
+                          ⏰ Inscripción abre el {inscOpenLabel}
+                        </div>
+                        <div style={{ fontSize:11, color:'var(--muted)', marginTop:4 }}>
+                          Volvé ese día para confirmar tu lugar
+                        </div>
+                      </div>
+                    ) : !isIn ? (
                       <button className="btn btn-ac btn-full"
-                        onClick={() => joinConvocatoria(conv.id, conv.confirmados || [], player)}>
+                        onClick={() => joinConvocatoria(conv.id, conv.confirmados || [], player, conv)}>
                         ✅ Voy
                       </button>
                     ) : (
