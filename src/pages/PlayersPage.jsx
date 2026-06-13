@@ -4,7 +4,7 @@ import { db } from '../firebase/config';
 import PlayerCard from '../components/PlayerCard';
 import PlayerProfileSheet from '../components/PlayerProfileSheet';
 import '../components/PlayerCard.css';
-import { overall, SK } from '../utils/stats';
+import { overall, SK, defaultStatsForPosition } from '../utils/stats';
 import { seedDummyPlayers } from '../utils/seedPlayers';
 import EmptyState from '../components/EmptyState';
 import { MANUAL_LOGROS, TIER_COLOR } from '../utils/logros';
@@ -116,6 +116,37 @@ export default function PlayersPage({ ctx }) {
         <>
           <input placeholder="🔍 Buscar..." value={search}
             onChange={e => setSearch(e.target.value)} style={{ marginBottom:10 }} />
+
+          {/* Reset masivo por posición */}
+          <button
+            onClick={async () => {
+              const ok1 = confirm(
+                `Vas a PISAR los stats de TODOS los jugadores (${players.length}) ` +
+                `con los defaults de su posición.\n\n` +
+                `Se pierde toda la evolución acumulada por partidos.\n\n` +
+                `¿Continuar?`
+              );
+              if (!ok1) return;
+              const ok2 = confirm('¿Seguro? Esta acción NO se puede deshacer.');
+              if (!ok2) return;
+              try {
+                await Promise.all(players.map(p =>
+                  updateDoc(doc(db, 'players', p.uid), {
+                    ...defaultStatsForPosition(p.position),
+                    statHistory: [], // limpiamos la evolución vieja
+                  })
+                ));
+                alert(`Listo. ${players.length} jugadores actualizados.`);
+              } catch (e) {
+                alert('Error: ' + (e.message || 'no se pudo actualizar'));
+              }
+            }}
+            style={{ width:'100%', padding:'10px', marginBottom:14,
+              background:'rgba(255,82,82,.08)', border:'1.5px dashed var(--red)',
+              borderRadius:10, color:'var(--red)', fontWeight:700, fontSize:12,
+              cursor:'pointer' }}>
+            🔄 Resetear stats de TODOS según su posición
+          </button>
 
           {sorted.map(p => (
             <div key={p.uid} className="card" style={{ marginBottom:10, padding:12 }}>
