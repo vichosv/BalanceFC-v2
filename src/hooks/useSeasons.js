@@ -20,13 +20,14 @@ export function useSeasons() {
   return { seasons, activeSeason, loading };
 }
 
-export async function createSeason(name, createdBy, endDate = null) {
+export async function createSeason(name, createdBy, startDate = null, endDate = null) {
   return addDoc(collection(db, 'seasons'), {
     name,
     status:    'open',
     createdBy,
     createdAt: Date.now(),
-    ...(endDate ? { endDate } : {}),
+    ...(startDate ? { startDate } : {}),
+    ...(endDate   ? { endDate }   : {}),
   });
 }
 

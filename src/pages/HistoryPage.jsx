@@ -55,8 +55,9 @@ export default function HistoryPage({ ctx }) {
 
   // ── Season form ──
   const [showSeasonForm, setShowSeasonForm] = useState(false);
-  const [seasonName,     setSeasonName]     = useState('');
-  const [seasonEndDate,  setSeasonEndDate]  = useState('');
+  const [seasonName,      setSeasonName]      = useState('');
+  const [seasonStartDate, setSeasonStartDate] = useState('');
+  const [seasonEndDate,   setSeasonEndDate]   = useState('');
   const [savingSeason,   setSavingSeason]   = useState(false);
 
   // ── Match form ──
@@ -139,8 +140,10 @@ export default function HistoryPage({ ctx }) {
   async function handleCreateSeason() {
     if (!seasonName.trim()) return;
     setSavingSeason(true);
-    await createSeason(seasonName.trim(), user.uid, seasonEndDate || null);
-    setSeasonName(''); setSeasonEndDate(''); setShowSeasonForm(false); setSavingSeason(false);
+    await createSeason(seasonName.trim(), user.uid,
+      seasonStartDate || null, seasonEndDate || null);
+    setSeasonName(''); setSeasonStartDate(''); setSeasonEndDate('');
+    setShowSeasonForm(false); setSavingSeason(false);
   }
 
   async function handleDeleteSeason(id, name) {
@@ -433,9 +436,15 @@ export default function HistoryPage({ ctx }) {
                     textTransform:'uppercase', letterSpacing:1, marginBottom:4 }}>Temporada activa</div>
                   <div style={{ fontWeight:700, fontSize:16 }}>{activeSeason.name}</div>
                   <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>
-                    Desde {fmtDate(activeSeason.createdAt)}
-                    {activeSeason.endDate && ` · Hasta ${new Date(activeSeason.endDate + 'T00:00:00')
-                      .toLocaleDateString('es-CL', { day:'numeric', month:'short', year:'numeric' })}`}
+                    {(() => {
+                      const fmt = d => new Date(d + 'T00:00:00')
+                        .toLocaleDateString('es-CL', { day:'numeric', month:'short', year:'numeric' });
+                      const start = activeSeason.startDate
+                        ? fmt(activeSeason.startDate)
+                        : fmtDate(activeSeason.createdAt);
+                      const end = activeSeason.endDate ? fmt(activeSeason.endDate) : null;
+                      return end ? `Desde ${start} · Hasta ${end}` : `Desde ${start}`;
+                    })()}
                   </div>
                 </div>
                 <button onClick={() => window.confirm('¿Cerrar esta temporada?') && closeSeason(activeSeason.id)}
@@ -465,14 +474,22 @@ export default function HistoryPage({ ctx }) {
                   <input placeholder="ej: Temporada 1 — 2026"
                     value={seasonName} onChange={e => setSeasonName(e.target.value)} />
                 </div>
-                <div style={{ marginBottom:14 }}>
-                  <label>Fecha de término <span style={{ color:'var(--muted)', fontWeight:400 }}>(opcional)</span></label>
-                  <input type="date" value={seasonEndDate}
-                    onChange={e => setSeasonEndDate(e.target.value)} />
+                <div style={{ display:'flex', gap:8, marginBottom:14 }}>
+                  <div style={{ flex:1 }}>
+                    <label>Inicio <span style={{ color:'var(--muted)', fontWeight:400 }}>(opcional)</span></label>
+                    <input type="date" value={seasonStartDate}
+                      onChange={e => setSeasonStartDate(e.target.value)} />
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <label>Término <span style={{ color:'var(--muted)', fontWeight:400 }}>(opcional)</span></label>
+                    <input type="date" value={seasonEndDate}
+                      onChange={e => setSeasonEndDate(e.target.value)} />
+                  </div>
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
                   <button className="btn btn-gh" style={{ flex:1 }}
-                    onClick={() => { setShowSeasonForm(false); setSeasonName(''); setSeasonEndDate(''); }}>
+                    onClick={() => { setShowSeasonForm(false); setSeasonName('');
+                      setSeasonStartDate(''); setSeasonEndDate(''); }}>
                     Cancelar
                   </button>
                   <button className="btn btn-ac" style={{ flex:2 }}
@@ -499,7 +516,15 @@ export default function HistoryPage({ ctx }) {
                       {s.name}
                     </div>
                     <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>
-                      {fmtDate(s.createdAt)} → {fmtDate(s.closedAt || s.endDate)}
+                      {(() => {
+                        const fmtD = d => new Date(d + 'T00:00:00')
+                          .toLocaleDateString('es-CL', { day:'numeric', month:'short', year:'2-digit' });
+                        const start = s.startDate ? fmtD(s.startDate) : fmtDate(s.createdAt);
+                        const end   = s.endDate
+                          ? fmtD(s.endDate)
+                          : fmtDate(s.closedAt);
+                        return `${start} → ${end}`;
+                      })()}
                     </div>
                   </div>
                   <button onClick={() => handleDeleteSeason(s.id, s.name)}
