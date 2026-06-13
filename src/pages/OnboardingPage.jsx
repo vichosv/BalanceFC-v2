@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { defaultStatsForPosition } from '../utils/stats';
 
 const POSITIONS = [
   { id:'GK',  name:'Arquero',     emoji:'🧤' },
@@ -10,7 +11,6 @@ const POSITIONS = [
   { id:'FWD', name:'Delantero',   emoji:'🎯' },
 ];
 
-const BASE_STATS = { vel:50, tec:50, def:50, tir:50, sta:50, fis:50 };
 
 export default function OnboardingPage({ user, onComplete }) {
   const [step,     setStep]     = useState(1); // 1=nickname, 2=position, 3=photo
@@ -30,7 +30,8 @@ export default function OnboardingPage({ user, onComplete }) {
         photo:    null,
         photos:   [],
         emoji:    '⚽',
-        ...BASE_STATS,
+        // Stats con sesgo según la posición elegida
+        ...defaultStatsForPosition(position),
         createdAt: Date.now(),
         logros:   [],
       };

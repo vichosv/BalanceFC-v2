@@ -26,6 +26,18 @@ export const smartScore = (p) => {
   return Math.round(raw * 10) / 10;
 };
 
+// ── Defaults por posición (onboarding) ────────────────────
+// Pequeño sesgo según el rol. La evolución por partidos los va moviendo.
+export const POSITION_DEFAULTS = {
+  GK:  { vel:45, tec:50, def:70, tir:40, sta:55, fis:60 }, // arquero
+  DEF: { vel:50, tec:50, def:70, tir:45, sta:60, fis:65 }, // defensor
+  MID: { vel:55, tec:60, def:55, tir:55, sta:65, fis:55 }, // mediocampo
+  WNG: { vel:70, tec:65, def:45, tir:60, sta:60, fis:50 }, // extremo
+  FWD: { vel:65, tec:55, def:40, tir:70, sta:55, fis:55 }, // delantero
+};
+export const defaultStatsForPosition = (pos) =>
+  POSITION_DEFAULTS[pos] || POSITION_DEFAULTS.MID;
+
 // ── Tier ──────────────────────────────────────────────────
 export const tier = (ov) => {
   if (ov >= 90) return 'legend';
