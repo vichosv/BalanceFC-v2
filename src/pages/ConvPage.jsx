@@ -50,6 +50,9 @@ function shareConvocatoria(conv, titulares, reserva) {
     });
   }
 
+  lines.push('');
+  lines.push('Sumate en: ' + window.location.origin);
+
   const text = encodeURIComponent(lines.join('\n'));
   window.open('https://wa.me/?text=' + text, '_blank');
 }

@@ -5,7 +5,6 @@ import PlayerCard from '../components/PlayerCard';
 import PlayerProfileSheet from '../components/PlayerProfileSheet';
 import '../components/PlayerCard.css';
 import { overall, SK, defaultStatsForPosition } from '../utils/stats';
-import { seedDummyPlayers } from '../utils/seedPlayers';
 import EmptyState from '../components/EmptyState';
 import { MANUAL_LOGROS, TIER_COLOR } from '../utils/logros';
 
@@ -62,12 +61,6 @@ export default function PlayersPage({ ctx }) {
           {players.length} jugadores
           {isAdmin && <span style={{ marginLeft:6, color:'var(--accent)', fontWeight:700 }}>· Admin</span>}
         </div>
-        {isAdmin && (
-          <button className="btn btn-gh" style={{ fontSize:11, padding:'4px 10px' }}
-            onClick={() => seedDummyPlayers()}>
-            🧪 Cargar demo
-          </button>
-        )}
       </div>
 
       {/* Tabs (solo admin ve la de stats) */}
