@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useConvocatorias, createConvocatoria, joinConvocatoria, leaveConvocatoria, deleteConvocatoria } from '../hooks/useConvocatorias';
+import { useConvocatorias, createConvocatoria, joinConvocatoria, leaveConvocatoria, deleteConvocatoria, addGuestToConvocatoria } from '../hooks/useConvocatorias';
 import { usePlayer } from '../hooks/usePlayer';
 import EmptyState from '../components/EmptyState';
 import { isInscriptionOpen, fmtInscriptionOpen } from '../utils/inscription';
@@ -238,6 +238,22 @@ export default function ConvPage({ ctx }) {
                     )}
                   </div>
                 )}
+
+                {/* Agregar invitado (jugador no registrado) */}
+                <button
+                  onClick={() => {
+                    const name = prompt('Nombre del invitado:');
+                    if (!name || !name.trim()) return;
+                    const posInput = prompt('Posición (GK / DEF / MID / WNG / FWD):', 'MID');
+                    const pos = ['GK','DEF','MID','WNG','FWD'].includes((posInput || '').toUpperCase())
+                      ? posInput.toUpperCase() : 'MID';
+                    addGuestToConvocatoria(conv.id, conv.confirmados || [], name, pos);
+                  }}
+                  style={{ width:'100%', marginTop:8, padding:'10px', borderRadius:8,
+                    border:'1px dashed var(--border2)', background:'transparent',
+                    color:'var(--muted)', cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                  ➕ Agregar invitado
+                </button>
 
                 {/* Share WhatsApp */}
                 <button

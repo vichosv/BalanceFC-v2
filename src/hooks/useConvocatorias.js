@@ -71,6 +71,26 @@ export async function joinConvocatoria(convId, confirmados, player, conv) {
   }
 }
 
+export async function addGuestToConvocatoria(convId, confirmados, nickname, position = 'MID') {
+  try {
+    const name = (nickname || '').trim();
+    if (!name) return;
+    const guest = {
+      uid:       'guest-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      nickname:  name,
+      position,
+      timestamp: Date.now(),
+      guest:     true,
+    };
+    await updateDoc(doc(db, 'convocatorias', convId), {
+      confirmados: [...(confirmados || []), guest],
+    });
+  } catch(e) {
+    console.error('addGuestToConvocatoria:', e);
+    alert('Error al agregar invitado: ' + e.message);
+  }
+}
+
 export async function leaveConvocatoria(convId, confirmados, uid) {
   try {
     await updateDoc(doc(db, 'convocatorias', convId), {
